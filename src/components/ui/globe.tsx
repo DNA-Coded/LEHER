@@ -23,7 +23,7 @@ const Globe: React.FC = () => {
               backgroundImage: "url('https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/globe.jpeg')",
               backgroundSize: "cover",
               backgroundPosition: "left center",
-              animation: "earthRotate 40s linear infinite",
+              animation: "earthRotate 60s linear infinite",
             }}
           >
             {/* Soft Ocean Depth Overlay */}

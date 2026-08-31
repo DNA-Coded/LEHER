@@ -124,8 +124,21 @@ export default function SamudraXLandingPage() {
       }
     });
 
-    const currentPos = calculatedPositions[newActiveSection] || calculatedPositions[0];
-    const transform = `translate3d(${currentPos.left}vw, ${currentPos.top}vh, 0) translate3d(-50%, -50%, 0) scale3d(${currentPos.scale}, ${currentPos.scale}, 1)`;
+    // Continuous smooth interpolation between section positions for reduced movement speed
+    const numSections = calculatedPositions.length - 1;
+    const continuousIndex = progress * numSections;
+    const i = Math.min(Math.floor(continuousIndex), numSections - 1);
+    const t = continuousIndex - i;
+    const iNext = Math.min(i + 1, numSections);
+
+    const posA = calculatedPositions[i] || calculatedPositions[0];
+    const posB = calculatedPositions[iNext] || posA;
+
+    const currentLeft = posA.left + (posB.left - posA.left) * t;
+    const currentTop = posA.top + (posB.top - posA.top) * t;
+    const currentScale = posA.scale + (posB.scale - posA.scale) * t;
+
+    const transform = `translate3d(${currentLeft.toFixed(2)}vw, ${currentTop.toFixed(2)}vh, 0) translate3d(-50%, -50%, 0) scale3d(${currentScale.toFixed(3)}, ${currentScale.toFixed(3)}, 1)`;
     
     setGlobeTransform(transform);
     setActiveSection(newActiveSection);
@@ -327,9 +340,10 @@ export default function SamudraXLandingPage() {
 
       {/* 3D GLOBE BACKDROP (Hidden when fullscreen or at 3D workbench section) */}
       <div
-        className="fixed z-10 pointer-events-none will-change-transform transition-all duration-[1000ms] ease-out"
+        className="fixed z-10 pointer-events-none will-change-transform"
         style={{
           transform: globeTransform,
+          transition: "transform 2.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
           opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : activeSection === 0 ? 0.95 : activeSection < 6 ? 0.65 : 0.2,
         }}
       >
