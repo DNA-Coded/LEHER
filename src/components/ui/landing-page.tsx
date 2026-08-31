@@ -545,8 +545,7 @@ export default function SamudraXLandingPage() {
       >
         <div 
           className={cn(
-            "transition-all duration-1000 ease-out transform space-y-6",
-            activeSection === 5 ? "opacity-100 scale-100 translate-y-0" : "opacity-30 scale-95 translate-y-8 pointer-events-none"
+            "transition-all duration-700 ease-out transform space-y-6 w-full opacity-100 scale-100 translate-y-0"
           )}
         >
           <div className="flex flex-wrap justify-between items-end gap-4 border-b border-[#222222] pb-6">
