@@ -7,7 +7,8 @@ import {
   Pause, 
   Maximize2,
   Globe as GlobeIcon,
-  Clock
+  Clock,
+  Menu
 } from "lucide-react";
 
 const defaultGlobeConfig = {
@@ -30,6 +31,7 @@ export default function SamudraXLandingPage() {
   const [globeTransform, setGlobeTransform] = useState("");
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [realTimeClock, setRealTimeClock] = useState<string>("");
 
   // Ticking Real-Time UTC Clock
@@ -210,40 +212,93 @@ export default function SamudraXLandingPage() {
             <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors cursor-pointer">Platform</button>
           </div>
 
-          {/* Action CTA */}
-          <div className="flex items-center">
+          {/* Action CTA & Hamburger Menu */}
+          <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsPlatformOpen(true)}
-              className="px-6 py-2.5 rounded-xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all shadow-md cursor-pointer"
+              className="hidden sm:inline-flex px-6 py-2.5 rounded-xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all shadow-md cursor-pointer"
             >
               Launch Platform
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2.5 rounded-xl bg-[#141414] hover:bg-[#222222] border border-[#262626] text-white flex items-center gap-2 cursor-pointer transition-all"
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* RIGHT SIDE NAVIGATION DOTS */}
-      <div className="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 z-30 flex-col gap-4">
-        {['Hero', 'Spatio-Temporal', 'Data Integration', 'Profiles', 'Capabilities', 'Model vs Reality', 'Platform Preview'].map((label, idx) => (
-          <div key={idx} className="group relative flex items-center justify-end">
-            <span className="absolute right-7 px-2.5 py-1 rounded bg-[#161616] text-[#cccccc] text-xs font-mono border border-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-              {label}
-            </span>
-            <div 
-              onClick={() => {
-                const el = sectionRefs.current[idx];
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className={cn(
-                "w-2.5 h-2.5 rounded-full transition-all cursor-pointer",
-                activeSection === idx 
-                  ? "bg-white ring-4 ring-white/10" 
-                  : "border border-neutral-600 bg-transparent hover:border-neutral-400"
-              )}
-            />
+      {/* HAMBURGER MENU OVERLAY */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 top-20 z-40 bg-[#080808]/95 backdrop-blur-xl border-b border-[#222222] p-6 flex flex-col justify-between transition-all duration-300 animate-in fade-in slide-in-from-top-4">
+          <div className="space-y-6 max-w-xl mx-auto w-full pt-4">
+            <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
+              <span>Navigation Menu</span>
+              <span className="text-emerald-400">{realTimeClock}</span>
+            </div>
+            <div className="flex flex-col gap-3 text-base sm:text-lg font-semibold text-[#cccccc]">
+              <button 
+                onClick={() => { scrollToSection('section-story'); setIsMobileMenuOpen(false); }} 
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <span>Explore SamudraX</span>
+                <span className="text-xs font-mono text-[#666666]">01</span>
+              </button>
+              <button 
+                onClick={() => { scrollToSection('section-data'); setIsMobileMenuOpen(false); }} 
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <span>Data Integration</span>
+                <span className="text-xs font-mono text-[#666666]">02</span>
+              </button>
+              <button 
+                onClick={() => { scrollToSection('section-capabilities'); setIsMobileMenuOpen(false); }} 
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <span>Platform Capabilities</span>
+                <span className="text-xs font-mono text-[#666666]">03</span>
+              </button>
+              <button 
+                onClick={() => { scrollToSection('section-model'); setIsMobileMenuOpen(false); }} 
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <span>Model vs Reality</span>
+                <span className="text-xs font-mono text-[#666666]">04</span>
+              </button>
+              <button 
+                onClick={() => { scrollToSection('section-preview'); setIsMobileMenuOpen(false); }} 
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <span>3D Operational Workbench</span>
+                <span className="text-xs font-mono text-[#666666]">05</span>
+              </button>
+            </div>
+
+            <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button 
+                onClick={() => { setIsPlatformOpen(true); setIsMobileMenuOpen(false); }} 
+                className="w-full py-3.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-lg text-center"
+              >
+                Launch Workbench
+              </button>
+              <button 
+                onClick={() => { setIsEarthFullscreen(true); setIsMobileMenuOpen(false); }} 
+                className="w-full py-3.5 rounded-xl bg-[#181818] border border-[#2e2e2e] text-white font-medium text-xs hover:bg-[#252525] transition-all cursor-pointer text-center flex items-center justify-center gap-2"
+              >
+                <GlobeIcon className="w-4 h-4 text-cyan-400" />
+                <span>Fullscreen 3D Earth</span>
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+
+          <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818]">
+            SamudraX 3D Ocean Intelligence • INCOIS
+          </div>
+        </div>
+      )}
 
       {/* 3D GLOBE BACKDROP (Hidden when fullscreen or at 3D workbench section) */}
       <div
