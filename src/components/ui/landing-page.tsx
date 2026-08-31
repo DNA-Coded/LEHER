@@ -11,6 +11,17 @@ import {
   Menu
 } from "lucide-react";
 
+export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
+
+const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
+  IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
+  UTC: { name: 'UTC / GMT (Universal)', timeZone: 'UTC', offsetLabel: 'UTC+00:00' },
+  EST: { name: 'EST (US Eastern)', timeZone: 'America/New_York', offsetLabel: 'UTC-05:00' },
+  PST: { name: 'PST (US Pacific)', timeZone: 'America/Los_Angeles', offsetLabel: 'UTC-08:00' },
+  JST: { name: 'JST (Japan Standard)', timeZone: 'Asia/Tokyo', offsetLabel: 'UTC+09:00' },
+  SGT: { name: 'SGT (Singapore)', timeZone: 'Asia/Singapore', offsetLabel: 'UTC+08:00' },
+};
+
 const defaultGlobeConfig = {
   positions: [
     { top: "50%", left: "72%", scale: 1.15 }, // 0: Hero
@@ -32,21 +43,35 @@ export default function SamudraXLandingPage() {
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>("");
 
-  // Ticking Real-Time UTC Clock
+  // Ticking Real-Time Multi-TimeZone Clock (IST default)
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const isoStr = now.toISOString();
-      const datePart = isoStr.substring(0, 10);
-      const timePart = isoStr.substring(11, 19);
-      setRealTimeClock(`${datePart} ${timePart} UTC`);
+      try {
+        const options: Intl.DateTimeFormatOptions = {
+          timeZone: timeZoneMap[selectedTimeZone].timeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        };
+        const formatter = new Intl.DateTimeFormat('en-CA', options);
+        const formatted = formatter.format(now).replace(', ', ' ');
+        setRealTimeClock(`${formatted} ${selectedTimeZone}`);
+      } catch {
+        setRealTimeClock(`${now.toISOString().substring(0, 19).replace('T', ' ')} ${selectedTimeZone}`);
+      }
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedTimeZone]);
 
   // Interactive State for Model vs Reality Widget
   const [selectedDepth, setSelectedDepth] = useState<number>(250);
@@ -212,8 +237,25 @@ export default function SamudraXLandingPage() {
             <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors cursor-pointer">Platform</button>
           </div>
 
-          {/* Action CTA & Hamburger Menu */}
+          {/* Action CTA, Timezone Selector & Hamburger Menu */}
           <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
+              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{realTimeClock}</span>
+              <select
+                value={selectedTimeZone}
+                onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+                className="bg-[#1f1f1f] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
+                title="Select Time Zone"
+              >
+                {Object.entries(timeZoneMap).map(([tz, info]) => (
+                  <option key={tz} value={tz}>
+                    {tz} ({info.offsetLabel})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button 
               onClick={() => setIsPlatformOpen(true)}
               className="hidden sm:inline-flex px-6 py-2.5 rounded-xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all shadow-md cursor-pointer"
@@ -235,9 +277,23 @@ export default function SamudraXLandingPage() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 top-20 z-40 bg-[#080808]/95 backdrop-blur-xl border-b border-[#222222] p-6 flex flex-col justify-between transition-all duration-300 animate-in fade-in slide-in-from-top-4">
           <div className="space-y-6 max-w-xl mx-auto w-full pt-4">
-            <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
+            <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center flex-wrap gap-2">
               <span>Navigation Menu</span>
-              <span className="text-emerald-400">{realTimeClock}</span>
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{realTimeClock}</span>
+                <select
+                  value={selectedTimeZone}
+                  onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+                  className="bg-[#181818] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer"
+                >
+                  {Object.entries(timeZoneMap).map(([tz, info]) => (
+                    <option key={tz} value={tz}>
+                      {tz} ({info.offsetLabel})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="flex flex-col gap-3 text-base sm:text-lg font-semibold text-[#cccccc]">
               <button 
@@ -685,8 +741,23 @@ export default function SamudraXLandingPage() {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-white font-bold">SAMUDRAX 3D WORKBENCH ENGINE</span>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-[#aaaaaa]">{realTimeClock}</span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-[#aaaaaa]">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{realTimeClock}</span>
+                <select
+                  value={selectedTimeZone}
+                  onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+                  className="bg-[#1f1f1f] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
+                  title="Select Time Zone"
+                >
+                  {Object.entries(timeZoneMap).map(([tz, info]) => (
+                    <option key={tz} value={tz}>
+                      {tz} ({info.offsetLabel})
+                    </option>
+                  ))}
+                </select>
+              </div>
               <button
                 onClick={() => setIsEarthFullscreen(true)}
                 className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-sans text-xs flex items-center gap-1.5 transition-all cursor-pointer"
@@ -937,11 +1008,28 @@ export default function SamudraXLandingPage() {
               </div>
 
               {/* Ticking Clock Widget */}
-              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-1">
-                <div className="text-[10px] font-mono text-[#888888] uppercase tracking-wider">Real-Time Telemetry Clock</div>
+              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
+                <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
+                  <span>Real-Time Clock</span>
+                  <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
+                </div>
                 <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
                   <Clock className="w-4 h-4 text-emerald-400" />
                   <span>{realTimeClock}</span>
+                </div>
+                <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
+                  <label className="text-[11px] text-[#aaaaaa]">Timezone:</label>
+                  <select
+                    value={selectedTimeZone}
+                    onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+                    className="bg-[#1f1f1f] text-white text-xs font-mono rounded-lg px-2 py-1 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
+                  >
+                    {Object.entries(timeZoneMap).map(([tz, info]) => (
+                      <option key={tz} value={tz}>
+                        {tz} ({info.offsetLabel})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1082,11 +1170,28 @@ export default function SamudraXLandingPage() {
               </div>
 
               {/* Ticking Clock Widget */}
-              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-1">
-                <div className="text-[10px] font-mono text-[#888888] uppercase tracking-wider">System Real-Time Clock</div>
+              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
+                <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
+                  <span>System Clock</span>
+                  <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
+                </div>
                 <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
                   <Clock className="w-4 h-4 text-emerald-400" />
                   <span>{realTimeClock}</span>
+                </div>
+                <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
+                  <label className="text-[11px] text-[#aaaaaa]">Timezone:</label>
+                  <select
+                    value={selectedTimeZone}
+                    onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+                    className="bg-[#1f1f1f] text-white text-xs font-mono rounded-lg px-2 py-1 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
+                  >
+                    {Object.entries(timeZoneMap).map(([tz, info]) => (
+                      <option key={tz} value={tz}>
+                        {tz} ({info.offsetLabel})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
