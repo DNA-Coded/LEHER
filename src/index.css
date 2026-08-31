@@ -2,26 +2,27 @@
 @import "tw-animate-css";
 
 :root {
-  --background: 224 71.4% 4.1%;
-  --foreground: 210 20% 98%;
-  --card: 224 71.4% 6.5%;
-  --card-foreground: 210 20% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --radius: 0.5rem;
+  --background: #080808;
+  --foreground: #ffffff;
+  --card: #121212;
+  --border: #222222;
+  --radius: 0.75rem;
 }
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --color-background: #030712;
-  --color-foreground: #f8fafc;
-  --color-card: #0b0f19;
-  --color-border: #1e293b;
+  --color-background: #080808;
+  --color-foreground: #ffffff;
+  --color-card: #121212;
+  --color-border: #222222;
 }
 
 body {
-  background-color: #030712;
-  color: #f8fafc;
+  background-color: #080808;
+  background-image: radial-gradient(circle at 40% 50%, #141414 0%, #050505 70%, #000000 100%);
+  background-attachment: fixed;
+  color: #ffffff;
   min-height: 100vh;
   margin: 0;
   overflow-x: hidden;
@@ -35,12 +36,12 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #030712;
+  background: #080808;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #222222;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #333333;
 }
