@@ -6,7 +6,8 @@ import {
   Play, 
   Pause, 
   Maximize2,
-  Globe as GlobeIcon
+  Globe as GlobeIcon,
+  Clock
 } from "lucide-react";
 
 const defaultGlobeConfig = {
@@ -29,6 +30,21 @@ export default function SamudraXLandingPage() {
   const [globeTransform, setGlobeTransform] = useState("");
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
+  const [realTimeClock, setRealTimeClock] = useState<string>("");
+
+  // Ticking Real-Time UTC Clock
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const isoStr = now.toISOString();
+      const datePart = isoStr.substring(0, 10);
+      const timePart = isoStr.substring(11, 19);
+      setRealTimeClock(`${datePart} ${timePart} UTC`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Interactive State for Model vs Reality Widget
   const [selectedDepth, setSelectedDepth] = useState<number>(250);
@@ -187,11 +203,11 @@ export default function SamudraXLandingPage() {
 
           {/* Nav Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#aaaaaa]">
-            <button onClick={() => scrollToSection('section-story')} className="hover:text-white transition-colors">Explore</button>
-            <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors">Data</button>
-            <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors">Capabilities</button>
-            <button onClick={() => scrollToSection('section-model')} className="hover:text-white transition-colors">Model vs Reality</button>
-            <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors">Platform</button>
+            <button onClick={() => scrollToSection('section-story')} className="hover:text-white transition-colors cursor-pointer">Explore</button>
+            <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors cursor-pointer">Data</button>
+            <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors cursor-pointer">Capabilities</button>
+            <button onClick={() => scrollToSection('section-model')} className="hover:text-white transition-colors cursor-pointer">Model vs Reality</button>
+            <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors cursor-pointer">Platform</button>
           </div>
 
           {/* Action CTA */}
@@ -229,12 +245,12 @@ export default function SamudraXLandingPage() {
         ))}
       </div>
 
-      {/* 3D GLOBE BACKDROP */}
+      {/* 3D GLOBE BACKDROP (Hidden when fullscreen or at 3D workbench section) */}
       <div
         className="fixed z-10 pointer-events-none will-change-transform transition-all duration-[1000ms] ease-out"
         style={{
           transform: globeTransform,
-          opacity: activeSection === 6 ? 0 : activeSection === 0 ? 0.95 : activeSection < 6 ? 0.65 : 0.2,
+          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : activeSection === 0 ? 0.95 : activeSection < 6 ? 0.65 : 0.2,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100">
@@ -590,7 +606,6 @@ export default function SamudraXLandingPage() {
 
       {/* ========================================================
           SECTION 6: PLATFORM PREVIEW WITH CENTER 3D EARTH WORKBENCH
-          (THEN COMES PLATFORM PREVIEW WITH 3D EARTH IN THE CENTER)
          ======================================================== */}
       <section 
         id="section-preview"
@@ -616,7 +631,7 @@ export default function SamudraXLandingPage() {
               <span className="text-white font-bold">SAMUDRAX 3D WORKBENCH ENGINE</span>
             </div>
             <div className="flex items-center gap-4">
-              <span>ACTIVE REGION: Indian Ocean & Arabian Sea</span>
+              <span className="text-[#aaaaaa]">{realTimeClock}</span>
               <button
                 onClick={() => setIsEarthFullscreen(true)}
                 className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-sans text-xs flex items-center gap-1.5 transition-all cursor-pointer"
@@ -694,7 +709,7 @@ export default function SamudraXLandingPage() {
                   {isPlaying ? <Pause className="w-3.5 h-3.5 text-emerald-400" /> : <Play className="w-3.5 h-3.5 text-white" />}
                   <span>{isPlaying ? "LIVE ANIMATION" : "PAUSED"}</span>
                 </button>
-                <span>SIMULATION TIME: REALTIME</span>
+                <span>TIMESTAMP: {realTimeClock}</span>
               </div>
             </div>
 
@@ -771,11 +786,11 @@ export default function SamudraXLandingPage() {
           <div className="md:col-span-3 space-y-2">
             <div className="text-xs font-mono uppercase text-[#888888]">Navigation</div>
             <ul className="space-y-1.5 text-xs text-[#888888]">
-              <li><button onClick={() => scrollToSection('section-story')} className="hover:text-white">Explore</button></li>
-              <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white">Data</button></li>
-              <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white">Capabilities</button></li>
-              <li><button onClick={() => scrollToSection('section-model')} className="hover:text-white">Model vs Reality</button></li>
-              <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white">Platform</button></li>
+              <li><button onClick={() => scrollToSection('section-story')} className="hover:text-white cursor-pointer">Explore</button></li>
+              <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white cursor-pointer">Data</button></li>
+              <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white cursor-pointer">Capabilities</button></li>
+              <li><button onClick={() => scrollToSection('section-model')} className="hover:text-white cursor-pointer">Model vs Reality</button></li>
+              <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white cursor-pointer">Platform</button></li>
             </ul>
           </div>
 
@@ -792,65 +807,250 @@ export default function SamudraXLandingPage() {
       </footer>
 
       {/* ========================================================
-          FULLSCREEN EARTH MODAL
+          FULLSCREEN 3D EARTH WORKBENCH MODAL
+          (RIGHT-SIDE CONTROLS, REAL-TIME CLOCK, FULL CANVAS)
          ======================================================== */}
       {isEarthFullscreen && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-          <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-10">
-            <span className="font-bold text-lg text-white flex items-center gap-2">
-              <GlobeIcon className="w-5 h-5 text-cyan-400" />
-              <span>SamudraX Global 3D Interactive Earth Engine</span>
-            </span>
-            <button 
-              onClick={() => setIsEarthFullscreen(false)}
-              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+        <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col overflow-hidden">
+          {/* Header Bar */}
+          <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20">
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-lg text-white flex items-center gap-2">
+                <GlobeIcon className="w-5 h-5 text-cyan-400" />
+                <span>SamudraX 3D Ocean Intelligence Engine</span>
+              </span>
+              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>REALTIME STREAM ACTIVE</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-lg border border-[#262626]">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{realTimeClock}</span>
+              </div>
+              <button 
+                onClick={() => setIsEarthFullscreen(false)}
+                className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#282828] text-[#cccccc] hover:text-white transition-all cursor-pointer"
+                title="Close Fullscreen"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-          <iframe
-            src={getEarthIframeUrl(workbenchVar)}
-            title="SamudraX Global 3D Earth Fullscreen"
-            className="flex-1 w-full border-0"
-          />
+
+          {/* Main Workspace Area */}
+          <div className="flex-1 flex relative overflow-hidden">
+            {/* 3D Earth Canvas (Left / Center Area) */}
+            <div className="flex-1 h-full relative bg-[#040404]">
+              <iframe
+                key={workbenchVar}
+                src={getEarthIframeUrl(workbenchVar)}
+                title="SamudraX Global 3D Earth Fullscreen"
+                className="w-full h-full border-0 absolute inset-0"
+              />
+
+              {/* Bottom Real-Time Controls Bar */}
+              <div className="absolute bottom-4 left-4 right-4 z-10 bg-[#080808]/85 backdrop-blur-md px-5 py-3 rounded-2xl border border-[#262626] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-3">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setIsPlaying(!isPlaying)} 
+                    className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center gap-2 transition-all cursor-pointer border border-[#333333]"
+                  >
+                    {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
+                    <span>{isPlaying ? "LIVE PAUSE" : "RESUME"}</span>
+                  </button>
+                  <span className="text-white font-bold">MODE: REALTIME VECTOR STREAM</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-[#cccccc]">
+                  <span>OVERLAY: <strong className="text-cyan-400 uppercase">{workbenchVar}</strong></span>
+                  <span>•</span>
+                  <span>DEPTH: <strong className="text-white">{workbenchDepth}m</strong></span>
+                  <span>•</span>
+                  <span className="text-emerald-400 font-bold">{realTimeClock}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE CONTROL WORKBENCH PANEL */}
+            <div className="w-80 lg:w-96 bg-[#0c0c0c] border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl">
+              <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Control Workbench</h3>
+                <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded border border-cyan-800/40">LIVE CONTROL</span>
+              </div>
+
+              {/* Ticking Clock Widget */}
+              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-1">
+                <div className="text-[10px] font-mono text-[#888888] uppercase tracking-wider">Real-Time Telemetry Clock</div>
+                <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-400" />
+                  <span>{realTimeClock}</span>
+                </div>
+              </div>
+
+              {/* Variable Selector */}
+              <div className="space-y-2.5">
+                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable Layer</label>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Temperature</button>
+                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
+                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Chlorophyll</button>
+                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
+                </div>
+              </div>
+
+              {/* Depth Slice Control */}
+              <div className="space-y-2.5">
+                <div className="flex justify-between text-xs font-mono text-[#888888]">
+                  <span>Depth Slice Level</span>
+                  <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
+                </div>
+                <input 
+                  type="range" min="0" max="2000" step="10" 
+                  value={workbenchDepth} 
+                  onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
+                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] font-mono text-[#666666]">
+                  <span>Surface (0m)</span>
+                  <span>Thermocline (500m)</span>
+                  <span>Abyssal (2000m)</span>
+                </div>
+              </div>
+
+              {/* Layer Toggles */}
+              <div className="space-y-2 text-xs font-mono">
+                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Observation Layers</label>
+                {Object.entries(activeLayers).map(([k, v]) => (
+                  <label key={k} className="flex justify-between items-center p-2.5 rounded-xl bg-[#141414] border border-[#222222] cursor-pointer hover:border-[#333333]">
+                    <span className="capitalize text-[#cccccc] font-sans text-xs">{k} Stream</span>
+                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer w-4 h-4" />
+                  </label>
+                ))}
+              </div>
+
+              {/* Real-time Instrument Telemetry */}
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
+                <div className="border-b border-[#222222] pb-2">
+                  <div className="text-[10px] text-[#888888] uppercase">IN-SITU TELEMETRY</div>
+                  <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
+                  <div className="text-[#666666] text-[11px]">Arabian Sea (15.4°N, 71.2°E)</div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+                    <span className="text-[#888888]">Model Predicted:</span>
+                    <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
+                  </div>
+                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+                    <span className="text-[#888888]">Observed Cast:</span>
+                    <span className="text-white font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
+                  </div>
+                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+                    <span className="text-amber-400">Model Anomaly:</span>
+                    <span className="text-amber-300 font-bold">+0.4 °C</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* ========================================================
-          FULLSCREEN WORKBENCH MODAL
+          FULLSCREEN OPERATIONAL WORKBENCH MODAL
+          (RIGHT-SIDE CONTROLS, REAL-TIME CLOCK, FULL CANVAS)
          ======================================================== */}
       {isPlatformOpen && (
-        <div className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-md flex flex-col">
-          <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center">
-            <div className="flex items-center gap-3">
+        <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col overflow-hidden">
+          {/* Header Bar */}
+          <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center z-20">
+            <div className="flex items-center gap-4">
               <span className="font-bold text-lg text-white">SamudraX 3D Ocean Intelligence Workbench</span>
+              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>OPERATIONAL WORKBENCH</span>
+              </div>
             </div>
-            <button 
-              onClick={() => setIsPlatformOpen(false)}
-              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-lg border border-[#262626]">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{realTimeClock}</span>
+              </div>
+              <button 
+                onClick={() => setIsPlatformOpen(false)}
+                className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#282828] text-[#cccccc] hover:text-white transition-all cursor-pointer"
+                title="Close Workbench"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 grid grid-cols-12 p-6 gap-6 overflow-y-auto">
-            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] rounded-xl border border-[#222222] p-5 space-y-6">
-              <h3 className="text-sm font-bold text-white">Controls & Layers</h3>
+          {/* Main Area */}
+          <div className="flex-1 flex relative overflow-hidden">
+            {/* 3D Earth Canvas (Left / Center Area) */}
+            <div className="flex-1 h-full relative bg-[#040404]">
+              <iframe
+                key={workbenchVar}
+                src={getEarthIframeUrl(workbenchVar)}
+                title="SamudraX Full Workbench 3D Earth"
+                className="w-full h-full border-0 absolute inset-0"
+              />
 
-              <div className="space-y-2">
-                <label className="text-xs font-mono text-[#888888] uppercase">Variable</label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Temperature</button>
-                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Chlorophyll</button>
-                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Currents</button>
+              <div className="absolute bottom-4 left-4 right-4 z-10 bg-[#080808]/85 backdrop-blur-md px-5 py-3 rounded-2xl border border-[#262626] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-3">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setIsPlaying(!isPlaying)} className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center gap-2 transition-all cursor-pointer border border-[#333333]">
+                    {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
+                    <span>{isPlaying ? "PAUSE" : "RESUME"}</span>
+                  </button>
+                  <span className="text-white font-bold">GRID RESOLUTION: 0.25° HIGH-RES</span>
+                </div>
+                <div className="flex items-center gap-3 text-[#cccccc]">
+                  <span>VARIABLE: <strong className="text-cyan-400 uppercase">{workbenchVar}</strong></span>
+                  <span>•</span>
+                  <span>DEPTH: <strong className="text-white">{workbenchDepth}m</strong></span>
+                  <span>•</span>
+                  <span className="text-emerald-400 font-bold">{realTimeClock}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE WORKBENCH CONTROLS */}
+            <div className="w-80 lg:w-96 bg-[#0c0c0c] border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl">
+              <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Controls & Analytics</h3>
+                <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded border border-cyan-800/40">ONLINE</span>
+              </div>
+
+              {/* Ticking Clock Widget */}
+              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-1">
+                <div className="text-[10px] font-mono text-[#888888] uppercase tracking-wider">System Real-Time Clock</div>
+                <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-400" />
+                  <span>{realTimeClock}</span>
                 </div>
               </div>
 
-              <div className="space-y-2">
+              {/* Variable Selector */}
+              <div className="space-y-2.5">
+                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable</label>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Temperature</button>
+                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
+                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Chlorophyll</button>
+                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
+                </div>
+              </div>
+
+              {/* Depth Slice Control */}
+              <div className="space-y-2.5">
                 <div className="flex justify-between text-xs font-mono text-[#888888]">
                   <span>Depth Slice</span>
-                  <span className="text-white font-bold">{workbenchDepth}m</span>
+                  <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
                 </div>
                 <input 
                   type="range" min="0" max="2000" step="10" 
@@ -860,35 +1060,33 @@ export default function SamudraXLandingPage() {
                 />
               </div>
 
-              <div className="space-y-2 text-xs">
-                <label className="text-xs font-mono text-[#888888] uppercase">Active Layers</label>
+              {/* Layer Toggles */}
+              <div className="space-y-2 text-xs font-mono">
+                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Active Layers</label>
                 {Object.entries(activeLayers).map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222]">
-                    <span className="capitalize text-[#cccccc]">{k}</span>
-                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer" />
+                  <div key={k} className="flex justify-between items-center p-2.5 rounded-xl bg-[#141414] border border-[#222222]">
+                    <span className="capitalize text-[#cccccc] font-sans text-xs">{k} Stream</span>
+                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer w-4 h-4" />
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div className="col-span-12 lg:col-span-9 bg-[#060606] rounded-xl border border-[#222222] overflow-hidden flex flex-col justify-between min-h-[550px] relative">
-              <div className="bg-[#121212] px-6 py-3 border-b border-[#222222] flex justify-between items-center text-xs font-mono text-[#888888] z-10">
-                <span>ARABIAN SEA & BAY OF BENGAL 3D GRID ENGINE</span>
-                <span className="text-white">Active Overlay: {workbenchVar.toUpperCase()} @ {workbenchDepth}m</span>
-              </div>
-
-              <div className="w-full h-full min-h-[450px] relative flex-1">
-                <iframe
-                  key={workbenchVar}
-                  src={getEarthIframeUrl(workbenchVar)}
-                  title="SamudraX Full Workbench 3D Earth"
-                  className="w-full h-full border-0 absolute inset-0"
-                />
-              </div>
-
-              <div className="border-t border-[#222222] p-4 flex justify-between items-center text-xs font-mono text-[#888888] z-10 bg-[#0d0d0d]">
-                <span>Telemetry Markers Active (Argo #2902345)</span>
-                <button onClick={() => setIsPlatformOpen(false)} className="px-4 py-2 rounded-xl bg-white text-black font-bold hover:bg-neutral-200 transition-all cursor-pointer">Close Workbench</button>
+              {/* Live Telemetry */}
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
+                <div className="border-b border-[#222222] pb-2">
+                  <div className="text-[10px] text-[#888888] uppercase">SELECTED INSTRUMENT</div>
+                  <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+                    <span className="text-[#888888]">Model Predicted:</span>
+                    <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
+                  </div>
+                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+                    <span className="text-[#888888]">Observed Cast:</span>
+                    <span className="text-white font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
