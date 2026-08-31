@@ -5,26 +5,31 @@ import {
   X, 
   Play, 
   Pause, 
-  Maximize2
+  Maximize2,
+  Globe as GlobeIcon
 } from "lucide-react";
 
 const defaultGlobeConfig = {
   positions: [
-    { top: "50%", left: "72%", scale: 1.15 }, // Hero: Right side, exactly like screenshot
+    { top: "50%", left: "72%", scale: 1.15 }, // Hero: Right side
     { top: "40%", left: "78%", scale: 0.95 },  // Section 1
     { top: "28%", left: "22%", scale: 0.85 },  // Section 2
     { top: "50%", left: "80%", scale: 1.0 },   // Section 3
-    { top: "35%", left: "50%", scale: 1.1 },   // Section 4
+    { top: "35%", left: "50%", scale: 1.1 },   // Section 4 (Model vs Reality)
+    { top: "50%", left: "50%", scale: 0.0 },   // Section 5 (Global Earth - background globe hides for live 3D Earth)
+    { top: "40%", left: "80%", scale: 0.9 },   // Section 6
+    { top: "35%", left: "50%", scale: 0.8 },   // Section 7
   ]
 };
 
 const parsePercent = (str: string): number => parseFloat(str.replace('%', ''));
 
-export default function LaharLandingPage() {
+export default function SamudraXLandingPage() {
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [globeTransform, setGlobeTransform] = useState("");
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
+  const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
 
   // Interactive State for Model vs Reality Widget
   const [selectedDepth, setSelectedDepth] = useState<number>(250);
@@ -160,7 +165,7 @@ export default function LaharLandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <span className="font-bold text-2xl tracking-tight text-white">LAHAR</span>
+            <span className="font-bold text-2xl tracking-tight text-white">SamudraX</span>
             <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
               3D Ocean Intelligence
             </span>
@@ -169,12 +174,13 @@ export default function LaharLandingPage() {
           {/* Nav Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#aaaaaa]">
             <button onClick={() => scrollToSection('section-story')} className="hover:text-white transition-colors">Explore</button>
-            <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors">Capabilities</button>
             <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors">Data</button>
+            <button onClick={() => scrollToSection('section-earth')} className="hover:text-white transition-colors">Earth 3D</button>
+            <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors">Capabilities</button>
             <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors">Platform</button>
           </div>
 
-          {/* Action CTA matching screenshot button styling */}
+          {/* Action CTA */}
           <div className="flex items-center">
             <button 
               onClick={() => setIsPlatformOpen(true)}
@@ -186,9 +192,9 @@ export default function LaharLandingPage() {
         </div>
       </nav>
 
-      {/* RIGHT SIDE NAVIGATION DOTS (EXACT MATCH TO SCREENSHOT) */}
+      {/* RIGHT SIDE NAVIGATION DOTS */}
       <div className="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 z-30 flex-col gap-4">
-        {['Hero', 'Spatio-Temporal', 'Data Integration', 'Profiles', 'Model vs Reality', 'Capabilities', 'Platform'].map((label, idx) => (
+        {['Hero', 'Spatio-Temporal', 'Data Integration', 'Profiles', 'Model vs Reality', 'Global Earth 3D', 'Capabilities', 'Platform'].map((label, idx) => (
           <div key={idx} className="group relative flex items-center justify-end">
             <span className="absolute right-7 px-2.5 py-1 rounded bg-[#161616] text-[#cccccc] text-xs font-mono border border-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
               {label}
@@ -214,7 +220,7 @@ export default function LaharLandingPage() {
         className="fixed z-10 pointer-events-none will-change-transform transition-all duration-[1000ms] ease-out"
         style={{
           transform: globeTransform,
-          opacity: activeSection === 0 ? 0.95 : activeSection < 5 ? 0.65 : 0.2,
+          opacity: activeSection === 5 ? 0 : activeSection === 0 ? 0.95 : activeSection < 5 ? 0.65 : 0.2,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100">
@@ -223,14 +229,13 @@ export default function LaharLandingPage() {
       </div>
 
       {/* ========================================================
-          HERO SECTION (EXACT COMPOSITION & COLORS MATCHING SCREENSHOT)
+          HERO SECTION
          ======================================================== */}
       <section
         ref={(el) => { sectionRefs.current[0] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto"
       >
         <div className="max-w-2xl space-y-7">
-          {/* Main Heading matching screenshot hierarchy */}
           <div className="space-y-1">
             <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.05]">
               Explore
@@ -240,31 +245,29 @@ export default function LaharLandingPage() {
             </h2>
           </div>
 
-          {/* Paragraph copy matching screenshot muted grey font */}
           <p className="text-[#888888] text-base sm:text-lg font-light leading-relaxed max-w-xl">
-            LAHAR brings ocean model outputs and real-world observations together in one interactive 3D environment — across space, depth and time.
+            SamudraX brings ocean model outputs and real-world observations together in one interactive 3D environment — across space, depth and time.
           </p>
 
-          {/* Bullet metadata list matching screenshot • text */}
           <div className="text-xs text-[#666666] tracking-wide flex items-center gap-2">
             <span>• 3D Ocean Intelligence</span>
             <span>• Model & Observations</span>
-            <span>• Depth Slicing</span>
+            <span>• Global Wind & Currents</span>
           </div>
 
-          {/* Action CTAs matching screenshot buttons exactly */}
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <button 
               onClick={() => scrollToSection('section-story')}
               className="px-7 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-sm transition-all shadow-lg cursor-pointer"
             >
-              Explore LAHAR
+              Explore SamudraX
             </button>
             <button 
-              onClick={() => scrollToSection('section-capabilities')}
-              className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer"
+              onClick={() => scrollToSection('section-earth')}
+              className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer flex items-center gap-2"
             >
-              View Capabilities
+              <GlobeIcon className="w-4 h-4 text-cyan-400" />
+              <span>Interactive Earth 3D</span>
             </button>
           </div>
         </div>
@@ -351,7 +354,7 @@ export default function LaharLandingPage() {
             One Ocean. Multiple Data Sources.
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
-            LAHAR unifies numerical model outputs and real-world in-situ observation streams into one coherent 3D grid.
+            SamudraX unifies numerical model outputs and real-world in-situ observation streams into one coherent 3D grid.
           </p>
         </div>
 
@@ -532,11 +535,62 @@ export default function LaharLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 5: CAPABILITIES
+          SECTION 5: GLOBAL 3D EARTH DYNAMICS (EARTH SUBFOLDER INTEGRATION)
+          ANIMATED SCROLL TRANSITION WHEN SCROLLED PAST MODEL VS REALITY
+         ======================================================== */}
+      <section
+        id="section-earth"
+        ref={(el) => { sectionRefs.current[5] = el; }}
+        className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-12 z-20 py-20 max-w-7xl mx-auto"
+      >
+        <div 
+          className={cn(
+            "transition-all duration-1000 ease-out transform space-y-6",
+            activeSection === 5 ? "opacity-100 scale-100 translate-y-0" : "opacity-30 scale-95 translate-y-8 pointer-events-none"
+          )}
+        >
+          <div className="flex flex-wrap justify-between items-end gap-4 border-b border-[#222222] pb-6">
+            <div className="space-y-2">
+              <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
+                GLOBAL 3D ANIMATED EARTH
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+                Live Earth Wind & Weather Dynamics
+              </h2>
+              <p className="text-[#888888] text-sm font-light max-w-xl">
+                Interactive WebGL stream from SamudraX engine rendering real-time atmospheric and oceanic vector dynamics.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsEarthFullscreen(true)}
+                className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all flex items-center gap-2 cursor-pointer shadow-lg"
+              >
+                <Maximize2 className="w-4 h-4" />
+                <span>Fullscreen 3D Earth</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Earth IFrame Container */}
+          <div className="relative w-full h-[650px] rounded-3xl overflow-hidden border border-[#262626] bg-[#050505] shadow-2xl">
+            <iframe
+              src="/earth/index.html"
+              title="SamudraX Global 3D Earth"
+              className="w-full h-full border-0"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          SECTION 6: CAPABILITIES
          ======================================================== */}
       <section 
         id="section-capabilities"
-        ref={(el) => { sectionRefs.current[5] = el; }}
+        ref={(el) => { sectionRefs.current[6] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-16">
@@ -571,11 +625,11 @@ export default function LaharLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 6: PLATFORM PREVIEW
+          SECTION 7: PLATFORM PREVIEW
          ======================================================== */}
       <section 
         id="section-preview"
-        ref={(el) => { sectionRefs.current[6] = el; }}
+        ref={(el) => { sectionRefs.current[7] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-12">
@@ -583,7 +637,7 @@ export default function LaharLandingPage() {
             PLATFORM PREVIEW
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            LAHAR Operational Workbench.
+            SamudraX Operational Workbench.
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
             Experience the 3D ocean intelligence environment inside your browser.
@@ -592,7 +646,7 @@ export default function LaharLandingPage() {
 
         <div className="rounded-2xl bg-[#090909] border border-[#222222] overflow-hidden shadow-2xl">
           <div className="bg-[#121212] px-6 py-3 border-b border-[#222222] flex justify-between items-center text-xs font-mono text-[#888888]">
-            <span>LAHAR 3D WORKBENCH</span>
+            <span>SAMUDRAX 3D WORKBENCH</span>
             <span>REGION: Indian Ocean / Arabian Sea</span>
           </div>
 
@@ -624,7 +678,7 @@ export default function LaharLandingPage() {
               <div className="space-y-2 text-xs">
                 <label className="text-xs font-mono text-[#888888] uppercase">Layers</label>
                 {Object.entries(activeLayers).map(([k, v]) => (
-                  <label key={k} className="flex justify-between items-center p-2 rounded.xl bg-[#141414] border border-[#222222] cursor-pointer">
+                  <label key={k} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222] cursor-pointer">
                     <span className="capitalize text-[#cccccc]">{k}</span>
                     <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white" />
                   </label>
@@ -692,14 +746,14 @@ export default function LaharLandingPage() {
             Explore the Ocean Differently.
           </h2>
           <p className="text-[#888888] text-lg font-light leading-relaxed">
-            Bring model predictions, observations, depth and time together with LAHAR.
+            Bring model predictions, observations, depth and time together with SamudraX.
           </p>
           <div className="pt-2 flex justify-center">
             <button 
               onClick={() => setIsPlatformOpen(true)}
               className="px-8 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-bold text-sm transition-all cursor-pointer shadow-lg"
             >
-              Launch LAHAR
+              Launch SamudraX
             </button>
           </div>
         </div>
@@ -711,7 +765,7 @@ export default function LaharLandingPage() {
       <footer className="border-t border-[#222222] bg-[#050505] py-12 px-6 lg:px-12 z-20 relative">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 text-sm">
           <div className="md:col-span-6 space-y-3">
-            <div className="font-bold text-lg text-white">LAHAR</div>
+            <div className="font-bold text-lg text-white">SamudraX</div>
             <p className="text-[#888888] text-sm max-w-md">
               3D Ocean Intelligence & Visualization Platform. Built for ocean data exploration and analysis.
             </p>
@@ -724,8 +778,9 @@ export default function LaharLandingPage() {
             <div className="text-xs font-mono uppercase text-[#888888]">Navigation</div>
             <ul className="space-y-1.5 text-xs text-[#888888]">
               <li><button onClick={() => scrollToSection('section-story')} className="hover:text-white">Explore</button></li>
-              <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white">Capabilities</button></li>
               <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white">Data</button></li>
+              <li><button onClick={() => scrollToSection('section-earth')} className="hover:text-white">Earth 3D</button></li>
+              <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white">Capabilities</button></li>
               <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white">Platform</button></li>
             </ul>
           </div>
@@ -743,13 +798,38 @@ export default function LaharLandingPage() {
       </footer>
 
       {/* ========================================================
+          FULLSCREEN EARTH MODAL
+         ======================================================== */}
+      {isEarthFullscreen && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+          <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-10">
+            <span className="font-bold text-lg text-white flex items-center gap-2">
+              <GlobeIcon className="w-5 h-5 text-cyan-400" />
+              <span>SamudraX Global 3D Interactive Earth Engine</span>
+            </span>
+            <button 
+              onClick={() => setIsEarthFullscreen(false)}
+              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <iframe
+            src="/earth/index.html"
+            title="SamudraX Global 3D Earth Fullscreen"
+            className="flex-1 w-full border-0"
+          />
+        </div>
+      )}
+
+      {/* ========================================================
           FULLSCREEN WORKBENCH MODAL
          ======================================================== */}
       {isPlatformOpen && (
         <div className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-md flex flex-col">
           <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <span className="font-bold text-lg text-white">LAHAR 3D Ocean Intelligence Workbench</span>
+              <span className="font-bold text-lg text-white">SamudraX 3D Ocean Intelligence Workbench</span>
             </div>
             <button 
               onClick={() => setIsPlatformOpen(false)}
