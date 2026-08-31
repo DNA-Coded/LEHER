@@ -11,14 +11,13 @@ import {
 
 const defaultGlobeConfig = {
   positions: [
-    { top: "50%", left: "72%", scale: 1.15 }, // Hero: Right side
-    { top: "40%", left: "78%", scale: 0.95 },  // Section 1
-    { top: "28%", left: "22%", scale: 0.85 },  // Section 2
-    { top: "50%", left: "80%", scale: 1.0 },   // Section 3
-    { top: "35%", left: "50%", scale: 1.1 },   // Section 4 (Model vs Reality)
-    { top: "50%", left: "50%", scale: 0.0 },   // Section 5 (Global Earth - background globe hides for live 3D Earth)
-    { top: "40%", left: "80%", scale: 0.9 },   // Section 6
-    { top: "35%", left: "50%", scale: 0.8 },   // Section 7
+    { top: "50%", left: "72%", scale: 1.15 }, // 0: Hero
+    { top: "40%", left: "78%", scale: 0.95 }, // 1: Spatio-Temporal
+    { top: "28%", left: "22%", scale: 0.85 }, // 2: Data Integration
+    { top: "50%", left: "80%", scale: 1.0 },  // 3: Profiles
+    { top: "40%", left: "80%", scale: 0.9 },  // 4: Capabilities
+    { top: "35%", left: "50%", scale: 1.1 },  // 5: Model vs Reality
+    { top: "50%", left: "50%", scale: 0.0 },  // 6: Platform Preview (3D Earth center, background globe hidden)
   ]
 };
 
@@ -143,6 +142,21 @@ export default function SamudraXLandingPage() {
     }
   };
 
+  const getEarthIframeUrl = (varType: 'temp' | 'sal' | 'chl' | 'cur') => {
+    switch (varType) {
+      case 'cur':
+        return "/earth/index.html#current/ocean/surface/currents/orthographic";
+      case 'temp':
+        return "/earth/index.html#current/wind/surface/level/overlay=temp/orthographic";
+      case 'sal':
+        return "/earth/index.html#current/wind/surface/level/overlay=relative_humidity/orthographic";
+      case 'chl':
+        return "/earth/index.html#current/wind/surface/level/overlay=total_cloud_water/orthographic";
+      default:
+        return "/earth/index.html";
+    }
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -175,8 +189,8 @@ export default function SamudraXLandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#aaaaaa]">
             <button onClick={() => scrollToSection('section-story')} className="hover:text-white transition-colors">Explore</button>
             <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors">Data</button>
-            <button onClick={() => scrollToSection('section-earth')} className="hover:text-white transition-colors">Earth 3D</button>
             <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors">Capabilities</button>
+            <button onClick={() => scrollToSection('section-model')} className="hover:text-white transition-colors">Model vs Reality</button>
             <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors">Platform</button>
           </div>
 
@@ -194,7 +208,7 @@ export default function SamudraXLandingPage() {
 
       {/* RIGHT SIDE NAVIGATION DOTS */}
       <div className="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 z-30 flex-col gap-4">
-        {['Hero', 'Spatio-Temporal', 'Data Integration', 'Profiles', 'Model vs Reality', 'Global Earth 3D', 'Capabilities', 'Platform'].map((label, idx) => (
+        {['Hero', 'Spatio-Temporal', 'Data Integration', 'Profiles', 'Capabilities', 'Model vs Reality', 'Platform Preview'].map((label, idx) => (
           <div key={idx} className="group relative flex items-center justify-end">
             <span className="absolute right-7 px-2.5 py-1 rounded bg-[#161616] text-[#cccccc] text-xs font-mono border border-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
               {label}
@@ -220,7 +234,7 @@ export default function SamudraXLandingPage() {
         className="fixed z-10 pointer-events-none will-change-transform transition-all duration-[1000ms] ease-out"
         style={{
           transform: globeTransform,
-          opacity: activeSection === 5 ? 0 : activeSection === 0 ? 0.95 : activeSection < 5 ? 0.65 : 0.2,
+          opacity: activeSection === 6 ? 0 : activeSection === 0 ? 0.95 : activeSection < 6 ? 0.65 : 0.2,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100">
@@ -263,11 +277,11 @@ export default function SamudraXLandingPage() {
               Explore SamudraX
             </button>
             <button 
-              onClick={() => scrollToSection('section-earth')}
+              onClick={() => scrollToSection('section-preview')}
               className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer flex items-center gap-2"
             >
               <GlobeIcon className="w-4 h-4 text-cyan-400" />
-              <span>Interactive Earth 3D</span>
+              <span>3D Workbench Preview</span>
             </button>
           </div>
         </div>
@@ -339,7 +353,7 @@ export default function SamudraXLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 2: DATA INTEGRATION
+          SECTION 2: DATA INTEGRATION (DATA PART)
          ======================================================== */}
       <section
         id="section-data"
@@ -377,7 +391,7 @@ export default function SamudraXLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 3: PROFILE EXPLORER
+          SECTION 3: PROFILE EXPLORER (DATA PART CONTINUED)
          ======================================================== */}
       <section
         ref={(el) => { sectionRefs.current[3] = el; }}
@@ -462,10 +476,50 @@ export default function SamudraXLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 4: MODEL VS REALITY
+          SECTION 4: CAPABILITIES (BELOW DATA PART)
+         ======================================================== */}
+      <section 
+        id="section-capabilities"
+        ref={(el) => { sectionRefs.current[4] = el; }}
+        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
+      >
+        <div className="space-y-4 max-w-2xl mb-16">
+          <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
+            CAPABILITIES
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+            Everything the Ocean Is Telling You.
+          </h2>
+          <p className="text-[#888888] leading-relaxed text-base font-light">
+            Designed for oceanographers, researchers, and decision support teams.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { title: "3D Volumetric Visualization", desc: "Explore ocean variables across the full water column." },
+            { title: "Depth Slices", desc: "Move layer by layer to analyze thermocline structures." },
+            { title: "Time Animation", desc: "Watch ocean conditions evolve over time." },
+            { title: "Observation Overlay", desc: "Visualize Argo floats and gliders alongside model fields." },
+            { title: "Model vs Observation", desc: "Compare predictions with actual measurements." },
+            { title: "Scientific Profiles", desc: "Inspect temperature, salinity, and chlorophyll profiles against depth." },
+            { title: "Custom Visualization", desc: "Control color scales, opacity, and vertical exaggeration." },
+            { title: "Extensible Architecture", desc: "Ready for additional sensors and NetCDF datasets." }
+          ].map((item, idx) => (
+            <div key={idx} className="p-6 rounded-2xl bg-[#121212] border border-[#222222] space-y-2">
+              <h3 className="text-base font-bold text-white">{item.title}</h3>
+              <p className="text-[#888888] text-sm leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================
+          SECTION 5: MODEL VS REALITY (THEN MODEL AND REALITY)
          ======================================================== */}
       <section
-        ref={(el) => { sectionRefs.current[4] = el; }}
+        id="section-model"
+        ref={(el) => { sectionRefs.current[5] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-12">
@@ -494,7 +548,7 @@ export default function SamudraXLandingPage() {
                   key={v}
                   onClick={() => setSelectedVar(v)}
                   className={cn(
-                    "px-4 py-1.5 rounded-xl text-xs font-mono uppercase transition-all",
+                    "px-4 py-1.5 rounded-xl text-xs font-mono uppercase transition-all cursor-pointer",
                     selectedVar === v ? "bg-white text-black font-bold" : "bg-[#0a0a0a] text-[#888888] hover:text-white border border-[#222222]"
                   )}
                 >
@@ -535,201 +589,142 @@ export default function SamudraXLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 5: GLOBAL 3D EARTH DYNAMICS (EARTH SUBFOLDER INTEGRATION)
-          ANIMATED SCROLL TRANSITION WHEN SCROLLED PAST MODEL VS REALITY
+          SECTION 6: PLATFORM PREVIEW WITH CENTER 3D EARTH WORKBENCH
+          (THEN COMES PLATFORM PREVIEW WITH 3D EARTH IN THE CENTER)
          ======================================================== */}
-      <section
-        id="section-earth"
-        ref={(el) => { sectionRefs.current[5] = el; }}
+      <section 
+        id="section-preview"
+        ref={(el) => { sectionRefs.current[6] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-12 z-20 py-20 max-w-7xl mx-auto"
       >
-        <div 
-          className={cn(
-            "transition-all duration-700 ease-out transform space-y-6 w-full opacity-100 scale-100 translate-y-0"
-          )}
-        >
-          <div className="flex flex-wrap justify-between items-end gap-4 border-b border-[#222222] pb-6">
-            <div className="space-y-2">
-              <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
-                GLOBAL 3D ANIMATED EARTH
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                Live Earth Wind & Weather Dynamics
-              </h2>
-              <p className="text-[#888888] text-sm font-light max-w-xl">
-                Interactive WebGL stream from SamudraX engine rendering real-time atmospheric and oceanic vector dynamics.
-              </p>
-            </div>
+        <div className="space-y-4 max-w-2xl mb-8">
+          <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
+            PLATFORM PREVIEW
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+            SamudraX 3D Operational Workbench
+          </h2>
+          <p className="text-[#888888] leading-relaxed text-base font-light">
+            Interactive 3D ocean intelligence environment rendering live WebGL dynamics, float observations, and atmospheric-oceanic vectors.
+          </p>
+        </div>
 
-            <div className="flex items-center gap-3">
+        <div className="rounded-3xl bg-[#090909] border border-[#222222] overflow-hidden shadow-2xl">
+          <div className="bg-[#121212] px-6 py-3.5 border-b border-[#222222] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-white font-bold">SAMUDRAX 3D WORKBENCH ENGINE</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span>ACTIVE REGION: Indian Ocean & Arabian Sea</span>
               <button
                 onClick={() => setIsEarthFullscreen(true)}
-                className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all flex items-center gap-2 cursor-pointer shadow-lg"
+                className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-sans text-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
-                <Maximize2 className="w-4 h-4" />
-                <span>Fullscreen 3D Earth</span>
+                <Maximize2 className="w-3.5 h-3.5" /> Fullscreen 3D
               </button>
             </div>
           </div>
 
-          {/* Interactive Earth IFrame Container */}
-          <div className="relative w-full h-[650px] rounded-3xl overflow-hidden border border-[#262626] bg-[#050505] shadow-2xl">
-            <iframe
-              src="/earth/index.html"
-              title="SamudraX Global 3D Earth"
-              className="w-full h-full border-0"
-              loading="lazy"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 6: CAPABILITIES
-         ======================================================== */}
-      <section 
-        id="section-capabilities"
-        ref={(el) => { sectionRefs.current[6] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
-      >
-        <div className="space-y-4 max-w-2xl mb-16">
-          <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-            CAPABILITIES
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            Everything the Ocean Is Telling You.
-          </h2>
-          <p className="text-[#888888] leading-relaxed text-base font-light">
-            Designed for oceanographers, researchers, and decision support teams.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { title: "3D Volumetric Visualization", desc: "Explore ocean variables across the full water column." },
-            { title: "Depth Slices", desc: "Move layer by layer to analyze thermocline structures." },
-            { title: "Time Animation", desc: "Watch ocean conditions evolve over time." },
-            { title: "Observation Overlay", desc: "Visualize Argo floats and gliders alongside model fields." },
-            { title: "Model vs Observation", desc: "Compare predictions with actual measurements." },
-            { title: "Scientific Profiles", desc: "Inspect temperature, salinity, and chlorophyll profiles against depth." },
-            { title: "Custom Visualization", desc: "Control color scales, opacity, and vertical exaggeration." },
-            { title: "Extensible Architecture", desc: "Ready for additional sensors and NetCDF datasets." }
-          ].map((item, idx) => (
-            <div key={idx} className="p-6 rounded-2xl bg-[#121212] border border-[#222222] space-y-2">
-              <h3 className="text-base font-bold text-white">{item.title}</h3>
-              <p className="text-[#888888] text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 7: PLATFORM PREVIEW
-         ======================================================== */}
-      <section 
-        id="section-preview"
-        ref={(el) => { sectionRefs.current[7] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
-      >
-        <div className="space-y-4 max-w-2xl mb-12">
-          <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-            PLATFORM PREVIEW
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            SamudraX Operational Workbench.
-          </h2>
-          <p className="text-[#888888] leading-relaxed text-base font-light">
-            Experience the 3D ocean intelligence environment inside your browser.
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-[#090909] border border-[#222222] overflow-hidden shadow-2xl">
-          <div className="bg-[#121212] px-6 py-3 border-b border-[#222222] flex justify-between items-center text-xs font-mono text-[#888888]">
-            <span>SAMUDRAX 3D WORKBENCH</span>
-            <span>REGION: Indian Ocean / Arabian Sea</span>
-          </div>
-
-          <div className="grid grid-cols-12 min-h-[460px]">
-            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-r border-[#222222] p-6 space-y-6">
+          <div className="grid grid-cols-12 min-h-[580px]">
+            {/* Left Controls */}
+            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-r border-[#222222] p-5 space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-mono text-[#888888] uppercase">Variable</label>
+                <label className="text-xs font-mono text-[#888888] uppercase">Variable Layer</label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'temp' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Temp</button>
-                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'sal' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'chl' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Chlorophyll</button>
-                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'cur' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Currents</button>
+                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Temp</button>
+                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Salinity</button>
+                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Chlorophyll</button>
+                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Currents</button>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-mono text-[#888888]">
-                  <span>Depth</span>
-                  <span>{workbenchDepth}m</span>
+                  <span>Depth Slice</span>
+                  <span className="text-white font-bold">{workbenchDepth}m</span>
                 </div>
                 <input 
-                  type="range" min="0" max="1000" 
+                  type="range" min="0" max="1000" step="10" 
                   value={workbenchDepth} 
                   onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none"
+                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
                 />
               </div>
 
               <div className="space-y-2 text-xs">
-                <label className="text-xs font-mono text-[#888888] uppercase">Layers</label>
+                <label className="text-xs font-mono text-[#888888] uppercase">Observation Layers</label>
                 {Object.entries(activeLayers).map(([k, v]) => (
-                  <label key={k} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222] cursor-pointer">
-                    <span className="capitalize text-[#cccccc]">{k}</span>
-                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white" />
+                  <label key={k} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222] cursor-pointer hover:border-[#333333]">
+                    <span className="capitalize text-[#cccccc] font-sans">{k} Stream</span>
+                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer" />
                   </label>
                 ))}
               </div>
-            </div>
 
-            <div className="col-span-12 lg:col-span-6 bg-[#060606] p-6 flex flex-col justify-between relative">
-              <div className="flex justify-between items-center z-10">
-                <div className="text-xs font-mono text-[#888888]">Depth Slice: {workbenchDepth}m</div>
-                <button 
+              <div className="pt-2">
+                <button
                   onClick={() => setIsPlatformOpen(true)}
-                  className="px-4 py-1.5 rounded-xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
                 >
-                  <Maximize2 className="w-3 h-3" /> Fullscreen
+                  Open Full Workbench
                 </button>
-              </div>
-
-              <div className="my-auto py-12 text-center space-y-2">
-                <div className="text-white font-bold text-lg">3D Ocean Grid Volume</div>
-                <p className="text-[#888888] text-xs max-w-sm mx-auto">
-                  Interactive simulation showing ocean model output with active float locations.
-                </p>
-              </div>
-
-              <div className="flex justify-between items-center border-t border-[#222222] pt-3 text-xs font-mono text-[#888888]">
-                <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white">
-                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-                <span>TIMESTAMP: 15 Aug 2026 UTC</span>
               </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-l border-[#222222] p-6 space-y-4 text-xs font-mono">
-              <div className="border-b border-[#222222] pb-3">
-                <span className="text-[#888888] uppercase">Selected Instrument</span>
-                <h4 className="text-sm font-bold text-white font-sans mt-1">Argo Float #2902345</h4>
+            {/* Center 3D Earth Display */}
+            <div className="col-span-12 lg:col-span-6 bg-[#040404] relative flex flex-col justify-between overflow-hidden">
+              <div className="absolute top-3 left-4 z-10 bg-[#000000]/70 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc]">
+                Active Overlay: <span className="text-white uppercase font-bold">{workbenchVar}</span> @ {workbenchDepth}m Depth
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between p-2 rounded bg-[#141414] border border-[#222222]">
-                  <span className="text-[#888888]">Model Temp:</span>
-                  <span className="text-white">26.4 °C</span>
+              {/* CENTER 3D EARTH IFRAME */}
+              <div className="w-full h-full min-h-[500px] relative">
+                <iframe
+                  key={workbenchVar}
+                  src={getEarthIframeUrl(workbenchVar)}
+                  title="SamudraX Workbench 3D Earth"
+                  className="w-full h-full border-0 absolute inset-0"
+                  loading="lazy"
+                />
+              </div>
+
+              <div className="absolute bottom-3 left-4 right-4 z-10 bg-[#080808]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#262626] flex justify-between items-center text-xs font-mono text-[#888888]">
+                <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white flex items-center gap-1.5 cursor-pointer">
+                  {isPlaying ? <Pause className="w-3.5 h-3.5 text-emerald-400" /> : <Play className="w-3.5 h-3.5 text-white" />}
+                  <span>{isPlaying ? "LIVE ANIMATION" : "PAUSED"}</span>
+                </button>
+                <span>SIMULATION TIME: REALTIME</span>
+              </div>
+            </div>
+
+            {/* Right Telemetry Sidebar */}
+            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-l border-[#222222] p-5 space-y-4 text-xs font-mono">
+              <div className="border-b border-[#222222] pb-3">
+                <span className="text-[#888888] uppercase text-[10px]">SELECTED INSTRUMENT</span>
+                <h4 className="text-sm font-bold text-white font-sans mt-0.5">Argo Float #2902345</h4>
+                <div className="text-[#666666] text-[11px] mt-1">15.4°N, 71.2°E</div>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex justify-between p-2.5 rounded-lg bg-[#141414] border border-[#222222]">
+                  <span className="text-[#888888]">Model Predicted:</span>
+                  <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
                 </div>
-                <div className="flex justify-between p-2 rounded bg-[#141414] border border-[#222222]">
-                  <span className="text-white">Observed Temp:</span>
-                  <span className="text-white">25.9 °C</span>
+                <div className="flex justify-between p-2.5 rounded-lg bg-[#141414] border border-[#222222]">
+                  <span className="text-[#888888]">Instrument Observed:</span>
+                  <span className="text-white font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
                 </div>
-                <div className="flex justify-between p-2 rounded bg-[#141414] border border-[#222222]">
-                  <span className="text-amber-400">Delta:</span>
-                  <span className="text-amber-300">+0.5 °C</span>
+                <div className="flex justify-between p-2.5 rounded-lg bg-[#141414] border border-[#222222]">
+                  <span className="text-amber-400">Model Anomaly:</span>
+                  <span className="text-amber-300 font-bold">+0.4 °C</span>
                 </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] space-y-1.5">
+                <div className="text-[10px] text-[#888888] uppercase">Grid Density</div>
+                <div className="text-white text-xs font-sans font-medium">0.25° Spatio-Temporal Resolution</div>
+                <div className="text-[10px] text-emerald-400 font-mono">INCOIS High-Res Hydrodynamic Engine</div>
               </div>
             </div>
           </div>
@@ -752,7 +747,7 @@ export default function SamudraXLandingPage() {
               onClick={() => setIsPlatformOpen(true)}
               className="px-8 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-bold text-sm transition-all cursor-pointer shadow-lg"
             >
-              Launch SamudraX
+              Launch SamudraX Workbench
             </button>
           </div>
         </div>
@@ -778,8 +773,8 @@ export default function SamudraXLandingPage() {
             <ul className="space-y-1.5 text-xs text-[#888888]">
               <li><button onClick={() => scrollToSection('section-story')} className="hover:text-white">Explore</button></li>
               <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white">Data</button></li>
-              <li><button onClick={() => scrollToSection('section-earth')} className="hover:text-white">Earth 3D</button></li>
               <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white">Capabilities</button></li>
+              <li><button onClick={() => scrollToSection('section-model')} className="hover:text-white">Model vs Reality</button></li>
               <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white">Platform</button></li>
             </ul>
           </div>
@@ -808,13 +803,13 @@ export default function SamudraXLandingPage() {
             </span>
             <button 
               onClick={() => setIsEarthFullscreen(false)}
-              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white"
+              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
           <iframe
-            src="/earth/index.html"
+            src={getEarthIframeUrl(workbenchVar)}
             title="SamudraX Global 3D Earth Fullscreen"
             className="flex-1 w-full border-0"
           />
@@ -832,7 +827,7 @@ export default function SamudraXLandingPage() {
             </div>
             <button 
               onClick={() => setIsPlatformOpen(false)}
-              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white"
+              className="p-2 rounded-lg bg-[#1a1a1a] text-[#888888] hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -845,23 +840,23 @@ export default function SamudraXLandingPage() {
               <div className="space-y-2">
                 <label className="text-xs font-mono text-[#888888] uppercase">Variable</label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'temp' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Temperature</button>
-                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'sal' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'chl' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Chlorophyll</button>
-                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono", workbenchVar === 'cur' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Currents</button>
+                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Temperature</button>
+                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Salinity</button>
+                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Chlorophyll</button>
+                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold" : "bg-[#141414] border-[#222222] text-[#888888]")}>Currents</button>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-mono text-[#888888]">
                   <span>Depth Slice</span>
-                  <span>{workbenchDepth}m</span>
+                  <span className="text-white font-bold">{workbenchDepth}m</span>
                 </div>
                 <input 
                   type="range" min="0" max="2000" step="10" 
                   value={workbenchDepth} 
                   onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none"
+                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
                 />
               </div>
 
@@ -870,29 +865,30 @@ export default function SamudraXLandingPage() {
                 {Object.entries(activeLayers).map(([k, v]) => (
                   <div key={k} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222]">
                     <span className="capitalize text-[#cccccc]">{k}</span>
-                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white" />
+                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer" />
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-9 bg-[#060606] rounded-xl border border-[#222222] p-6 flex flex-col justify-between min-h-[500px]">
-              <div className="flex justify-between items-center border-b border-[#222222] pb-4">
-                <div>
-                  <h4 className="text-base font-bold text-white">Arabian Sea & Bay of Bengal 3D Grid</h4>
-                  <span className="text-xs font-mono text-[#888888]">Coordinates: 15.4°N, 71.2°E | Depth: {workbenchDepth}m</span>
-                </div>
+            <div className="col-span-12 lg:col-span-9 bg-[#060606] rounded-xl border border-[#222222] overflow-hidden flex flex-col justify-between min-h-[550px] relative">
+              <div className="bg-[#121212] px-6 py-3 border-b border-[#222222] flex justify-between items-center text-xs font-mono text-[#888888] z-10">
+                <span>ARABIAN SEA & BAY OF BENGAL 3D GRID ENGINE</span>
+                <span className="text-white">Active Overlay: {workbenchVar.toUpperCase()} @ {workbenchDepth}m</span>
               </div>
 
-              <div className="my-auto py-16 text-center space-y-2">
-                <div className="text-white font-bold text-xl">Interactive 3D WebGL Ocean Canvas</div>
-                <p className="text-[#888888] text-sm max-w-md mx-auto">
-                  Rendering 3D temperature slice at {workbenchDepth}m depth with active Argo float and Glider telemetry markers.
-                </p>
+              <div className="w-full h-full min-h-[450px] relative flex-1">
+                <iframe
+                  key={workbenchVar}
+                  src={getEarthIframeUrl(workbenchVar)}
+                  title="SamudraX Full Workbench 3D Earth"
+                  className="w-full h-full border-0 absolute inset-0"
+                />
               </div>
 
-              <div className="border-t border-[#222222] pt-4 flex justify-between items-center text-xs font-mono text-[#888888]">
-                <button onClick={() => setIsPlatformOpen(false)} className="px-4 py-2 rounded-xl bg-[#1c1c1c] text-white hover:bg-[#282828]">Close Workbench</button>
+              <div className="border-t border-[#222222] p-4 flex justify-between items-center text-xs font-mono text-[#888888] z-10 bg-[#0d0d0d]">
+                <span>Telemetry Markers Active (Argo #2902345)</span>
+                <button onClick={() => setIsPlatformOpen(false)} className="px-4 py-2 rounded-xl bg-white text-black font-bold hover:bg-neutral-200 transition-all cursor-pointer">Close Workbench</button>
               </div>
             </div>
           </div>
