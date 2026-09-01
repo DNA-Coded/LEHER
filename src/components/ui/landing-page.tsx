@@ -783,8 +783,18 @@ export default function SamudraXLandingPage() {
 
             {/* Center 3D Earth Display */}
             <div className="col-span-12 lg:col-span-6 bg-[#040404] relative flex flex-col justify-between overflow-hidden">
-              <div className="absolute top-3 left-4 z-10 bg-[#000000]/70 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc]">
-                Active Overlay: <span className="text-white uppercase font-bold">{workbenchVar}</span> @ {workbenchDepth}m Depth
+              <div className="absolute top-3 left-4 right-4 z-10 flex justify-between items-center gap-2 pointer-events-none">
+                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc] pointer-events-auto">
+                  Active Overlay: <span className="text-white uppercase font-bold">{workbenchVar}</span> @ {workbenchDepth}m Depth
+                </div>
+
+                <div className="bg-[#080808]/85 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] flex items-center gap-3 text-[11px] font-mono text-[#888888] pointer-events-auto">
+                  <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white flex items-center gap-1.5 cursor-pointer">
+                    {isPlaying ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3 text-white" />}
+                    <span className="font-semibold text-[#e0e0e0]">{isPlaying ? "LIVE" : "PAUSED"}</span>
+                  </button>
+                  <span className="text-[10px] text-[#888888] hidden sm:inline">{realTimeClock}</span>
+                </div>
               </div>
 
               {/* CENTER 3D EARTH IFRAME */}
@@ -796,14 +806,6 @@ export default function SamudraXLandingPage() {
                   className="w-full h-full border-0 absolute inset-0"
                   loading="lazy"
                 />
-              </div>
-
-              <div className="absolute bottom-3 left-4 right-4 z-10 bg-[#080808]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#262626] flex justify-between items-center text-xs font-mono text-[#888888]">
-                <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white flex items-center gap-1.5 cursor-pointer">
-                  {isPlaying ? <Pause className="w-3.5 h-3.5 text-emerald-400" /> : <Play className="w-3.5 h-3.5 text-white" />}
-                  <span>{isPlaying ? "LIVE ANIMATION" : "PAUSED"}</span>
-                </button>
-                <span>TIMESTAMP: {realTimeClock}</span>
               </div>
             </div>
 
