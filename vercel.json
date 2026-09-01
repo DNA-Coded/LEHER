@@ -1,7 +1,15 @@
 {
   "rewrites": [
     {
-      "source": "/:path*",
+      "source": "/earth",
+      "destination": "/earth/index.html"
+    },
+    {
+      "source": "/earth/",
+      "destination": "/earth/index.html"
+    },
+    {
+      "source": "/((?!earth|assets|favicon|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
