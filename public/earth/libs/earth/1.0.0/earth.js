@@ -14,7 +14,7 @@
     var HOUR = 60 * MINUTE;
     var MAX_TASK_TIME = 100;                  // amount of time before a task yields control (millis)
     var MIN_SLEEP_TIME = 25;                  // amount of time a task waits before resuming (millis)
-    var MIN_MOVE = 4;                         // slack before a drag operation beings (pixels)
+    var MIN_MOVE = 1;                         // slack before a drag operation begins (pixels)
     var MOVE_END_WAIT = 1000;                 // time to wait for a move operation to be considered done (millis)
 
     var OVERLAY_ALPHA = Math.floor(0.4*255);  // overlay transparency (on scale [0, 255])

@@ -124,7 +124,7 @@ var globes = function() {
              */
             manipulator: function(startMouse, startScale) {
                 var projection = this.projection;
-                var sensitivity = 60 / startScale;  // seems to provide a good drag scaling factor
+                var sensitivity = 150 / startScale;  // increased drag/rotation sensitivity factor
                 var rotation = [projection.rotate()[0] / sensitivity, -projection.rotate()[1] / sensitivity];
                 var original = projection.precision();
                 projection.precision(original * 10);
