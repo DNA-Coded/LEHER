@@ -1,0 +1,23 @@
+{
+    "name": "Sea Water Temperature",
+    "variable": "thetao",
+    "provider": "Copernicus Marine Service",
+    "dataset_id": "global-analysis-forecast-phy-001-024",
+    "format": "Zarr",
+    "unit": "degC",
+    "dimensions": [
+        "time",
+        "depth",
+        "latitude",
+        "longitude"
+    ],
+    "source": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/description",
+    "description": "Sea water temperature from Copernicus Marine Global Ocean Physics Analysis and Forecast",
+    "spatial_resolution": "1/12°",
+    "temporal_resolution": "Daily",
+    "time_range": "1993-present",
+    "depth_range": "0-5500m",
+    "access_method": "API subsetting via xarray",
+    "license": "Copernicus Marine Service License",
+    "attribution": "Contains modified Copernicus Marine Service information 2026"
+}
