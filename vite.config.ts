@@ -13,6 +13,9 @@ function earthRoutePlugin(): Plugin {
           if (url.pathname === '/earth' || url.pathname === '/earth/') {
             req.url = '/earth/index.html' + url.search + url.hash;
           }
+          if (url.pathname === '/globe' || url.pathname === '/globe/') {
+            req.url = '/globe/index.html' + url.search + url.hash;
+          }
         }
         next();
       });
