@@ -149,7 +149,7 @@ var products = function() {
         },
 
         "temp": {
-            matches: _.matches({param: "wind", overlayType: "temp"}),
+            matches: function(attr) { return attr.overlayType === "temp" || attr.param === "temp"; },
             create: function(attr) {
                 return buildProduct({
                     field: "scalar",
@@ -445,7 +445,7 @@ var products = function() {
         },
 
         "currents": {
-            matches: _.matches({param: "ocean", surface: "surface", level: "currents"}),
+            matches: function(attr) { return attr.level === "currents" || attr.param === "currents" || attr.param === "ocean_currents"; },
             create: function(attr) {
                 return when(catalogs.oscar).then(function(catalog) {
                     return buildProduct({

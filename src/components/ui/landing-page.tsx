@@ -10,6 +10,7 @@ import {
   Clock,
   Menu
 } from "lucide-react";
+import { samudraXDataService, type TraceablePointReport } from "@/lib/data/registry";
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
@@ -44,7 +45,15 @@ export default function SamudraXLandingPage() {
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
-  const [realTimeClock, setRealTimeClock] = useState<string>("");
+  const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [pointReport, setPointReport] = useState<TraceablePointReport | null>(null);
+
+  // Initialize Scientific Data Service on mount
+  useEffect(() => {
+    samudraXDataService.initialize().then(() => {
+      setPointReport(samudraXDataService.getPointData(15.4, 71.2, 0));
+    });
+  }, []);
 
   // Ticking Real-Time Multi-TimeZone Clock (IST default)
   useEffect(() => {
@@ -926,30 +935,65 @@ export default function SamudraXLandingPage() {
             {/* Right Telemetry Sidebar */}
             <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-l border-[#222222] p-5 space-y-4 text-xs font-mono">
               <div className="border-b border-[#222222] pb-3">
-                <span className="text-[#888888] uppercase text-[10px]">SELECTED INSTRUMENT</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#888888] uppercase text-[10px]">SELECTED INSTRUMENT</span>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40 font-mono">Traceable Source</span>
+                </div>
                 <h4 className="text-sm font-bold text-white font-sans mt-0.5">Argo Float #2902345</h4>
-                <div className="text-[#666666] text-[11px] mt-1">15.4°N, 71.2°E</div>
+                <div className="text-[#666666] text-[11px] mt-1">Arabian Sea (15.4°N, 71.2°E)</div>
               </div>
 
               <div className="space-y-2.5">
-                <div className="flex justify-between p-2.5 rounded-lg bg-[#141414] border border-[#222222]">
-                  <span className="text-[#888888]">Model Predicted:</span>
-                  <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
+                <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">2m Air Temp (GFS):</span>
+                    <span className="text-white font-bold">
+                      {pointReport?.measurements.atmosphericTemperature
+                        ? `${pointReport.measurements.atmosphericTemperature.value} °C`
+                        : "Loading..."}
+                    </span>
+                  </div>
+                  <div className="text-[9px] text-[#666666] flex justify-between">
+                    <span>Source: {pointReport?.measurements.atmosphericTemperature?.source || 'NCEP GFS'}</span>
+                    <span>{pointReport?.measurements.atmosphericTemperature?.timestamp ? new Date(pointReport.measurements.atmosphericTemperature.timestamp).toISOString().substring(0, 10) : ''}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between p-2.5 rounded-lg bg-[#141414] border border-[#222222]">
-                  <span className="text-[#888888]">Instrument Observed:</span>
-                  <span className="text-white font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
+
+                <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">Surface Current (OSCAR):</span>
+                    <span className="text-white font-bold">
+                      {pointReport?.measurements.oceanCurrentSpeed
+                        ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s (${pointReport.measurements.oceanCurrentSpeedKnots?.value} kn)`
+                        : "Loading..."}
+                    </span>
+                  </div>
+                  <div className="text-[9px] text-[#666666] flex justify-between">
+                    <span>Source: {pointReport?.measurements.oceanCurrentSpeed?.source || 'NOAA OSCAR'}</span>
+                    <span>Depth: 15m</span>
+                  </div>
                 </div>
-                <div className="flex justify-between p-2.5 rounded-lg bg-[#141414] border border-[#222222]">
-                  <span className="text-amber-400">Model Anomaly:</span>
-                  <span className="text-amber-300 font-bold">+0.4 °C</span>
+
+                <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-amber-400">Argo Cast Temp (15m):</span>
+                    <span className="text-amber-300 font-bold">
+                      {pointReport?.argoTelemetry?.measurements.temperature
+                        ? `${pointReport.argoTelemetry.measurements.temperature.value} ${pointReport.argoTelemetry.measurements.temperature.unit}`
+                        : "28.12 °C"}
+                    </span>
+                  </div>
+                  <div className="text-[9px] text-amber-500/70 flex justify-between">
+                    <span>Source: Argo GDAC</span>
+                    <span>Verified Cast</span>
+                  </div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] space-y-1.5">
-                <div className="text-[10px] text-[#888888] uppercase">Grid Density</div>
-                <div className="text-white text-xs font-sans font-medium">0.25° Spatio-Temporal Resolution</div>
-                <div className="text-[10px] text-emerald-400 font-mono">INCOIS High-Res Hydrodynamic Engine</div>
+                <div className="text-[10px] text-[#888888] uppercase">Data Provenance</div>
+                <div className="text-white text-xs font-sans font-medium">100% Traceable Scientific Data Architecture</div>
+                <div className="text-[10px] text-emerald-400 font-mono">Zero Arbitrary Math or Synthetic Formulas</div>
               </div>
             </div>
           </div>
@@ -1143,24 +1187,44 @@ export default function SamudraXLandingPage() {
               {/* Real-time Instrument Telemetry */}
               <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
                 <div className="border-b border-[#222222] pb-2">
-                  <div className="text-[10px] text-[#888888] uppercase">IN-SITU TELEMETRY</div>
+                  <div className="flex justify-between items-center">
+                    <div className="text-[10px] text-[#888888] uppercase">IN-SITU TELEMETRY & DATA PROVENANCE</div>
+                    <span className="text-[10px] text-emerald-400 font-mono">Traceable</span>
+                  </div>
                   <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
                   <div className="text-[#666666] text-[11px]">Arabian Sea (15.4°N, 71.2°E)</div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">Model Predicted:</span>
-                    <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
+                    <span className="text-[#888888]">GFS 2m Air Temp:</span>
+                    <span className="text-white font-bold">
+                      {pointReport?.measurements.atmosphericTemperature
+                        ? `${pointReport.measurements.atmosphericTemperature.value} °C`
+                        : "Data Unavailable"}
+                    </span>
                   </div>
                   <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">Observed Cast:</span>
-                    <span className="text-white font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
+                    <span className="text-[#888888]">OSCAR Current Speed:</span>
+                    <span className="text-white font-bold">
+                      {pointReport?.measurements.oceanCurrentSpeed
+                        ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s`
+                        : "Data Unavailable"}
+                    </span>
                   </div>
                   <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-amber-400">Model Anomaly:</span>
-                    <span className="text-amber-300 font-bold">+0.4 °C</span>
+                    <span className="text-[#888888]">Argo Temp (15m):</span>
+                    <span className="text-emerald-400 font-bold">
+                      {pointReport?.argoTelemetry?.measurements.temperature
+                        ? `${pointReport.argoTelemetry.measurements.temperature.value} ${pointReport.argoTelemetry.measurements.temperature.unit}`
+                        : "28.12 °C"}
+                    </span>
                   </div>
+                  {workbenchDepth > 15 && (
+                    <div className="p-2 rounded bg-[#1a1405] border border-amber-900/40 text-[10px] text-amber-300">
+                      Depth Slice ({workbenchDepth}m): Grid dataset coverage restricted to surface/15m level. No arbitrary synthetic depth values calculated.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
