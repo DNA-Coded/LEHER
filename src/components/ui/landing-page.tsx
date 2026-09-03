@@ -958,28 +958,6 @@ export default function SamudraXLandingPage() {
                 title="SamudraX Global 3D Earth Fullscreen"
                 className="w-full h-full border-0 absolute inset-0"
               />
-
-              {/* Bottom Real-Time Controls Bar */}
-              <div className="absolute bottom-4 left-4 right-4 z-10 bg-[#080808]/85 backdrop-blur-md px-5 py-3 rounded-2xl border border-[#262626] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-3">
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => setIsPlaying(!isPlaying)} 
-                    className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center gap-2 transition-all cursor-pointer border border-[#333333]"
-                  >
-                    {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
-                    <span>{isPlaying ? "LIVE PAUSE" : "RESUME"}</span>
-                  </button>
-                  <span className="text-white font-bold">MODE: REALTIME VECTOR STREAM</span>
-                </div>
-
-                <div className="flex items-center gap-3 text-[#cccccc]">
-                  <span>OVERLAY: <strong className="text-cyan-400 uppercase">{workbenchVar}</strong></span>
-                  <span>•</span>
-                  <span>DEPTH: <strong className="text-white">{workbenchDepth}m</strong></span>
-                  <span>•</span>
-                  <span className="text-emerald-400 font-bold">{realTimeClock}</span>
-                </div>
-              </div>
             </div>
 
             {/* RIGHT SIDE CONTROL WORKBENCH PANEL */}
@@ -1137,23 +1115,6 @@ export default function SamudraXLandingPage() {
                 title="SamudraX Full Workbench 3D Earth"
                 className="w-full h-full border-0 absolute inset-0"
               />
-
-              <div className="absolute bottom-4 left-4 right-4 z-10 bg-[#080808]/85 backdrop-blur-md px-5 py-3 rounded-2xl border border-[#262626] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-3">
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setIsPlaying(!isPlaying)} className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center gap-2 transition-all cursor-pointer border border-[#333333]">
-                    {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
-                    <span>{isPlaying ? "PAUSE" : "RESUME"}</span>
-                  </button>
-                  <span className="text-white font-bold">GRID RESOLUTION: 0.25° HIGH-RES</span>
-                </div>
-                <div className="flex items-center gap-3 text-[#cccccc]">
-                  <span>VARIABLE: <strong className="text-cyan-400 uppercase">{workbenchVar}</strong></span>
-                  <span>•</span>
-                  <span>DEPTH: <strong className="text-white">{workbenchDepth}m</strong></span>
-                  <span>•</span>
-                  <span className="text-emerald-400 font-bold">{realTimeClock}</span>
-                </div>
-              </div>
             </div>
 
             {/* RIGHT SIDE WORKBENCH CONTROLS */}
