@@ -1,0 +1,60 @@
+{
+  "shape": [
+    2,
+    1,
+    181,
+    201
+  ],
+  "data_type": "float32",
+  "chunk_grid": {
+    "name": "regular",
+    "configuration": {
+      "chunk_shape": [
+        1,
+        1,
+        181,
+        201
+      ]
+    }
+  },
+  "chunk_key_encoding": {
+    "name": "default",
+    "configuration": {
+      "separator": "/"
+    }
+  },
+  "fill_value": "NaN",
+  "codecs": [
+    {
+      "name": "bytes",
+      "configuration": {
+        "endian": "little"
+      }
+    },
+    {
+      "name": "zstd",
+      "configuration": {
+        "level": 0,
+        "checksum": false
+      }
+    }
+  ],
+  "attributes": {
+    "long_name": "Total Chlorophyll",
+    "standard_name": "mass_concentration_of_chlorophyll_a_in_sea_water",
+    "unit_long": "milligram of Chlorophyll per cubic meter",
+    "units": "mg m-3",
+    "valid_max": 15.035151481628418,
+    "valid_min": 0.002630323637276888,
+    "_FillValue": "AAAAAAAAnkc="
+  },
+  "dimension_names": [
+    "time",
+    "depth",
+    "latitude",
+    "longitude"
+  ],
+  "zarr_format": 3,
+  "node_type": "array",
+  "storage_transformers": []
+}
