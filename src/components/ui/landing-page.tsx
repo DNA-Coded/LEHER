@@ -80,6 +80,9 @@ export default function SamudraXLandingPage() {
   // Interactive Workbench State for Platform Preview
   const [workbenchVar, setWorkbenchVar] = useState<'temp' | 'sal' | 'chl' | 'cur'>('cur');
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(150);
+  const [workbenchMode, setWorkbenchMode] = useState<'ocean' | 'air'>('ocean');
+  const [workbenchAnimate, setWorkbenchAnimate] = useState<'currents' | 'wind'>('currents');
+  const [workbenchProjection, setWorkbenchProjection] = useState<'O' | 'E' | 'S' | 'A' | 'AE' | 'CE' | 'WB' | 'W3'>('O');
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [activeLayers, setActiveLayers] = useState({
     model: true,
@@ -198,20 +201,131 @@ export default function SamudraXLandingPage() {
     }
   };
 
-  const getEarthIframeUrl = (varType: 'temp' | 'sal' | 'chl' | 'cur') => {
-    switch (varType) {
-      case 'cur':
-        return "/earth/index.html#current/ocean/surface/currents/orthographic";
-      case 'temp':
-        return "/earth/index.html#current/wind/surface/level/overlay=temp/orthographic";
-      case 'sal':
-        return "/earth/index.html#current/wind/surface/level/overlay=relative_humidity/orthographic";
-      case 'chl':
-        return "/earth/index.html#current/wind/surface/level/overlay=total_cloud_water/orthographic";
-      default:
-        return "/earth/index.html";
+  const getEarthIframeUrl = (
+    varType: 'temp' | 'sal' | 'chl' | 'cur',
+    mode: 'ocean' | 'air' = workbenchMode,
+    proj: string = workbenchProjection
+  ) => {
+    const projMap: Record<string, string> = {
+      'O': 'orthographic',
+      'E': 'equirectangular',
+      'S': 'stereographic',
+      'A': 'azimuthal_equidistant',
+      'CE': 'conic_equidistant',
+      'WB': 'waterman',
+      'W3': 'winkel3',
+    };
+    const projName = projMap[proj] || 'orthographic';
+
+    if (mode === 'air') {
+      let ovStr = 'none';
+      if (varType === 'temp') ovStr = 'temp';
+      else if (varType === 'sal') ovStr = 'relative_humidity';
+      else if (varType === 'chl') ovStr = 'total_cloud_water';
+      else if (varType === 'cur') ovStr = 'wind';
+      return `/earth/index.html#current/wind/surface/level/overlay=${ovStr}/${projName}`;
+    } else {
+      let ovStr = 'currents';
+      if (varType === 'temp') ovStr = 'temp';
+      else if (varType === 'sal') ovStr = 'relative_humidity';
+      else if (varType === 'chl') ovStr = 'total_cloud_water';
+      else if (varType === 'cur') ovStr = 'ocean';
+      return `/earth/index.html#current/ocean/surface/currents/overlay=${ovStr}/${projName}`;
     }
   };
+
+  const renderControlsAndAnalytics = () => (
+    <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-4 font-mono text-xs">
+      <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
+        <span className="text-white font-bold uppercase tracking-wider text-[11px]">Controls & Options</span>
+        <span className="text-cyan-400 text-[10px] bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">LIVE OPTIONS</span>
+      </div>
+
+      {/* Mode: Air | Ocean */}
+      <div className="space-y-1.5">
+        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Mode</div>
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={() => setWorkbenchMode('ocean')} 
+            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'ocean' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+          >
+            Ocean
+          </button>
+          <button 
+            onClick={() => setWorkbenchMode('air')} 
+            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'air' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+          >
+            Air
+          </button>
+        </div>
+      </div>
+
+      {/* Animate: Currents | Wind */}
+      <div className="space-y-1.5">
+        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Animate</div>
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={() => { setWorkbenchAnimate('currents'); setWorkbenchVar('cur'); setWorkbenchMode('ocean'); }} 
+            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'currents' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+          >
+            Currents
+          </button>
+          <button 
+            onClick={() => { setWorkbenchAnimate('wind'); setWorkbenchMode('air'); }} 
+            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'wind' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+          >
+            Wind
+          </button>
+        </div>
+      </div>
+
+      {/* Projection: A, AE, CE, E, O, S, WB, W3 */}
+      <div className="space-y-1.5">
+        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Projection</div>
+        <div className="flex flex-wrap gap-1">
+          {(['A', 'AE', 'CE', 'E', 'O', 'S', 'WB', 'W3'] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setWorkbenchProjection(p)}
+              className={cn(
+                "px-2 py-1 rounded border text-[11px] font-mono transition-all cursor-pointer",
+                workbenchProjection === p ? "bg-white text-black font-bold border-white" : "bg-[#090909] border-[#222222] text-[#aaaaaa] hover:text-white"
+              )}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Control Navigation Stepper */}
+      <div className="space-y-1.5">
+        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Control</div>
+        <div className="flex items-center justify-between gap-1 p-1.5 rounded-lg bg-[#090909] border border-[#222222] text-center font-mono text-xs">
+          <button onClick={() => setIsPlaying(true)} className="px-2 py-0.5 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white rounded cursor-pointer">Now</button>
+          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">«</button>
+          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">‹</button>
+          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">›</button>
+          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">»</button>
+          <button className="px-2 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">Grid</button>
+        </div>
+      </div>
+
+      {/* Data & Source Metadata Card */}
+      <div className="space-y-2 pt-2 border-t border-[#222222]">
+        <div className="flex justify-between text-[10px] text-[#888888]">
+          <span>DATA: <strong className="text-white">Ocean Currents @ Surface</strong></span>
+        </div>
+        <div className="space-y-1">
+          <div className="text-[10px] text-[#888888]">Scale:</div>
+          <div className="h-2 w-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-green-400 via-yellow-400 to-red-600 border border-white/20" />
+        </div>
+        <div className="text-[10px] text-[#888888]">
+          SOURCE: <span className="text-[#cccccc]">OSCAR / Earth & Space Research</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div 
@@ -993,37 +1107,6 @@ export default function SamudraXLandingPage() {
                 </div>
               </div>
 
-              {/* Stream Control & Grid Resolution Widget */}
-              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3 font-mono">
-                <div className="flex justify-between items-center text-[10px] text-[#888888] uppercase tracking-wider">
-                  <span>Stream & Grid Settings</span>
-                  <span className="text-emerald-400 font-bold">0.25° HIGH-RES</span>
-                </div>
-
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-full py-2.5 rounded-xl bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#333333] text-xs"
-                >
-                  {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
-                  <span>{isPlaying ? "LIVE PAUSE" : "RESUME STREAM"}</span>
-                </button>
-
-                <div className="pt-1 flex flex-col gap-1.5 text-[11px] text-[#aaaaaa] border-t border-[#222222]">
-                  <div className="flex justify-between">
-                    <span className="text-[#888888]">Grid Resolution:</span>
-                    <span className="text-white font-bold">0.25° High-Res</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#888888]">Active Variable:</span>
-                    <span className="text-cyan-400 font-bold uppercase">{workbenchVar}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#888888]">Current Depth:</span>
-                    <span className="text-white font-bold">{workbenchDepth}m</span>
-                  </div>
-                </div>
-              </div>
-
               {/* Variable Selector */}
               <div className="space-y-2.5">
                 <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable Layer</label>
@@ -1054,16 +1137,8 @@ export default function SamudraXLandingPage() {
                 </div>
               </div>
 
-              {/* Layer Toggles */}
-              <div className="space-y-2 text-xs font-mono">
-                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Observation Layers</label>
-                {Object.entries(activeLayers).map(([k, v]) => (
-                  <label key={k} className="flex justify-between items-center p-2.5 rounded-xl bg-[#141414] border border-[#222222] cursor-pointer hover:border-[#333333]">
-                    <span className="capitalize text-[#cccccc] font-sans text-xs">{k} Stream</span>
-                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer w-4 h-4" />
-                  </label>
-                ))}
-              </div>
+              {/* Controls & Analytics Options Box */}
+              {renderControlsAndAnalytics()}
 
               {/* Real-time Instrument Telemetry */}
               <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
@@ -1181,37 +1256,6 @@ export default function SamudraXLandingPage() {
                 </div>
               </div>
 
-              {/* Stream Control & Grid Resolution Widget */}
-              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3 font-mono">
-                <div className="flex justify-between items-center text-[10px] text-[#888888] uppercase tracking-wider">
-                  <span>Stream & Grid Settings</span>
-                  <span className="text-emerald-400 font-bold">0.25° HIGH-RES</span>
-                </div>
-
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-full py-2.5 rounded-xl bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#333333] text-xs"
-                >
-                  {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
-                  <span>{isPlaying ? "PAUSE ANIMATION" : "RESUME ANIMATION"}</span>
-                </button>
-
-                <div className="pt-1 flex flex-col gap-1.5 text-[11px] text-[#aaaaaa] border-t border-[#222222]">
-                  <div className="flex justify-between">
-                    <span className="text-[#888888]">Grid Resolution:</span>
-                    <span className="text-white font-bold">0.25° High-Res</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#888888]">Active Variable:</span>
-                    <span className="text-cyan-400 font-bold uppercase">{workbenchVar}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#888888]">Current Depth:</span>
-                    <span className="text-white font-bold">{workbenchDepth}m</span>
-                  </div>
-                </div>
-              </div>
-
               {/* Variable Selector */}
               <div className="space-y-2.5">
                 <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable</label>
@@ -1237,16 +1281,8 @@ export default function SamudraXLandingPage() {
                 />
               </div>
 
-              {/* Layer Toggles */}
-              <div className="space-y-2 text-xs font-mono">
-                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Active Layers</label>
-                {Object.entries(activeLayers).map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center p-2.5 rounded-xl bg-[#141414] border border-[#222222]">
-                    <span className="capitalize text-[#cccccc] font-sans text-xs">{k} Stream</span>
-                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer w-4 h-4" />
-                  </div>
-                ))}
-              </div>
+              {/* Controls & Analytics Options Box */}
+              {renderControlsAndAnalytics()}
 
               {/* Live Telemetry */}
               <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
