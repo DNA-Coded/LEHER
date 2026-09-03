@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+xarray
+numpy
+zarr
+netcdf4
+pyyaml
+python-dotenv
