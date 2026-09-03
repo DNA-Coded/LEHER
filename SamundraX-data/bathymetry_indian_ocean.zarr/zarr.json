@@ -1,0 +1,173 @@
+{
+  "attributes": {
+    "Conventions": "CF-1.6",
+    "area": "GLOBAL",
+    "contact": "servicedesk.cmems@mercator-ocean.eu",
+    "credit": "E.U. Copernicus Marine Service Information (CMEMS)",
+    "dataset": "global-reanalysis-phy-001-030-statics",
+    "institution": "Mercator Ocean",
+    "licence": "http://marine.copernicus.eu/services-portfolio/service-commitments-and-licence/",
+    "producer": "CMEMS - Global Monitoring and Forecasting Centre",
+    "product": "GLOBAL_REANALYSIS_PHY_001_030",
+    "product_user_manual": "http://marine.copernicus.eu/documents/PUM/CMEMS-GLO-PUM-001-030.pdf",
+    "references": "http://marine.copernicus.eu",
+    "source": "GLORYS12V1",
+    "title": "Bathymetry and mask for product GLOBAL_REANALYSIS_PHY_001_030",
+    "copernicusmarine_version": "2.4.1"
+  },
+  "zarr_format": 3,
+  "consolidated_metadata": {
+    "kind": "inline",
+    "must_understand": false,
+    "metadata": {
+      "deptho": {
+        "shape": [
+          541,
+          601
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              271,
+              301
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "long_name": "Bathymetry",
+          "standard_name": "sea_floor_depth_below_geoid",
+          "units": "m",
+          "_FillValue": "AAAAAAAAnkc="
+        },
+        "dimension_names": [
+          "latitude",
+          "longitude"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "latitude": {
+        "shape": [
+          541
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              541
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "standard_name": "latitude",
+          "units": "degrees_north",
+          "axis": "Y",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "latitude"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "longitude": {
+        "shape": [
+          601
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              601
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "standard_name": "longitude",
+          "units": "degrees_east",
+          "axis": "X",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "longitude"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      }
+    }
+  },
+  "node_type": "group"
+}

@@ -1,0 +1,302 @@
+{
+  "attributes": {
+    "Conventions": "CF-1.4",
+    "bulletin_date": "2021-07-07 00:00:00",
+    "bulletin_type": "operational",
+    "comment": "CMEMS product",
+    "domain_name": "GL12",
+    "easting": "longitude",
+    "field_date": "2021-06-30 00:00:00",
+    "field_julian_date": 26113.0,
+    "field_type": "mean",
+    "forecast_range": "",
+    "forecast_type": "",
+    "history": "2023/06/01 16:20:05 MERCATOR OCEAN Netcdf creation",
+    "institution": "MERCATOR OCEAN",
+    "julian_day_unit": "days since 1950-01-01 00:00:00",
+    "latitude_max": 90.0,
+    "latitude_min": -80.0,
+    "longitude_max": 179.9166717529297,
+    "longitude_min": -180.0,
+    "northing": "latitude",
+    "references": "http://www.mercator-ocean.fr",
+    "source": "MERCATOR GLORYS12V1",
+    "title": "daily mean fields from Global Ocean Physics Analysis and Forecast updated Daily",
+    "z_max": 5727.9169921875,
+    "z_min": 0.49402499198913574,
+    "copernicusmarine_version": "2.4.1"
+  },
+  "zarr_format": 3,
+  "consolidated_metadata": {
+    "kind": "inline",
+    "must_understand": false,
+    "metadata": {
+      "depth": {
+        "shape": [
+          1
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              1
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "standard_name": "depth",
+          "units": "m",
+          "long_name": "Depth",
+          "positive": "down",
+          "unit_long": "Meters",
+          "axis": "Z",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "depth"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "latitude": {
+        "shape": [
+          541
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              541
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "standard_name": "latitude",
+          "units": "degrees_north",
+          "long_name": "Latitude",
+          "unit_long": "Degrees North",
+          "axis": "Y",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "latitude"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "longitude": {
+        "shape": [
+          601
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              601
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "standard_name": "longitude",
+          "units": "degrees_east",
+          "long_name": "Longitude",
+          "unit_long": "Degrees East",
+          "axis": "X",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "longitude"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "thetao": {
+        "shape": [
+          2,
+          1,
+          541,
+          601
+        ],
+        "data_type": "int16",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              1,
+              1,
+              271,
+              601
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": 0,
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "cell_methods": "area: mean",
+          "long_name": "Temperature",
+          "standard_name": "sea_water_potential_temperature",
+          "unit_long": "Degrees Celsius",
+          "units": "degrees_C",
+          "valid_max": 21306,
+          "valid_min": -32766,
+          "add_offset": 21.0,
+          "scale_factor": 0.0007324442267417908,
+          "_FillValue": -32767
+        },
+        "dimension_names": [
+          "time",
+          "depth",
+          "latitude",
+          "longitude"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "time": {
+        "shape": [
+          2
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              2
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "standard_name": "time",
+          "long_name": "Time",
+          "unit_long": "Hours Since 1950-01-01",
+          "axis": "T",
+          "units": "hours since 1950-01-01",
+          "calendar": "gregorian",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "time"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      }
+    }
+  },
+  "node_type": "group"
+}
