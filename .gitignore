@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Datasets and large binary files
+data/test/
+*.nc
+*.zarr
+samundrax-data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

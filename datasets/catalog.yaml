@@ -5,7 +5,7 @@ datasets:
 
   temperature:
     provider: copernicus
-    dataset_id: "global-analysis-forecast-phy-001-024"
+    dataset_id: "GLOBAL_MULTIYEAR_PHY_001_030"
     format: zarr
     variable: thetao
     dimensions:
@@ -14,11 +14,11 @@ datasets:
       - latitude
       - longitude
     unit: degC
-    description: "Sea water temperature"
+    description: "Sea water temperature from GLORYS12V1 reanalysis (Copernicus Marine Service)"
 
   salinity:
     provider: copernicus
-    dataset_id: "global-analysis-forecast-phy-001-024"
+    dataset_id: "GLOBAL_MULTIYEAR_PHY_001_030"
     format: zarr
     variable: so
     dimensions:
@@ -27,11 +27,11 @@ datasets:
       - latitude
       - longitude
     unit: PSU
-    description: "Sea water salinity"
+    description: "Sea water salinity from GLORYS12V1 reanalysis (Copernicus Marine Service)"
 
   currents:
     provider: copernicus
-    dataset_id: "global-analysis-forecast-phy-001-024"
+    dataset_id: "GLOBAL_MULTIYEAR_PHY_001_030"
     format: zarr
     variables:
       - uo  # eastward sea water velocity
@@ -42,7 +42,7 @@ datasets:
       - latitude
       - longitude
     unit: m/s
-    description: "Ocean currents (U and V components)"
+    description: "Ocean currents from GLORYS12V1 reanalysis (Copernicus Marine Service)"
 
   bathymetry:
     provider: gebco

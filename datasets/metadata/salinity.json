@@ -2,7 +2,7 @@
     "name": "Sea Water Salinity",
     "variable": "so",
     "provider": "Copernicus Marine Service",
-    "dataset_id": "global-analysis-forecast-phy-001-024",
+    "dataset_id": "GLOBAL_MULTIYEAR_PHY_001_030",
     "format": "Zarr",
     "unit": "PSU",
     "dimensions": [
@@ -11,13 +11,14 @@
         "latitude",
         "longitude"
     ],
-    "source": "https://data.marine.copernicus.eu/product/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/description",
-    "description": "Sea water salinity from Copernicus Marine Global Ocean Physics Analysis and Forecast",
-    "spatial_resolution": "1/12°",
-    "temporal_resolution": "Daily",
+    "source": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description",
+    "description": "Global Ocean Physics Reanalysis (GLORYS12V1) - CMEMS global ocean eddy-resolving (1/12° horizontal resolution, 50 vertical levels) reanalysis covering the altimetry (1993 onward). Based on NEMO platform driven by ECMWF ERA-Interim then ERA5 reanalyses for recent years. Observations are assimilated by means of a reduced-order Kalman filter. Along track altimeter data (Sea Level Anomaly), Satellite Sea Surface Temperature, Sea Ice Concentration and In situ Temperature and Salinity vertical Profiles are jointly assimilated.",
+    "spatial_resolution": "1/12° (~8 km)",
+    "temporal_resolution": "Daily and monthly mean files available",
     "time_range": "1993-present",
-    "depth_range": "0-5500m",
-    "access_method": "API subsetting via xarray",
+    "depth_range": "0-5500m (50 vertical levels)",
+    "access_method": "API subsetting via xarray or copernicusmarine tool",
     "license": "Copernicus Marine Service License",
-    "attribution": "Contains modified Copernicus Marine Service information 2026"
+    "attribution": "Contains modified Copernicus Marine Service information 2026",
+    "doi": "https://doi.org/10.48670/moi-00021"
 }
