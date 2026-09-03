@@ -993,6 +993,37 @@ export default function SamudraXLandingPage() {
                 </div>
               </div>
 
+              {/* Stream Control & Grid Resolution Widget */}
+              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3 font-mono">
+                <div className="flex justify-between items-center text-[10px] text-[#888888] uppercase tracking-wider">
+                  <span>Stream & Grid Settings</span>
+                  <span className="text-emerald-400 font-bold">0.25° HIGH-RES</span>
+                </div>
+
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="w-full py-2.5 rounded-xl bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#333333] text-xs"
+                >
+                  {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
+                  <span>{isPlaying ? "LIVE PAUSE" : "RESUME STREAM"}</span>
+                </button>
+
+                <div className="pt-1 flex flex-col gap-1.5 text-[11px] text-[#aaaaaa] border-t border-[#222222]">
+                  <div className="flex justify-between">
+                    <span className="text-[#888888]">Grid Resolution:</span>
+                    <span className="text-white font-bold">0.25° High-Res</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#888888]">Active Variable:</span>
+                    <span className="text-cyan-400 font-bold uppercase">{workbenchVar}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#888888]">Current Depth:</span>
+                    <span className="text-white font-bold">{workbenchDepth}m</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Variable Selector */}
               <div className="space-y-2.5">
                 <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable Layer</label>
@@ -1147,6 +1178,37 @@ export default function SamudraXLandingPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Stream Control & Grid Resolution Widget */}
+              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3 font-mono">
+                <div className="flex justify-between items-center text-[10px] text-[#888888] uppercase tracking-wider">
+                  <span>Stream & Grid Settings</span>
+                  <span className="text-emerald-400 font-bold">0.25° HIGH-RES</span>
+                </div>
+
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="w-full py-2.5 rounded-xl bg-[#1a1a1a] hover:bg-[#262626] text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#333333] text-xs"
+                >
+                  {isPlaying ? <Pause className="w-4 h-4 text-emerald-400" /> : <Play className="w-4 h-4 text-white" />}
+                  <span>{isPlaying ? "PAUSE ANIMATION" : "RESUME ANIMATION"}</span>
+                </button>
+
+                <div className="pt-1 flex flex-col gap-1.5 text-[11px] text-[#aaaaaa] border-t border-[#222222]">
+                  <div className="flex justify-between">
+                    <span className="text-[#888888]">Grid Resolution:</span>
+                    <span className="text-white font-bold">0.25° High-Res</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#888888]">Active Variable:</span>
+                    <span className="text-cyan-400 font-bold uppercase">{workbenchVar}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#888888]">Current Depth:</span>
+                    <span className="text-white font-bold">{workbenchDepth}m</span>
+                  </div>
                 </div>
               </div>
 
