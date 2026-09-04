@@ -470,7 +470,7 @@ export default function LeherLandingPage() {
           opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : activeSection === 0 ? 0.95 : activeSection < 6 ? 0.65 : 0.2,
         }}
       >
-        <div className="scale-75 sm:scale-90 lg:scale-100">
+        <div className="scale-75 sm:scale-90 lg:scale-100 pointer-events-auto">
           <Globe />
         </div>
       </div>
