@@ -9,38 +9,45 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get("/", response_model=Dict[str, Any])
-async def get_bathymetry(
+async def get_chlorophyll(
     lat: Optional[float] = Query(None, description="Latitude for point extraction"),
     lon: Optional[float] = Query(None, description="Longitude for point extraction"),
     lat_min: Optional[float] = Query(None, description="Minimum latitude for grid extraction"),
     lat_max: Optional[float] = Query(None, description="Maximum latitude for grid extraction"),
     lon_min: Optional[float] = Query(None, description="Minimum longitude for grid extraction"),
-    lon_max: Optional[float] = Query(None, description="Maximum longitude for grid extraction")
+    lon_max: Optional[float] = Query(None, description="Maximum longitude for grid extraction"),
+    depth: Optional[float] = Query(None, description="Depth level in meters"),
+    time: Optional[str] = Query(None, description="Timestamp in ISO format (e.g., '2026-09-01T12:00:00Z')")
 ):
     """
-    Get bathymetry data subset based on bounding box.
+    Get chlorophyll data subset.
     """
     try:
         # Get data access instance
         data_access = get_copernicus_access()
 
         if lat is not None and lon is not None:
+            # Point extraction
             result = data_access.get_point_data(
-                dataset_key="bathymetry",
-                variable="deptho",
+                dataset_key="chlorophyll",
+                variable="chl",
                 lat=lat,
-                lon=lon
+                lon=lon,
+                depth=depth,
+                time=time
             )
         elif all(v is not None for v in [lat_min, lat_max, lon_min, lon_max]):
-            # Subset the data
+            # Grid extraction
             try:
                 result = data_access.get_grid_data(
-                    dataset_key="bathymetry",
-                    variable="deptho",
+                    dataset_key="chlorophyll",
+                    variable="chl",
                     lat_min=lat_min,
                     lat_max=lat_max,
                     lon_min=lon_min,
-                    lon_max=lon_max
+                    lon_max=lon_max,
+                    depth=depth,
+                    time=time
                 )
             except ValueError as ve:
                 raise HTTPException(status_code=413, detail=str(ve))
@@ -48,12 +55,12 @@ async def get_bathymetry(
             raise HTTPException(status_code=400, detail="Must provide either point coordinates (lat, lon) or grid boundaries (lat_min, lat_max, lon_min, lon_max)")
 
         if result is None:
-            raise HTTPException(status_code=404, detail="Bathymetry data not found for the given parameters")
+            raise HTTPException(status_code=404, detail="Chlorophyll data not found for the given parameters")
 
         return result
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving bathymetry data: {e}")
+        logger.error(f"Error retrieving chlorophyll data: {e}")
         raise HTTPException(status_code=500, detail=str(e))

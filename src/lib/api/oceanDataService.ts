@@ -2,6 +2,10 @@ import type {
   TraceableMeasurement,
   TraceablePointReport
 } from "@/lib/data/registry";
+import type { 
+  GridResponse, 
+  CurrentsGridResponse 
+} from "@/lib/api/types";
 
 /**
  * Service for interacting with the SamudraX Ocean Data API (FastAPI backend)
@@ -10,7 +14,7 @@ import type {
 export class OceanDataService {
   private apiBaseUrl: string;
 
-  constructor(baseUrl: string = "http://localhost:8000") {
+  constructor(baseUrl: string = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/ocean") {
     this.apiBaseUrl = baseUrl;
   }
 
@@ -264,6 +268,75 @@ export class OceanDataService {
         }
       };
     }
+  }
+
+  /**
+   * Generic method to get grid subset for a standard variable
+   */
+  async getGridData<T = any>(
+    dataset: "temperature" | "salinity" | "bathymetry" | "sea-level" | "chlorophyll",
+    latMin: number,
+    latMax: number,
+    lonMin: number,
+    lonMax: number,
+    depth?: number,
+    time?: string
+  ): Promise<GridResponse<T>> {
+    const params = new URLSearchParams({
+      lat_min: latMin.toString(),
+      lat_max: latMax.toString(),
+      lon_min: lonMin.toString(),
+      lon_max: lonMax.toString(),
+    });
+
+    if (depth !== undefined) params.append('depth', depth.toString());
+    if (time !== undefined) params.append('time', time);
+
+    const response = await fetch(`${this.apiBaseUrl}/${dataset}?${params}`);
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      if (response.status === 413) {
+        throw new Error(errData.detail || "Request too large. Please select a smaller area.");
+      }
+      throw new Error(errData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Get grid subset for ocean currents (returns both u and v)
+   */
+  async getCurrentsGridData(
+    latMin: number,
+    latMax: number,
+    lonMin: number,
+    lonMax: number,
+    depth?: number,
+    time?: string
+  ): Promise<CurrentsGridResponse> {
+    const params = new URLSearchParams({
+      lat_min: latMin.toString(),
+      lat_max: latMax.toString(),
+      lon_min: lonMin.toString(),
+      lon_max: lonMax.toString(),
+    });
+
+    if (depth !== undefined) params.append('depth', depth.toString());
+    if (time !== undefined) params.append('time', time);
+
+    const response = await fetch(`${this.apiBaseUrl}/currents?${params}`);
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      if (response.status === 413) {
+        throw new Error(errData.detail || "Request too large. Please select a smaller area.");
+      }
+      throw new Error(errData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
   }
 }
 

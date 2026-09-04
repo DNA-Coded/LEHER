@@ -10,7 +10,12 @@ router = APIRouter()
 
 @router.get("/", response_model=Dict[str, Any])
 async def get_currents(
-    bbox: Optional[str] = Query(None, description="Bounding box as 'min_lon,min_lat,max_lon,max_lat'"),
+    lat: Optional[float] = Query(None, description="Latitude for point extraction"),
+    lon: Optional[float] = Query(None, description="Longitude for point extraction"),
+    lat_min: Optional[float] = Query(None, description="Minimum latitude for grid extraction"),
+    lat_max: Optional[float] = Query(None, description="Maximum latitude for grid extraction"),
+    lon_min: Optional[float] = Query(None, description="Minimum longitude for grid extraction"),
+    lon_max: Optional[float] = Query(None, description="Maximum longitude for grid extraction"),
     depth: Optional[float] = Query(None, description="Depth level in meters"),
     time: Optional[str] = Query(None, description="Timestamp in ISO format (e.g., '2026-09-01T12:00:00Z')")
 ):
@@ -18,58 +23,61 @@ async def get_currents(
     Get ocean currents (U and V components) data subset based on bounding box, depth, and time.
     """
     try:
-        # Parse bbox if provided
-        parsed_bbox = None
-        if bbox:
-            try:
-                parts = [float(x.strip()) for x in bbox.split(',')]
-                if len(parts) != 4:
-                    raise ValueError("Bounding box must have 4 values: min_lon,min_lat,max_lon,max_lat")
-                parsed_bbox = tuple(parts)
-            except Exception as e:
-                logger.error(f"Invalid bbox format: {e}")
-                raise HTTPException(status_code=400, detail=f"Invalid bbox format: {e}")
-
         # Get data access instance
         data_access = get_copernicus_access()
 
-        # Get U and V components
-        u_result = data_access.subset_data(
-            dataset_key="currents",
-            variable="uo",
-            bbox=parsed_bbox,
-            depth=depth,
-            time=time
-        )
+        if lat is not None and lon is not None:
+            u_result = data_access.get_point_data(
+                dataset_key="currents", variable="uo", lat=lat, lon=lon, depth=depth, time=time
+            )
+            v_result = data_access.get_point_data(
+                dataset_key="currents", variable="vo", lat=lat, lon=lon, depth=depth, time=time
+            )
+            
+            if u_result is None or v_result is None:
+                raise HTTPException(status_code=404, detail="Current data not found for the given parameters")
+                
+            return {
+                "variable": "currents",
+                "components": {
+                    "u": u_result,
+                    "v": v_result
+                },
+                "location": {"lat": lat, "lon": lon}
+            }
+        elif all(v is not None for v in [lat_min, lat_max, lon_min, lon_max]):
+            # Get U and V components
+            try:
+                u_result = data_access.get_grid_data(
+                    dataset_key="currents", variable="uo", lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max, depth=depth, time=time
+                )
+                v_result = data_access.get_grid_data(
+                    dataset_key="currents", variable="vo", lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max, depth=depth, time=time
+                )
+            except ValueError as ve:
+                raise HTTPException(status_code=413, detail=str(ve))
 
-        v_result = data_access.subset_data(
-            dataset_key="currents",
-            variable="vo",
-            bbox=parsed_bbox,
-            depth=depth,
-            time=time
-        )
+            if u_result is None or v_result is None:
+                raise HTTPException(status_code=404, detail="Current data not found for the given parameters")
 
-        if u_result is None or v_result is None:
-            raise HTTPException(status_code=404, detail="Current data not found for the given parameters")
+            # Combine U and V components into a single response
+            result = {
+                "variable": "currents",
+                "components": {
+                    "u": u_result,
+                    "v": v_result
+                },
+                "coordinates": u_result.get("coordinates", {}),
+                "shape": u_result.get("shape", [])
+            }
+            if "time" in u_result:
+                result["time"] = u_result["time"]
+            if "depth" in u_result:
+                result["depth"] = u_result["depth"]
 
-        # Combine U and V components into a single response
-        result = {
-            "variable": "currents",
-            "components": {
-                "u": u_result,
-                "v": v_result
-            },
-            "coords": u_result.get("coords", {}),  # Coordinates should be the same for both
-            "attrs": {
-                "description": "Ocean currents (U and V components)",
-                "unit": "m/s"
-            },
-            "dims": u_result.get("dims", []),
-            "shape": u_result.get("shape", [])
-        }
-
-        return result
+            return result
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either point coordinates (lat, lon) or grid boundaries (lat_min, lat_max, lon_min, lon_max)")
 
     except HTTPException:
         raise

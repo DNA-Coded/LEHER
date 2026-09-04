@@ -10,7 +10,12 @@ router = APIRouter()
 
 @router.get("/", response_model=Dict[str, Any])
 async def get_temperature(
-    bbox: Optional[str] = Query(None, description="Bounding box as 'min_lon,min_lat,max_lon,max_lat'"),
+    lat: Optional[float] = Query(None, description="Latitude for point extraction"),
+    lon: Optional[float] = Query(None, description="Longitude for point extraction"),
+    lat_min: Optional[float] = Query(None, description="Minimum latitude for grid extraction"),
+    lat_max: Optional[float] = Query(None, description="Maximum latitude for grid extraction"),
+    lon_min: Optional[float] = Query(None, description="Minimum longitude for grid extraction"),
+    lon_max: Optional[float] = Query(None, description="Maximum longitude for grid extraction"),
     depth: Optional[float] = Query(None, description="Depth level in meters"),
     time: Optional[str] = Query(None, description="Timestamp in ISO format (e.g., '2026-09-01T12:00:00Z')")
 ):
@@ -18,29 +23,36 @@ async def get_temperature(
     Get temperature data subset based on bounding box, depth, and time.
     """
     try:
-        # Parse bbox if provided
-        parsed_bbox = None
-        if bbox:
-            try:
-                parts = [float(x.strip()) for x in bbox.split(',')]
-                if len(parts) != 4:
-                    raise ValueError("Bounding box must have 4 values: min_lon,min_lat,max_lon,max_lat")
-                parsed_bbox = tuple(parts)
-            except Exception as e:
-                logger.error(f"Invalid bbox format: {e}")
-                raise HTTPException(status_code=400, detail=f"Invalid bbox format: {e}")
-
         # Get data access instance
         data_access = get_copernicus_access()
 
-        # Subset the data
-        result = data_access.subset_data(
-            dataset_key="temperature",
-            variable="thetao",
-            bbox=parsed_bbox,
-            depth=depth,
-            time=time
-        )
+        if lat is not None and lon is not None:
+            # Point extraction
+            result = data_access.get_point_data(
+                dataset_key="temperature",
+                variable="thetao",
+                lat=lat,
+                lon=lon,
+                depth=depth,
+                time=time
+            )
+        elif all(v is not None for v in [lat_min, lat_max, lon_min, lon_max]):
+            # Grid extraction
+            try:
+                result = data_access.get_grid_data(
+                    dataset_key="temperature",
+                    variable="thetao",
+                    lat_min=lat_min,
+                    lat_max=lat_max,
+                    lon_min=lon_min,
+                    lon_max=lon_max,
+                    depth=depth,
+                    time=time
+                )
+            except ValueError as ve:
+                raise HTTPException(status_code=413, detail=str(ve))
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either point coordinates (lat, lon) or grid boundaries (lat_min, lat_max, lon_min, lon_max)")
 
         if result is None:
             raise HTTPException(status_code=404, detail="Temperature data not found for the given parameters")
