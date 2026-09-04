@@ -1,7 +1,7 @@
 # Exclude large datasets and virtual environments from Vercel uploads
-data/
-leher-data/
-SamudraX-data/
+/data/
+/leher-data/
+/SamudraX-data/
 backend/models/*.pkl
 node_modules/
 .git/
