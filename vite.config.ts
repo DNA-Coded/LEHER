@@ -3,8 +3,6 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { defineConfig, type Plugin } from 'vite'
 
-import { fileURLToPath } from 'url'
-
 function earthRoutePlugin(): Plugin {
   return {
     name: 'earth-route-plugin',
@@ -30,9 +28,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), earthRoutePlugin()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
 })
-
