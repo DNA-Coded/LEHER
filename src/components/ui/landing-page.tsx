@@ -10,7 +10,7 @@ import {
   Clock,
   Menu
 } from "lucide-react";
-import { leherDataService, type TraceablePointReport } from "@/lib/data/registry";
+import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
