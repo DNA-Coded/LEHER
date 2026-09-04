@@ -1,7 +1,7 @@
 import type {
   TraceableMeasurement,
   TraceablePointReport
-} from "@/lib/data/registry.ts";
+} from "@/lib/data";
 import type { 
   GridResponse, 
   CurrentsGridResponse 
