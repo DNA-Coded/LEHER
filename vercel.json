@@ -1,15 +1,10 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
     {
-      "source": "/earth",
-      "destination": "/earth/index.html"
-    },
-    {
-      "source": "/earth/",
-      "destination": "/earth/index.html"
-    },
-    {
-      "source": "/((?!earth|assets|favicon|.*\\..*).*)",
+      "source": "/((?!earth/).*)",
       "destination": "/index.html"
     }
   ]
