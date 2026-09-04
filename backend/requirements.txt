@@ -6,3 +6,6 @@ zarr
 netcdf4
 pyyaml
 python-dotenv
+scikit-learn
+xgboost
+pandas
