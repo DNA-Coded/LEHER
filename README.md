@@ -370,7 +370,7 @@ Leher/
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/YourOrg/Leher.git
+git clone https://github.com/DNA-Coded/LEHER.git
 cd Leher
 ```
 
