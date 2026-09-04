@@ -12,6 +12,14 @@ An interactive 3D ocean data visualization platform integrating numerical ocean 
 
 ---
 
+## 🌐 LIVE DEMO & DEPLOYMENT LINKS
+
+- **Production Live App**: [https://leher-3d.vercel.app/](https://leher-3d.vercel.app/)
+- **Vercel Project Alias**: [https://leher-ocean-3d.vercel.app/](https://leher-ocean-3d.vercel.app/)
+- **GitHub Repository**: [https://github.com/DNA-Coded/LEHER](https://github.com/DNA-Coded/LEHER)
+
+---
+
 ## 2. PROJECT OVERVIEW
 
 ### What is Leher?
