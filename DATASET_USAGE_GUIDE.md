@@ -1,7 +1,7 @@
-# SamudraX Dataset Usage Guide
+# Leher Dataset Usage Guide
 ## Working with GLOBAL_MULTIYEAR_PHY_001_030 (GLORYS12V1)
 
-Based on the XML metadata file you provided (`GLOBAL_MULTIYEAR_PHY_001_030 (1).xml`), this document explains how to work with the Copernicus Marine Service GLOBAL_MULTIYEAR_PHY_001_030 dataset for your SamudraX project.
+Based on the XML metadata file you provided (`GLOBAL_MULTIYEAR_PHY_001_030 (1).xml`), this document explains how to work with the Copernicus Marine Service GLOBAL_MULTIYEAR_PHY_001_030 dataset for your Leher project.
 
 ## 📊 Dataset Overview
 
@@ -102,7 +102,7 @@ These are metadata endpoints. To get actual data, you'd need to:
 
 ## 📝 Updating Your Dataset Catalog
 
-To use this dataset in your SamudraX backend, update your `datasets/catalog.yaml`:
+To use this dataset in your Leher backend, update your `datasets/catalog.yaml`:
 
 ```yaml
 # Alternative dataset configuration using GLORYS12V1 reanalysis
@@ -188,7 +188,7 @@ Your existing backend code (`backend/app/data/copernicus.py`) should work with t
 
 Just ensure your `.env` points to the correct data directory:
 ```
-SAMUDRAX_DATA_ROOT=/c/Users/Deep Saha/SamundraX-data
+LEHER_DATA_ROOT=/c/Users/Deep Saha/leher-data
 ```
 
 ## 🧪 Testing Your Setup
@@ -213,11 +213,11 @@ curl "http://localhost:8000/api/ocean/temperature/?bbox=50,-20,100,25&depth=0&ti
 | Variables | Similar (temp, salinity, currents, etc.) | Similar + additional ice parameters |
 | Use Case | Current conditions, short-term forecasting | Climate research, historical analysis, model validation |
 
-## 💡 Recommendations for SamudraX
+## 💡 Recommendations for Leher
 
 1. **Development**: Start with GLORYS12V1 for historical analysis capabilities
 2. **Production**: Consider using both - historical (GLORYS12V1) + forecast (GLOBAL_ANALYSIS_FORECAST_PHY_001_024) for nowcasting
-3. **Storage**: Keep both datasets in your external `SamundraX-data/` folder with clear naming
+3. **Storage**: Keep both datasets in your external `leher-data/` folder with clear naming
 4. **Catalog**: Maintain entries for both in your YAML catalog, perhaps with different keys or version indicators
 
 ## 🔗 Useful Links

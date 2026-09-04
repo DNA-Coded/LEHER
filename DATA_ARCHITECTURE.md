@@ -1,15 +1,15 @@
-# SamudraX Scientific Data Architecture Specification (Phase 8)
+# Leher Scientific Data Architecture Specification (Phase 8)
 
 **Document Version:** 1.0.0  
 **Status:** Production Ready  
-**Engine:** SamudraX 3D Ocean Intelligence Engine  
+**Engine:** Leher 3D Ocean Intelligence Engine  
 **Author:** Lead Data & Scientific Visualization Engineer  
 
 ---
 
 ## 1. Executive Summary & Philosophy
 
-The **SamudraX Data Architecture** establishes a normalized, source-traceable, and verifiable data pipeline for atmospheric and oceanic variables. Synthetic placeholders, un-sourced mathematical formulas, and arbitrary depth interpolations have been completely excised from the platform. 
+The **Leher Data Architecture** establishes a normalized, source-traceable, and verifiable data pipeline for atmospheric and oceanic variables. Synthetic placeholders, un-sourced mathematical formulas, and arbitrary depth interpolations have been completely excised from the platform. 
 
 Every scientific metric rendered on the globe or displayed in analytics sidebars is derived directly from authoritative datasets (such as **NCEP GFS**, **NOAA OSCAR**, and **Argo GDAC**) with strict spatial bilinear interpolation, explicit units, ISO 8601 timestamps, and dataset provenance metadata.
 
@@ -32,7 +32,7 @@ flowchart TD
     end
 
     subgraph Central Data Registry
-        R[SamudraXDataService Registry]
+        R[LeherDataService Registry]
         C1[ScalarGridData Store]
         C2[VectorGridData Store]
     end
@@ -125,7 +125,7 @@ export interface PointObservation {
 ## 5. Traceability & Scientific Provenance Guarantee
 
 1. **No Arbitrary Math:** Linear formulas dependent on depth sliders (e.g. $T = 28.5 - 0.045d$) have been permanently removed.
-2. **Explicit Null Handling:** If a spatial location or depth level lacks data in an active grid dataset, SamudraX explicitly reports **"Data Unavailable"** or **"Coverage Restricted to Surface Level"** rather than fabricating numbers.
+2. **Explicit Null Handling:** If a spatial location or depth level lacks data in an active grid dataset, Leher explicitly reports **"Data Unavailable"** or **"Coverage Restricted to Surface Level"** rather than fabricating numbers.
 3. **Traceable Badging:** Every telemetry card displays dataset source, measurement unit, and ISO reference timestamp.
 
 ---

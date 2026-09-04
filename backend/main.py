@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 3: Backend for SamudraX
+Phase 3: Backend for Leher
 FastAPI server that serves processed oceanographic data to the frontend
 """
 
@@ -17,7 +17,7 @@ import uvicorn
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="SamudraX Ocean Data API",
+    title="Leher Ocean Data API",
     description="Backend API for serving processed oceanographic data",
     version="0.1.0",
 )
@@ -66,7 +66,7 @@ def load_dataset_cached(filepath: Path):
 async def root():
     """Root endpoint with API information"""
     return {
-        "message": "SamudraX Ocean Data API",
+        "message": "Leher Ocean Data API",
         "version": "0.1.0",
         "endpoints": [
             "/temperature",
@@ -374,7 +374,7 @@ async def get_dataset_metadata(dataset_name: str):
 
 if __name__ == "__main__":
     # Run the server
-    print("Starting SamudraX Ocean Data API...")
+    print("Starting Leher Ocean Data API...")
     print("API will be available at: http://localhost:8000")
     print("Documentation available at: http://localhost:8000/docs")
     uvicorn.run(app, host="0.0.0.0", port=8000)

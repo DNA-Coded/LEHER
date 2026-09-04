@@ -1,5 +1,5 @@
 /**
- * SamudraX Normalized Internal Data Contract
+ * Leher Normalized Internal Data Contract
  * 
  * Provides strict TypeScript interfaces and registries for authoritative,
  * source-traceable atmospheric and oceanic scientific datasets.

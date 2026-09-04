@@ -138,6 +138,6 @@ def get_gebco_access(data_root: str = None) -> GEBCODataAccess:
     global _gebco_access
     if _gebco_access is None:
         if data_root is None:
-            data_root = os.getenv("SAMUDRAX_DATA_ROOT", "./samudrax-data")
+            data_root = os.getenv("LEHER_DATA_ROOT", os.getenv("SAMUDRAX_DATA_ROOT", "./leher-data"))
         _gebco_access = GEBCODataAccess(data_root)
     return _gebco_access

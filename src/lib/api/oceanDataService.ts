@@ -8,7 +8,7 @@ import type {
 } from "@/lib/api/types";
 
 /**
- * Service for interacting with the SamudraX Ocean Data API (FastAPI backend)
+ * Service for interacting with the Leher Ocean Data API (FastAPI backend)
  * Replaces the static data loading with live API calls
  */
 export class OceanDataService {
@@ -180,35 +180,35 @@ export class OceanDataService {
         temperature: {
           value: temperature,
           unit: "°C",
-          source: "SamudraX Ocean Data API (FastAPI backend)",
+          source: "Leher Ocean Data API (FastAPI backend)",
           timestamp: new Date().toISOString(),
           variableName: "Water Temperature"
         },
         salinity: {
           value: salinity,
           unit: "PSU",
-          source: "SamudraX Ocean Data API (FastAPI backend)",
+          source: "Leher Ocean Data API (FastAPI backend)",
           timestamp: new Date().toISOString(),
           variableName: "Salinity"
         },
         currentSpeed: {
           value: currents.speed,
           unit: "m/s",
-          source: "SamudraX Ocean Data API (FastAPI backend)",
+          source: "Leher Ocean Data API (FastAPI backend)",
           timestamp: new Date().toISOString(),
           variableName: "Current Speed"
         },
         currentDirection: {
           value: currents.direction,
           unit: "° True",
-          source: "SamudraX Ocean Data API (FastAPI backend)",
+          source: "Leher Ocean Data API (FastAPI backend)",
           timestamp: new Date().toISOString(),
           variableName: "Current Direction"
         },
         bathymetry: {
           value: bathymetry,
           unit: "meters",
-          source: "SamudraX Ocean Data API (FastAPI backend)",
+          source: "Leher Ocean Data API (FastAPI backend)",
           timestamp: new Date().toISOString(),
           variableName: "Seafloor Depth"
         }
@@ -217,7 +217,7 @@ export class OceanDataService {
       // Add Argo-like telemetry (simulated for now)
       const argoTelemetry = {
         id: 'API-FLOAT-001',
-        source: 'SamudraX Ocean Data API',
+        source: 'Leher Ocean Data API',
         timestamp: new Date().toISOString(),
         location: { lat, lon, depth },
         measurements: {

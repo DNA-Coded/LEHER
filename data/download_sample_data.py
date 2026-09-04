@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 1: Data Acquisition Script for SamudraX
+Phase 1: Data Acquisition Script for Leher
 Downloads sample oceanographic data from Copernicus, NOAA, GEBCO, and Argo sources
 """
 
@@ -141,7 +141,7 @@ def get_sample_gebco_data():
 
         ds.attrs.update({
             "title": "Sample GECO bathymetry",
-            "source": "Generated for SamudraX demo",
+            "source": "Generated for Leher demo",
             "geospatial_lat_min": lat.min(),
             "geospatial_lat_max": lat.max(),
             "geospatial_lon_min": lon.min(),
@@ -175,7 +175,7 @@ def get_sample_noaa_data():
 def main():
     """Main function to download all sample data"""
     print("=" * 50)
-    print("SamudraX Phase 1: Data Acquisition")
+    print("Leher Phase 1: Data Acquisition")
     print("=" * 50)
 
     # Download/ create sample data
@@ -206,7 +206,7 @@ def main():
             }
         },
         "download_date": "2026-09-03",
-        "purpose": "Phase 1 data acquisition for SamudraX ocean visualization platform"
+        "purpose": "Phase 1 data acquisition for Leher ocean visualization platform"
     }
 
     metadata_path = METADATA_DIR / "dataset_inventory.json"

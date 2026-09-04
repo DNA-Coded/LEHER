@@ -1,4 +1,4 @@
-# SamudraX
+# Leher
 
 An interactive 3D ocean data visualization platform integrating numerical ocean models with real-world ocean observations.
 
@@ -6,7 +6,7 @@ An interactive 3D ocean data visualization platform integrating numerical ocean 
 
 ## 1. PROJECT TITLE
 
-**SamudraX**: 3D Ocean Intelligence & Visualization Platform
+**Leher**: 3D Ocean Intelligence & Visualization Platform
 
 *An interactive 3D ocean data visualization platform integrating numerical ocean models with real-world ocean observations across space, depth, and time.*
 
@@ -14,18 +14,18 @@ An interactive 3D ocean data visualization platform integrating numerical ocean 
 
 ## 2. PROJECT OVERVIEW
 
-### What is SamudraX?
-SamudraX is an open scientific visualization platform designed for exploring, analyzing, and contextualizing multidimensional oceanographic datasets. Developed for **Smart India Hackathon (SIH) Problem Statement 26067**, SamudraX bridges the gap between numerical hydrodynamic ocean models and physical *in-situ* ocean observations (such as Argo profiling floats and sea surface currents).
+### What is Leher?
+Leher is an open scientific visualization platform designed for exploring, analyzing, and contextualizing multidimensional oceanographic datasets. Developed for **Smart India Hackathon (SIH) Problem Statement 26067**, Leher bridges the gap between numerical hydrodynamic ocean models and physical *in-situ* ocean observations (such as Argo profiling floats and sea surface currents).
 
-### Why SamudraX Exists
+### Why Leher Exists
 Oceanographic data is inherently four-dimensional: spanning longitude ($X$), latitude ($Y$), depth ($Z$), and time ($T$). Traditional workflows rely heavily on static 2D maps, GIS desktop software, or isolated script-based plotting tools (like Python/Matplotlib or MATLAB). These traditional tools create significant friction:
 - **Massive File Sizes**: Raw NetCDF/HDF5/Zarr ocean model files often range from tens of gigabytes to terabytes, making direct web streaming difficult.
 - **Desktop Dependence**: Analyzing depth layers or temporal trends requires powerful workstation hardware and specialized data software.
 - **Separation of Models & Observations**: Hydrodynamic model outputs (e.g., GLORYS12V1, INCOIS ROMS) are typically visualized separately from real-time observational networks (e.g., Argo floats, CTD casts).
 - **Flattened 2D Representations**: Hiding the vertical dimension obscures key oceanic phenomena such as thermoclines, haloclines, deep water currents, and pycnoclines.
 
-### How SamudraX Solves the Problem
-SamudraX addresses these challenges by providing a unified web browser interface that combines:
+### How Leher Solves the Problem
+Leher addresses these challenges by providing a unified web browser interface that combines:
 1. **Interactive 3D Globe & Flat Projections**: Rendering global surface ocean current vectors (NOAA OSCAR) and atmospheric winds (NCEP GFS) using HTML5 Canvas and D3 projection transformations.
 2. **Subsurface Data Engine**: A high-performance Python FastAPI backend backed by `xarray` and `netCDF4` capable of performing spatial, temporal, and depth-based subsetting on real Copernicus Marine GLORYS12V1 reanalysis datasets.
 3. **Traceable Scientific Data Architecture**: A modular data registry structure ensuring that observational profiles (Argo GDAC casts) can be queried and compared against model predictions.
@@ -265,7 +265,7 @@ HTML5 Canvas / Screen Space Rendering
 ## 10. PROJECT STRUCTURE
 
 ```
-SamudraX/
+Leher/
 ├── .gitignore                          # Git exclusion rules (ignores data/test/, *.nc, .env)
 ├── DATASET_USAGE_GUIDE.md              # Documentation for GLORYS12V1 usage
 ├── DATA_ARCHITECTURE.md                # Detailed scientific data engine specifications
@@ -370,8 +370,8 @@ SamudraX/
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/YourOrg/SamudraX.git
-cd SamudraX
+git clone https://github.com/YourOrg/Leher.git
+cd Leher
 ```
 
 #### 2. Frontend Setup
@@ -403,7 +403,7 @@ cp backend/.env.example backend/.env
 
 Edit `backend/.env`:
 ```env
-SAMUDRAX_DATA_ROOT=C:/path/to/SamudraX/data
+LEHER_DATA_ROOT=C:/path/to/Leher/data
 API_HOST=0.0.0.0
 API_PORT=8000
 ```
@@ -435,7 +435,7 @@ The application utilizes environment variables for backend configuration and dat
 
 ```env
 # Root directory for storing large scientific datasets
-SAMUDRAX_DATA_ROOT=./data
+LEHER_DATA_ROOT=./data
 
 # FastAPI Server Settings
 API_HOST=0.0.0.0
@@ -483,7 +483,7 @@ npm run preview
 
 ## 14. API DOCUMENTATION
 
-The SamudraX FastAPI backend exposes RESTful endpoints for accessing processed ocean data and dataset metadata.
+The Leher FastAPI backend exposes RESTful endpoints for accessing processed ocean data and dataset metadata.
 
 ### Core Endpoints
 
@@ -675,7 +675,7 @@ $$\text{Anomaly} = \text{Value}_{\text{Model}} - \text{Value}_{\text{Observed}}$
 *Honest assessment of current project limitations:*
 
 1. **Synthetic Formulas in Landing Page Controls**:
-   - The interactive depth slider in the landing page UI preview (`landing-page.tsx`) uses a linear approximation formula (`28.5 - depth * 0.018`) for quick UI demonstration when backend REST endpoints are not connected. Real NetCDF data queries are handled via `samudraXDataService` and the FastAPI backend.
+   - The interactive depth slider in the landing page UI preview (`landing-page.tsx`) uses a linear approximation formula (`28.5 - depth * 0.018`) for quick UI demonstration when backend REST endpoints are not connected. Real NetCDF data queries are handled via `leherDataService` and the FastAPI backend.
 2. **Missing Direct 3D WebGL Volume Shader**:
    - Subsurface scalar rendering currently uses 2D profile cards and depth slices rather than a direct WebGL 3D volumetric raymarching shader inside the canvas iframe.
 3. **Single Temporal Snapshot in Test Dataset**:
@@ -715,7 +715,7 @@ $$\text{Anomaly} = \text{Value}_{\text{Model}} - \text{Value}_{\text{Observed}}$
 
 ## 22. SIH REQUIREMENT MAPPING
 
-| SIH PS 26067 Requirement | SamudraX Implementation | Status |
+| SIH PS 26067 Requirement | Leher Implementation | Status |
 | :--- | :--- | :--- |
 | **Interactive 3D Globe Visualization** | Rotating 3D Earth Globe component + D3 orthographic projection canvas. | ✅ **Implemented** |
 | **Integration of Numerical Ocean Models** | Copernicus GLORYS12V1 daily 3D physics reanalysis (`thetao`, `so`, `uo`, `vo`). | ✅ **Implemented** |
@@ -739,7 +739,7 @@ $$\text{Anomaly} = \text{Value}_{\text{Model}} - \text{Value}_{\text{Observed}}$
 
 ## 24. CONTRIBUTING
 
-Contributions to SamudraX are welcome! Please follow these guidelines:
+Contributions to Leher are welcome! Please follow these guidelines:
 
 1. **Fork the Repository**: Create your own feature branch (`git checkout -b feature/AmazingFeature`).
 2. **Commit Changes**: Follow clear commit messages (`git commit -m 'Add 3D depth slice shader'`).
@@ -828,7 +828,7 @@ No license has currently been specified.
 ## 30. FINAL PROJECT STATUS
 
 ### Current Assessment
-SamudraX has completed **Phase 1 (Data Architecture & Repository Audit)**, **Phase 2 (Copernicus GLORYS12V1 3D Data Acquisition & Validation)**, and **Phase 3 (FastAPI Subsetting Backend Engine)**. The application features a functional React 19 operational workbench UI, interactive multi-projection vector canvas, backend REST subsetting endpoints, and a validated 385 MB 3D NetCDF dataset containing 50 vertical depth levels.
+Leher has completed **Phase 1 (Data Architecture & Repository Audit)**, **Phase 2 (Copernicus GLORYS12V1 3D Data Acquisition & Validation)**, and **Phase 3 (FastAPI Subsetting Backend Engine)**. The application features a functional React 19 operational workbench UI, interactive multi-projection vector canvas, backend REST subsetting endpoints, and a validated 385 MB 3D NetCDF dataset containing 50 vertical depth levels.
 
 - **Implemented**:
   - Copernicus GLORYS12V1 3D subset download & validation script (`STATUS: PASS`).

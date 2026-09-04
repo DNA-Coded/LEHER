@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 2: Data Engine for SamudraX
+Phase 2: Data Engine for Leher
 Processes raw oceanographic data using xarray and numpy for use in the visualization platform
 """
 
@@ -238,7 +238,7 @@ def create_dataset_catalog():
 def main():
     """Main function to process all datasets"""
     print("=" * 50)
-    print("SamudraX Phase 2: Data Engine")
+    print("Leher Phase 2: Data Engine")
     print("=" * 50)
 
     # Process each dataset

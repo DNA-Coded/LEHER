@@ -1,7 +1,7 @@
-# SamudraX GLORYS12V1 Test Dataset Documentation
+# Leher GLORYS12V1 Test Dataset Documentation
 
 ## Overview
-This document describes the GLORYS12V1 test subset acquired for the SamudraX ocean-data visualization and analysis platform (Step 2: Data Acquisition & Validation).
+This document describes the GLORYS12V1 test subset acquired for the Leher ocean-data visualization and analysis platform (Step 2: Data Acquisition & Validation).
 
 ## Dataset Metadata
 - **Dataset Name:** Global Ocean Physics Reanalysis (GLORYS12V1)
@@ -25,7 +25,7 @@ This document describes the GLORYS12V1 test subset acquired for the SamudraX oce
 - **Vertical Depth Coverage:**
   - Levels: 50 standard depth levels preserved
   - Range: 0.494 m (surface) to 5727.92 m (abyssal seafloor)
-  - *Note:* Depth dimension is fully preserved to support the SamudraX 3D Depth Slider feature.
+  - *Note:* Depth dimension is fully preserved to support the Leher 3D Depth Slider feature.
 
 ## File Format & Storage Location
 - **Output Format:** NetCDF (CF-1.4 compliant)

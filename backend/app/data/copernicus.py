@@ -238,6 +238,6 @@ def get_copernicus_access(data_root: str = None) -> CopernicusDataAccess:
     if _copernicus_access is None:
         if data_root is None:
             # Fallback to local default if env var is missing
-            data_root = os.getenv("SAMUDRAX_DATA_ROOT", "../SamundraX-data")
+            data_root = os.getenv("LEHER_DATA_ROOT", os.getenv("SAMUDRAX_DATA_ROOT", "../leher-data"))
         _copernicus_access = CopernicusDataAccess(data_root)
     return _copernicus_access

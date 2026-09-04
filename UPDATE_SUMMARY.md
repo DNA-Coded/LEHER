@@ -1,4 +1,4 @@
-# Summary of Updates to SamudraX Project for GLORYS12V1 Dataset
+# Summary of Updates to Leher Project for GLORYS12V1 Dataset
 
 ## Changes Made
 
@@ -15,7 +15,7 @@
   - Enhanced `spatial_resolution`, `temporal_resolution`, `depth_range`, and `access_method` fields
 
 ### 3. Backend Configuration
-- Created `.env` file with `SAMUDRAX_DATA_ROOT=C:/Users/Arya Bhagat/Desktop/Sih/FR/samundrax-data`
+- Created `.env` file with `LEHER_DATA_ROOT=C:/Users/Arya Bhagat/Desktop/Sih/FR/leher-data`
 - Verified backend loads the updated catalog correctly
 
 ### 4. Backend Testing
@@ -35,8 +35,8 @@ To actually serve data, you need to:
 
 ### 2. Expected Data Location
 After downloading, the data should be located in:
-   `C:\Users\Arya Bhagat\Desktop\Sih\FR\samundraX-data`
-   (or whatever path you set in `SAMUDRAX_DATA_ROOT`)
+   `C:\Users\Arya Bhagat\Desktop\Sih\FR\leher-data`
+   (or whatever path you set in `LEHER_DATA_ROOT`)
 
 ### 3. Testing the API
 Once data is downloaded, you can test the endpoints:
@@ -51,7 +51,7 @@ The frontend (React app) should already be configured to consume these API endpo
 ## Notes
 - The bathymetry dataset remains unchanged (using GEBCO) as per the original instructions.
 - The backend uses xarray to serve data subsets, which should work with the Zarr format recommended for the downloaded data.
-- All architecture principles from the SamudraX document are maintained:
+- All architecture principles from the Leher document are maintained:
   - Data stored outside Git repository
   - Using Zarr for large gridded data
   - Serving only spatiotemporal subsets via API
@@ -59,7 +59,7 @@ The frontend (React app) should already be configured to consume these API endpo
 
 ## Troubleshooting
 If you encounter issues:
-1. Verify the data files exist in the directory specified by `SAMUDRAX_DATA_ROOT`
+1. Verify the data files exist in the directory specified by `LEHER_DATA_ROOT`
 2. Check that the files follow the naming convention expected by the backend:
    - `temperature_GLOBAL_MULTIYEAR_PHY_001_030.zarr`
    - `salinity_GLOBAL_MULTIYEAR_PHY_001_030.zarr`

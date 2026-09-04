@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to verify the SamudraX backend setup
+Test script to verify the Leher backend setup
 """
 
 import os
@@ -105,7 +105,7 @@ def test_metadata_loading():
 def main():
     """Run all tests"""
     print("=" * 50)
-    print("SamudraX Backend Setup Test")
+    print("Leher Backend Setup Test")
     print("=" * 50)
 
     tests = [

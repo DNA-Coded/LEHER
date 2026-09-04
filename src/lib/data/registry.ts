@@ -21,7 +21,7 @@ export interface TraceablePointReport {
   argoTelemetry?: PointObservation | null;
 }
 
-class SamudraXDataService {
+class LeherDataService {
   private registry: ScientificDataRegistry = {};
   private isLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
@@ -35,17 +35,17 @@ class SamudraXDataService {
 
     this.loadPromise = (async () => {
       try {
-        console.log('[SamudraX Data Engine] Initializing scientific data architecture...');
+        console.log('[Leher Data Engine] Initializing scientific data architecture...');
 
         // Load NCEP GFS Atmospheric Temperature dataset
         const gfsTemp = await loadGfsTemperature().catch((err) => {
-          console.warn('[SamudraX Data Engine] Failed to load GFS Temperature:', err.message);
+          console.warn('[Leher Data Engine] Failed to load GFS Temperature:', err.message);
           return undefined;
         });
 
         // Load NOAA OSCAR Ocean Surface Currents dataset
         const oscarCurrents = await loadOscarCurrents().catch((err) => {
-          console.warn('[SamudraX Data Engine] Failed to load OSCAR Currents:', err.message);
+          console.warn('[Leher Data Engine] Failed to load OSCAR Currents:', err.message);
           return undefined;
         });
 
@@ -68,9 +68,9 @@ class SamudraXDataService {
         ];
 
         this.isLoaded = true;
-        console.log('[SamudraX Data Engine] Scientific Registry successfully populated.');
+        console.log('[Leher Data Engine] Scientific Registry successfully populated.');
       } catch (error) {
-        console.error('[SamudraX Data Engine] Error populating registry:', error);
+        console.error('[Leher Data Engine] Error populating registry:', error);
         throw error;
       }
     })();
@@ -172,4 +172,4 @@ class SamudraXDataService {
   }
 }
 
-export const samudraXDataService = new SamudraXDataService();
+export const leherDataService = new LeherDataService();

@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(
-    title="SamudraX API",
-    description="Backend API for SamudraX - Interactive 3D Ocean Intelligence Platform",
+    title="Leher API",
+    description="Backend API for Leher - Interactive 3D Ocean Intelligence Platform",
     version="0.1.0"
 )
 
@@ -28,7 +28,7 @@ app.include_router(api_router)
 @app.get("/")
 async def root():
     return {
-        "message": "Welcome to SamudraX API",
+        "message": "Welcome to Leher API",
         "version": "0.1.0",
         "description": "Backend API for Interactive 3D Ocean Intelligence Platform"
     }

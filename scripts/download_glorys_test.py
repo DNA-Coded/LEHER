@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SamudraX STEP 2: GLORYS12V1 Test Subset Downloader
+Leher STEP 2: GLORYS12V1 Test Subset Downloader
 Downloads a small regional 3D subset of GLORYS12V1 ocean physics reanalysis data
 from Copernicus Marine Service for pipeline validation.
 """
@@ -55,7 +55,7 @@ TARGET_FILE = OUTPUT_DIR / OUTPUT_FILENAME
 
 def main():
     logger.info("==================================================")
-    logger.info("SamudraX Step 2: Download GLORYS12V1 Test Subset")
+    logger.info("Leher Step 2: Download GLORYS12V1 Test Subset")
     logger.info("==================================================")
     logger.info(f"Dataset ID:        {DATASET_ID}")
     logger.info(f"Variables:         {', '.join(VARIABLES)}")

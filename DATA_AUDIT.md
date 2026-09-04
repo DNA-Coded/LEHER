@@ -1,6 +1,6 @@
-# SamudraX Scientific Data Architecture: Repository Data Audit (Phase 1)
+# Leher Scientific Data Architecture: Repository Data Audit (Phase 1)
 
-**Project:** SamudraX 3D Ocean Intelligence Workbench  
+**Project:** Leher 3D Ocean Intelligence Workbench  
 **Audit Date:** September 3, 2026  
 **Auditor:** Lead Data & Scientific Visualization Engineer  
 

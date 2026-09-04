@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SamudraX STEP 2: GLORYS12V1 Test Subset Validation Script
+Leher STEP 2: GLORYS12V1 Test Subset Validation Script
 Performs a complete sanity check on the downloaded GLORYS12V1 NetCDF dataset (glorys_test.nc)
 using xarray to verify multidimensional ocean data integrity before downstream engine integration.
 """
@@ -195,7 +195,7 @@ def validate_dataset():
         print("are present with full vertical depth resolution (50 depth levels from surface to 5727m)")
         print("across the specified Indian Ocean regional domain (20°E to 120°E, 40°S to 30°N).")
         print("Data bounds, coordinate dimensions, units, and missing value encodings are valid.")
-        print("This dataset provides a verified 3D foundation ready for SamudraX multidimensional visualization and backend slicing.")
+        print("This dataset provides a verified 3D foundation ready for Leher multidimensional visualization and backend slicing.")
         return True
     else:
         print("STATUS: FAIL")

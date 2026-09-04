@@ -10,7 +10,7 @@ import {
   Clock,
   Menu
 } from "lucide-react";
-import { samudraXDataService, type TraceablePointReport } from "@/lib/data/registry";
+import { leherDataService, type TraceablePointReport } from "@/lib/data/registry";
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
@@ -37,7 +37,7 @@ const defaultGlobeConfig = {
 
 const parsePercent = (str: string): number => parseFloat(str.replace('%', ''));
 
-export default function SamudraXLandingPage() {
+export default function LeherLandingPage() {
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [globeTransform, setGlobeTransform] = useState("");
@@ -50,8 +50,8 @@ export default function SamudraXLandingPage() {
 
   // Initialize Scientific Data Service on mount
   useEffect(() => {
-    samudraXDataService.initialize().then(() => {
-      setPointReport(samudraXDataService.getPointData(15.4, 71.2, 0));
+    leherDataService.initialize().then(() => {
+      setPointReport(leherDataService.getPointData(15.4, 71.2, 0));
     });
   }, []);
 
@@ -358,7 +358,7 @@ export default function SamudraXLandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <span className="font-bold text-2xl tracking-tight text-white">SamudraX</span>
+            <span className="font-bold text-2xl tracking-tight text-white">Leher</span>
             <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
               3D Ocean Intelligence
             </span>
@@ -405,7 +405,7 @@ export default function SamudraXLandingPage() {
                 onClick={() => { scrollToSection('section-story'); setIsMobileMenuOpen(false); }} 
                 className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
               >
-                <span>Explore SamudraX</span>
+                <span>Explore Leher</span>
                 <span className="text-xs font-mono text-[#666666]">01</span>
               </button>
               <button 
@@ -456,7 +456,7 @@ export default function SamudraXLandingPage() {
           </div>
 
           <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818]">
-            SamudraX 3D Ocean Intelligence • INCOIS
+            Leher 3D Ocean Intelligence • INCOIS
           </div>
         </div>
       )}
@@ -493,7 +493,7 @@ export default function SamudraXLandingPage() {
           </div>
 
           <p className="text-[#888888] text-base sm:text-lg font-light leading-relaxed max-w-xl">
-            SamudraX brings ocean model outputs and real-world observations together in one interactive 3D environment — across space, depth and time.
+            Leher brings ocean model outputs and real-world observations together in one interactive 3D environment — across space, depth and time.
           </p>
 
           <div className="text-xs text-[#666666] tracking-wide flex items-center gap-2">
@@ -507,7 +507,7 @@ export default function SamudraXLandingPage() {
               onClick={() => scrollToSection('section-story')}
               className="px-7 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-sm transition-all shadow-lg cursor-pointer"
             >
-              Explore SamudraX
+              Explore Leher
             </button>
             <button 
               onClick={() => scrollToSection('section-preview')}
@@ -601,7 +601,7 @@ export default function SamudraXLandingPage() {
             One Ocean. Multiple Data Sources.
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
-            SamudraX unifies numerical model outputs and real-world in-situ observation streams into one coherent 3D grid.
+            Leher unifies numerical model outputs and real-world in-situ observation streams into one coherent 3D grid.
           </p>
         </div>
 
@@ -834,7 +834,7 @@ export default function SamudraXLandingPage() {
             PLATFORM PREVIEW
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            SamudraX 3D Operational Workbench
+            Leher 3D Operational Workbench
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
             Interactive 3D ocean intelligence environment rendering live WebGL dynamics, float observations, and atmospheric-oceanic vectors.
@@ -845,7 +845,7 @@ export default function SamudraXLandingPage() {
           <div className="bg-[#121212] px-6 py-3.5 border-b border-[#222222] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-white font-bold">SAMUDRAX 3D WORKBENCH ENGINE</span>
+              <span className="text-white font-bold">LEHER 3D WORKBENCH ENGINE</span>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-[#aaaaaa] font-mono text-xs">{realTimeClock}</span>
@@ -925,7 +925,7 @@ export default function SamudraXLandingPage() {
                 <iframe
                   key={workbenchVar}
                   src={getEarthIframeUrl(workbenchVar)}
-                  title="SamudraX Workbench 3D Earth"
+                  title="Leher Workbench 3D Earth"
                   className="w-full h-full border-0 absolute inset-0"
                   loading="lazy"
                 />
@@ -1009,14 +1009,14 @@ export default function SamudraXLandingPage() {
             Explore the Ocean Differently.
           </h2>
           <p className="text-[#888888] text-lg font-light leading-relaxed">
-            Bring model predictions, observations, depth and time together with SamudraX.
+            Bring model predictions, observations, depth and time together with Leher.
           </p>
           <div className="pt-2 flex justify-center">
             <button 
               onClick={() => setIsPlatformOpen(true)}
               className="px-8 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-bold text-sm transition-all cursor-pointer shadow-lg"
             >
-              Launch SamudraX Workbench
+              Launch Leher Workbench
             </button>
           </div>
         </div>
@@ -1028,7 +1028,7 @@ export default function SamudraXLandingPage() {
       <footer className="border-t border-[#222222] bg-[#050505] py-12 px-6 lg:px-12 z-20 relative">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 text-sm">
           <div className="md:col-span-6 space-y-3">
-            <div className="font-bold text-lg text-white">SamudraX</div>
+            <div className="font-bold text-lg text-white">Leher</div>
             <p className="text-[#888888] text-sm max-w-md">
               3D Ocean Intelligence & Visualization Platform. Built for ocean data exploration and analysis.
             </p>
@@ -1071,7 +1071,7 @@ export default function SamudraXLandingPage() {
             <div className="flex items-center gap-4">
               <span className="font-bold text-lg text-white flex items-center gap-2">
                 <GlobeIcon className="w-5 h-5 text-cyan-400" />
-                <span>SamudraX 3D Ocean Intelligence Engine</span>
+                <span>Leher 3D Ocean Intelligence Engine</span>
               </span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -1113,7 +1113,7 @@ export default function SamudraXLandingPage() {
               <iframe
                 key={workbenchVar}
                 src={getEarthIframeUrl(workbenchVar)}
-                title="SamudraX Global 3D Earth Fullscreen"
+                title="Leher Global 3D Earth Fullscreen"
                 className="w-full h-full border-0 absolute inset-0"
               />
             </div>
@@ -1241,7 +1241,7 @@ export default function SamudraXLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-4">
-              <span className="font-bold text-lg text-white">SamudraX 3D Ocean Intelligence Workbench</span>
+              <span className="font-bold text-lg text-white">Leher 3D Ocean Intelligence Workbench</span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>OPERATIONAL WORKBENCH</span>
@@ -1282,7 +1282,7 @@ export default function SamudraXLandingPage() {
               <iframe
                 key={workbenchVar}
                 src={getEarthIframeUrl(workbenchVar)}
-                title="SamudraX Full Workbench 3D Earth"
+                title="Leher Full Workbench 3D Earth"
                 className="w-full h-full border-0 absolute inset-0"
               />
             </div>
