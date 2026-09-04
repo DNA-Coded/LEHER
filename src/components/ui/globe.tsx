@@ -3,6 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Sphere, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { latLonToVector3 } from "@/lib/coordinates";
+import { BathymetryLayer } from "./BathymetryLayer";
+import { BathymetryLegend } from "./BathymetryLegend";
 
 const Earth = () => {
   const texture = useTexture('/globe.jpeg');
@@ -50,6 +52,7 @@ const Globe: React.FC = () => {
             <Suspense fallback={null}>
               <group>
                 <Earth />
+                <BathymetryLayer />
                 <ValidationMarker lat={15.4} lon={71.2} />
               </group>
             </Suspense>
@@ -64,6 +67,11 @@ const Globe: React.FC = () => {
           </Canvas>
 
           <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-sky-950/20 pointer-events-none" />
+        </div>
+        
+        {/* Bathymetry Depth Legend Overlay */}
+        <div className="absolute -right-8 -bottom-8 pointer-events-auto">
+          <BathymetryLegend />
         </div>
       </div>
     </div>
