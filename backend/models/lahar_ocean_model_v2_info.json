@@ -1,0 +1,130 @@
+{
+  "model_info": {
+    "model_type": "XGBoost MultiOutputRegressor",
+    "version": "2.0",
+    "training_date": "2026-09-04T19:31:47.646646",
+    "framework": {
+      "xgboost": "3.4.1",
+      "scikit-learn": "1.9.0",
+      "pandas": "2.2.0",
+      "numpy": "1.26.0"
+    }
+  },
+  "data_info": {
+    "training_samples": 5821302,
+    "features_count": 9,
+    "targets_count": 4,
+    "feature_names": [
+      "latitude",
+      "longitude",
+      "depth",
+      "surface_temp",
+      "surface_salinity",
+      "month_sin",
+      "month_cos",
+      "doy_sin",
+      "doy_cos"
+    ],
+    "target_names": [
+      "thetao",
+      "so",
+      "uo",
+      "vo"
+    ]
+  },
+  "performance_metrics": {
+    "thetao": {
+      "mse": 0.18613633513450623,
+      "rmse": 0.4314352038655471,
+      "mae": 0.234968364238739,
+      "r2": 0.997760534286499
+    },
+    "so": {
+      "mse": 0.016334760934114456,
+      "rmse": 0.12780751517072247,
+      "mae": 0.04332052543759346,
+      "r2": 0.9867662191390991
+    },
+    "uo": {
+      "mse": 0.010128348134458065,
+      "rmse": 0.10063969462621628,
+      "mae": 0.07002685964107513,
+      "r2": 0.7628415822982788
+    },
+    "vo": {
+      "mse": 0.010387183167040348,
+      "rmse": 0.10191753120557988,
+      "mae": 0.07018046826124191,
+      "r2": 0.6559504270553589
+    }
+  },
+  "feature_engineering": {
+    "temporal_features": [
+      "month_sin",
+      "month_cos",
+      "doy_sin",
+      "doy_cos"
+    ],
+    "description": "Cyclical encoding of month and day-of-year for seasonal patterns"
+  },
+  "model_parameters": {
+    "n_estimators": 150,
+    "max_depth": 8,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.9,
+    "reg_alpha": 0.1,
+    "reg_lambda": 0.1,
+    "random_state": 42
+  },
+  "valid_ranges": {
+    "latitude": [
+      -90,
+      90
+    ],
+    "longitude": [
+      -180,
+      180
+    ],
+    "depth": [
+      0,
+      8000
+    ],
+    "surface_temp": [
+      -2,
+      40
+    ],
+    "surface_salinity": [
+      0,
+      40
+    ],
+    "month_sin": [
+      -1,
+      1
+    ],
+    "month_cos": [
+      -1,
+      1
+    ],
+    "doy_sin": [
+      -1,
+      1
+    ],
+    "doy_cos": [
+      -1,
+      1
+    ]
+  },
+  "units": {
+    "thetao": "degrees_Celsius",
+    "so": "PSU",
+    "uo": "m/s_eastward",
+    "vo": "m/s_northward"
+  },
+  "intended_use": "Prediction of ocean state variables for 3D visualization platform",
+  "limitations": [
+    "Trained on Copernicus Global Analysis and Forecast data for Indian Ocean",
+    "Temporal coverage limited to training period",
+    "Assumes relationship between surface and subsurface properties is stationary"
+  ]
+}
