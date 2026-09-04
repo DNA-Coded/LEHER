@@ -9,6 +9,7 @@ import pickle
 import numpy as np
 import json
 import os
+import copy
 from datetime import datetime
 from typing import Dict, List, Union, Optional
 
@@ -77,9 +78,9 @@ class LaharModelAPI:
         """Validate input parameters against expected ranges"""
         errors = []
         ranges = {
-            'latitude': (-90, 90),
-            'longitude': (-180, 180),
-            'depth': (0, 8000),
+            'latitude': (-20, 25),
+            'longitude': (50, 100),
+            'depth': (0, 2000),
             'surface_temp': (-2, 40),
             'surface_salinity': (0, 40)
         }
@@ -214,7 +215,7 @@ class LaharModelAPI:
 
     def get_model_info(self) -> Dict:
         """Get model metadata and information"""
-        return self.metadata.copy()
+        return copy.deepcopy(self.metadata)
 
     def health_check(self) -> Dict[str, Union[bool, str]]:
         """Check if the API is healthy and ready to serve predictions"""
@@ -242,34 +243,30 @@ class LaharModelAPI:
                 'last_check': datetime.now().isoformat()
             }
 
+# Global singleton instance for convenience functions to avoid reloading pickle on every call
+_GLOBAL_API_INSTANCE = None
+
+def get_api_instance() -> LaharModelAPI:
+    global _GLOBAL_API_INSTANCE
+    if _GLOBAL_API_INSTANCE is None:
+        _GLOBAL_API_INSTANCE = LaharModelAPI()
+    return _GLOBAL_API_INSTANCE
+
 # Convenience functions for easy usage
 def predict_ocean_state(latitude: float, longitude: float, depth: float,
                        surface_temp: float, surface_salinity: float,
                        month: int = None, day_of_year: int = None) -> Dict:
     """
-    Convenience function for single prediction
-
-    Example:
-        result = predict_ocean_state(10.0, 75.0, 500.0, 28.5, 35.2, 1, 15)
-        print(f"Temperature: {result['thetao']:.2f}°C")
+    Convenience function for single prediction (uses cached singleton API)
     """
-    api = LaharModelAPI()
+    api = get_api_instance()
     return api.predict(latitude, longitude, depth, surface_temp, surface_salinity, month, day_of_year)
 
 def predict_ocean_state_batch(locations: List[Dict]) -> List[Dict]:
     """
-    Convenience function for batch prediction
-
-    Example:
-        locations = [
-            {'latitude': 10.0, 'longitude': 75.0, 'depth': 500.0,
-             'surface_temp': 28.5, 'surface_salinity': 35.2, 'month': 1, 'day_of_year': 15},
-            {'latitude': 12.0, 'longitude': 80.0, 'depth': 1000.0,
-             'surface_temp': 27.0, 'surface_salinity': 34.8, 'month': 1, 'day_of_year': 15}
-        ]
-        results = predict_ocean_state_batch(locations)
+    Convenience function for batch prediction (uses cached singleton API)
     """
-    api = LaharModelAPI()
+    api = get_api_instance()
     return api.predict_batch(locations)
 
 # Example usage and testing
@@ -304,9 +301,9 @@ if __name__ == "__main__":
     # Example: Indian Ocean location, mid-depth, January conditions
     try:
         result = api.predict(
-            latitude=19.0,      # 10°N
-            longitude=95.0,     # 75°E
-            depth=1200.0,        # 500m depth
+            latitude=19.0,      # 19°N
+            longitude=95.0,     # 95°E
+            depth=1200.0,       # 1200m depth
             surface_temp=28.5,  # 28.5°C surface temperature
             surface_salinity=35.2, # 35.2 PSU surface salinity
             month=1,            # January
