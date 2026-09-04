@@ -1,7 +1,10 @@
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { defineConfig, type Plugin } from 'vite'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function earthRoutePlugin(): Plugin {
   return {
@@ -28,7 +31,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), earthRoutePlugin()],
   resolve: {
     alias: {
-      '@': path.resolve(import.meta.dirname, './src'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
 })
