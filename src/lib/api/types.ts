@@ -55,3 +55,17 @@ export interface CurrentsPointResponse {
 export interface ApiError {
   detail: string;
 }
+
+export interface DeepOceanPrediction {
+  thetao: number;
+  so: number;
+  uo: number;
+  vo: number;
+  current_speed?: number;
+  metadata?: any;
+}
+
+export interface DeepOceanPredictionResponse {
+  success: boolean;
+  data: DeepOceanPrediction;
+}

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.routes import temperature, salinity, currents, bathymetry, sea_level, chlorophyll
+from app.api.routes import temperature, salinity, currents, bathymetry, sea_level, chlorophyll, ml_prediction
 
 # Create main API router
 api_router = APIRouter(prefix="/api/ocean")
@@ -11,3 +11,4 @@ api_router.include_router(currents.router, prefix="/currents", tags=["currents"]
 api_router.include_router(bathymetry.router, prefix="/bathymetry", tags=["bathymetry"])
 api_router.include_router(sea_level.router, prefix="/sea-level", tags=["sea-level"])
 api_router.include_router(chlorophyll.router, prefix="/chlorophyll", tags=["chlorophyll"])
+api_router.include_router(ml_prediction.router, tags=["ml-prediction"])

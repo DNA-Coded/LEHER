@@ -4,7 +4,8 @@ import type {
 } from "@/lib/data/registry.ts";
 import type { 
   GridResponse, 
-  CurrentsGridResponse 
+  CurrentsGridResponse,
+  DeepOceanPredictionResponse
 } from "@/lib/api/types";
 
 /**
@@ -337,6 +338,38 @@ export class OceanDataService {
     }
 
     return await response.json();
+  }
+  /**
+   * Predict deep ocean state using ML model
+   */
+  async predictDeepOcean(
+    latitude: number, 
+    longitude: number, 
+    depth: number
+  ): Promise<DeepOceanPredictionResponse> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/predict/deep_ocean`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          latitude,
+          longitude,
+          depth
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error predicting deep ocean state:", error);
+      throw error;
+    }
   }
 }
 
