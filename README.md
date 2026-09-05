@@ -1,14 +1,40 @@
-# Leher
+<p align="center">
+  <a href="https://leher-3d.vercel.app/" target="_blank" rel="noopener noreferrer">
+    <img src="logo.png" alt="Leher Logo" width="160" height="160" style="border-radius: 50%; max-width: 100%;" />
+  </a>
+</p>
 
-An interactive 3D ocean data visualization platform integrating numerical ocean models with real-world ocean observations.
+<h1 align="center">Leher</h1>
+
+<p align="center">
+  <strong>3D Ocean Intelligence &amp; Visualization Platform</strong><br>
+  <em>An interactive 3D ocean data visualization platform integrating numerical ocean models with real-world ocean observations across space, depth, and time.</em>
+</p>
+
+<p align="center">
+  <a href="https://leher-3d.vercel.app/"><img src="https://img.shields.io/badge/Live_Demo-leher--3d.vercel.app-0ea5e9?style=for-the-badge&logo=vercel" alt="Live Demo" /></a>
+  <a href="https://github.com/DNA-Coded/LEHER"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repo" /></a>
+  <img src="https://img.shields.io/badge/SIH_Problem-26067-ff6b6b?style=for-the-badge" alt="SIH Problem 26067" />
+  <img src="https://img.shields.io/badge/Organization-INCOIS_%7C_MoES-10b981?style=for-the-badge" alt="INCOIS MoES" />
+</p>
 
 ---
 
 ## 1. PROJECT TITLE
 
-**Leher**: 3D Ocean Intelligence & Visualization Platform
-
-*An interactive 3D ocean data visualization platform integrating numerical ocean models with real-world ocean observations across space, depth, and time.*
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="130">
+        <img src="logo.png" width="100" alt="Leher Logo" />
+      </td>
+      <td>
+        <strong>Leher</strong>: 3D Ocean Intelligence &amp; Visualization Platform<br><br>
+        <em>An interactive 3D ocean data visualization platform integrating numerical ocean models with real-world ocean observations across space, depth, and time.</em>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
@@ -859,3 +885,11 @@ Leher has completed **Phase 1 (Data Architecture & Repository Audit)**, **Phase 
 
 ### SIH Readiness Assessment
 **High Prototype Readiness**: The core scientific data acquisition pipeline, backend subsetting engine, NetCDF data structures, and interactive UI workbench are verified and functional. The platform is ready for demonstration of Step 1 & Step 2 capabilities to technical reviewers and judges.
+
+---
+
+<p align="center">
+  <img src="logo.png" width="56" height="56" alt="Leher Logo" style="border-radius: 50%;" /><br>
+  <strong>Leher — 3D Ocean Intelligence &amp; Visualization Platform</strong><br>
+  <em>Smart India Hackathon (SIH) Problem Statement 26067 • INCOIS • Ministry of Earth Sciences</em>
+</p>

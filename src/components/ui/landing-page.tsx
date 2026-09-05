@@ -357,11 +357,25 @@ export default function LeherLandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-40 bg-[#080808]/80 backdrop-blur-md border-b border-[#1c1c1c]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
           {/* Brand Logo */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <span className="font-bold text-2xl tracking-tight text-white">Leher</span>
-            <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
-              3D Ocean Intelligence
-            </span>
+          <div 
+            className="flex items-center gap-3.5 cursor-pointer group" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400/40 via-white/20 to-transparent border border-white/20 shadow-md shadow-cyan-950/20 group-hover:border-cyan-400/80 group-hover:scale-105 transition-all duration-300">
+              <img 
+                src="/logo.png" 
+                alt="Leher Logo" 
+                className="w-full h-full object-contain rounded-full bg-black/40" 
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-bold text-2xl tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+                Leher
+              </span>
+              <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
+                3D Ocean Intelligence
+              </span>
+            </div>
           </div>
 
           {/* Nav Links */}
@@ -397,7 +411,10 @@ export default function LeherLandingPage() {
         <div className="fixed inset-0 top-20 z-40 bg-[#080808]/95 backdrop-blur-xl border-b border-[#222222] p-6 flex flex-col justify-between transition-all duration-300 animate-in fade-in slide-in-from-top-4">
           <div className="space-y-6 max-w-xl mx-auto w-full pt-4">
             <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
-              <span>Navigation Menu</span>
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Leher Logo" className="w-5 h-5 rounded-full object-contain" />
+                <span>Navigation Menu</span>
+              </div>
               <span className="text-emerald-400 font-mono text-xs">{realTimeClock}</span>
             </div>
             <div className="flex flex-col gap-3 text-base sm:text-lg font-semibold text-[#cccccc]">
@@ -455,8 +472,9 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818]">
-            Leher 3D Ocean Intelligence • INCOIS
+          <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818] flex items-center justify-center gap-2">
+            <img src="/logo.png" alt="Leher Logo" className="w-4 h-4 rounded-full opacity-80" />
+            <span>Leher 3D Ocean Intelligence • INCOIS</span>
           </div>
         </div>
       )}
@@ -483,6 +501,10 @@ export default function LeherLandingPage() {
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto"
       >
         <div className="max-w-2xl space-y-7">
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#121212] border border-[#262626] backdrop-blur-md shadow-sm">
+            <img src="/logo.png" alt="Leher Logo" className="w-5 h-5 rounded-full object-contain shadow" />
+            <span className="text-xs font-mono text-cyan-300 font-medium tracking-wide">LEHER • 3D OCEAN INTELLIGENCE PLATFORM</span>
+          </div>
           <div className="space-y-1">
             <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.05]">
               Explore
@@ -1028,7 +1050,10 @@ export default function LeherLandingPage() {
       <footer className="border-t border-[#222222] bg-[#050505] py-12 px-6 lg:px-12 z-20 relative">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 text-sm">
           <div className="md:col-span-6 space-y-3">
-            <div className="font-bold text-lg text-white">Leher</div>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Leher Logo" className="w-8 h-8 rounded-full object-contain border border-white/10 shadow-md" />
+              <div className="font-bold text-xl text-white">Leher</div>
+            </div>
             <p className="text-[#888888] text-sm max-w-md">
               3D Ocean Intelligence & Visualization Platform. Built for ocean data exploration and analysis.
             </p>
@@ -1068,9 +1093,9 @@ export default function LeherLandingPage() {
         <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col overflow-hidden">
           {/* Header Bar */}
           <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Leher Logo" className="w-7 h-7 rounded-full object-contain border border-white/10" />
               <span className="font-bold text-lg text-white flex items-center gap-2">
-                <GlobeIcon className="w-5 h-5 text-cyan-400" />
                 <span>Leher 3D Ocean Intelligence Engine</span>
               </span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
@@ -1240,7 +1265,8 @@ export default function LeherLandingPage() {
         <div className="fixed inset-0 z-50 bg-[#050505] flex flex-col overflow-hidden">
           {/* Header Bar */}
           <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center z-20">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Leher Logo" className="w-7 h-7 rounded-full object-contain border border-white/10" />
               <span className="font-bold text-lg text-white">Leher 3D Ocean Intelligence Workbench</span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
