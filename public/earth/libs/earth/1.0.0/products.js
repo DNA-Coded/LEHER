@@ -208,16 +208,14 @@ var products = function() {
                     paths: [gfs1p0degPath(attr, "relative_humidity", attr.surface, attr.level)],
                     date: gfsDate(attr),
                     builder: function(file) {
-                        var vars = file.variables;
-                        var rh = vars.Relative_humidity_isobaric || vars.Relative_humidity_height_above_ground;
-                        var data = rh.data;
+                        var record = file[0], data = record.data;
                         return {
-                            header: netcdfHeader(vars.time, vars.lat, vars.lon, file.Originating_or_generating_Center),
+                            header: record.header,
                             interpolate: bilinearInterpolateScalar,
                             data: function(i) {
                                 return data[i];
                             }
-                        };
+                        }
                     },
                     units: [
                         {label: "%", conversion: function(x) { return x; }, precision: 0}
