@@ -1,37 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 
-const Globe: React.FC = () => {
+interface GlobeProps {
+  className?: string;
+}
+
+const Globe: React.FC<GlobeProps> = ({ className = "" }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
-    <>
-      <style>
-        {`
-          @keyframes earthRotate {
-            0% { background-position: 0 0; }
-            100% { background-position: 450px 0; }
-          }
-        `}
-      </style>
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="relative">
-          {/* Atmosphere Glow Halo matching screenshot */}
-          <div className="absolute -inset-2 rounded-full bg-cyan-400/20 blur-xl pointer-events-none" />
-          
-          {/* Globe Sphere with exact shadow & glow profile */}
-          <div
-            className="relative w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] lg:w-[420px] lg:h-[420px] rounded-full overflow-hidden shadow-[0_0_50px_rgba(147,210,230,0.3),-10px_0_15px_#7dd3fc_inset,20px_4px_30px_#000000_inset,-24px_-2px_34px_#7dd3fc80_inset,250px_0_44px_#000000aa_inset]"
-            style={{
-              backgroundImage: "url('https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/globe.jpeg')",
-              backgroundSize: "cover",
-              backgroundPosition: "left center",
-              animation: "earthRotate 60s linear infinite",
-            }}
-          >
-            {/* Soft Ocean Depth Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-sky-950/20 pointer-events-none" />
-          </div>
-        </div>
+    <div className={`flex items-center justify-center ${className}`}>
+      <div className="relative w-[340px] h-[340px] sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px]">
+        {/* Soft Atmosphere Glow Halo */}
+        <div
+          className="absolute -inset-4 rounded-full bg-cyan-400/25 blur-2xl pointer-events-none transition-opacity duration-1000"
+          style={{ opacity: isLoaded ? 0.85 : 0.3 }}
+        />
+        <div
+          className="absolute inset-2 rounded-full bg-sky-500/15 blur-xl pointer-events-none transition-opacity duration-1000"
+          style={{ opacity: isLoaded ? 0.7 : 0.2 }}
+        />
+
+        {/* 3D Interactive Bathymetry Globe iframe */}
+        <iframe
+          src="/globe/index.html"
+          title="Leher 3D Interactive Bathymetry Globe"
+          className="w-full h-full border-0 bg-transparent rounded-full relative z-10 transition-opacity duration-700"
+          style={{
+            opacity: isLoaded ? 1 : 0,
+            background: "transparent",
+            colorScheme: "dark",
+          }}
+          loading="eager"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope"
+          onLoad={() => setIsLoaded(true)}
+        />
       </div>
-    </>
+    </div>
   );
 };
 

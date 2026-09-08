@@ -1,0 +1,31 @@
+:root {
+  color-scheme: dark !important;
+}
+
+html,
+body,
+#viewDiv,
+#viewDiv canvas,
+.esri-view,
+.esri-view-surface {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  color-scheme: dark !important;
+  color: #ffffff;
+  font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overflow: hidden !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+body {
+  background: transparent !important;
+  background-color: transparent !important;
+}

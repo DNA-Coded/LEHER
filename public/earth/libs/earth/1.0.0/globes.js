@@ -1,20 +1,11 @@
 /**
  * globes - a set of models of the earth, each having their own kind of projection and onscreen behavior.
- *
- * Copyright (c) 2014 Cameron Beccario
- * The MIT License - http://opensource.org/licenses/MIT
- *
- * https://github.com/cambecc/earth
  */
 var globes = function() {
     "use strict";
 
-    /**
-     * @returns {Array} rotation of globe to current position of the user. Aside from asking for geolocation,
-     *          which user may reject, there is not much available except timezone. Better than nothing.
-     */
     function currentPosition() {
-        var λ = µ.floorMod(new Date().getTimezoneOffset() / 4, 360);  // 24 hours * 60 min / 4 === 360 degrees
+        var λ = µ.floorMod(new Date().getTimezoneOffset() / 4, 360);
         return [λ, 0];
     }
 
@@ -22,11 +13,6 @@ var globes = function() {
         return _.isFinite(num) || num === Infinity || num === -Infinity ? num : fallback;
     }
 
-    /**
-     * @param bounds the projection bounds: [[x0, y0], [x1, y1]]
-     * @param view the view bounds {width:, height:}
-     * @returns {Object} the projection bounds clamped to the specified view.
-     */
     function clampedBounds(bounds, view) {
         var upperLeft = bounds[0];
         var lowerRight = bounds[1];
@@ -37,38 +23,42 @@ var globes = function() {
         return {x: x, y: y, xMax: xMax, yMax: yMax, width: xMax - x + 1, height: yMax - y + 1};
     }
 
-    /**
-     * Returns a globe object with standard behavior. At least the newProjection method must be overridden to
-     * be functional.
-     */
+    function makeDenseBBox(minLon, minLat, maxLon, maxLat, step) {
+        step = step || 0.5;
+        var coords = [];
+        // CCW winding (Right-Hand Rule for spherical polygon):
+        // 1. Left edge: minLon, minLat -> maxLat (going North)
+        for (var lat = minLat; lat <= maxLat; lat += step) coords.push([minLon, lat]);
+        if (coords[coords.length - 1][1] !== maxLat) coords.push([minLon, maxLat]);
+        // 2. Top edge: maxLat, minLon -> maxLon (going East)
+        for (var lon = minLon; lon <= maxLon; lon += step) coords.push([lon, maxLat]);
+        if (coords[coords.length - 1][0] !== maxLon) coords.push([maxLon, maxLat]);
+        // 3. Right edge: maxLon, maxLat -> minLat (going South)
+        for (var lat = maxLat; lat >= minLat; lat -= step) coords.push([maxLon, lat]);
+        if (coords[coords.length - 1][1] !== minLat) coords.push([maxLon, minLat]);
+        // 4. Bottom edge: minLat, maxLon -> minLon (going West)
+        for (var lon = maxLon; lon >= minLon; lon -= step) coords.push([lon, minLat]);
+        if (coords[coords.length - 1][0] !== minLon) coords.push([minLon, minLat]);
+        return {
+            type: "Polygon",
+            coordinates: [coords]
+        };
+    }
+
+    var CONCENTRIC_BBOX = makeDenseBBox(20, -40, 130, 30, 0.5);
+
     function standardGlobe() {
         return {
-            /**
-             * This globe's current D3 projection.
-             */
             projection: null,
 
-            /**
-             * @param view the size of the view as {width:, height:}.
-             * @returns {Object} a new D3 projection of this globe appropriate for the specified view port.
-             */
             newProjection: function(view) {
                 throw new Error("method must be overridden");
             },
 
-            /**
-             * @param view the size of the view as {width:, height:}.
-             * @returns {{x: Number, y: Number, xMax: Number, yMax: Number, width: Number, height: Number}}
-             *          the bounds of the current projection clamped to the specified view.
-             */
             bounds: function(view) {
                 return clampedBounds(d3.geo.path().projection(this.projection).bounds({type: "Sphere"}), view);
             },
 
-            /**
-             * @param view the size of the view as {width:, height:}.
-             * @returns {Number} the projection scale at which the entire globe fits within the specified view.
-             */
             fit: function(view) {
                 var defaultProjection = this.newProjection(view);
                 var bounds = d3.geo.path().projection(defaultProjection).bounds({type: "Sphere"});
@@ -77,28 +67,14 @@ var globes = function() {
                 return Math.min(view.width / hScale, view.height / vScale) * 0.9;
             },
 
-            /**
-             * @param view the size of the view as {width:, height:}.
-             * @returns {Array} the projection transform at which the globe is centered within the specified view.
-             */
             center: function(view) {
                 return [view.width / 2, view.height / 2];
             },
 
-            /**
-             * @returns {Array} the range at which this globe can be zoomed.
-             */
             scaleExtent: function() {
-                return [25, 3000];
+                return [25, 4000];
             },
 
-            /**
-             * Returns the current orientation of this globe as a string. If the arguments are specified,
-             * mutates this globe to match the specified orientation string, usually in the form "lat,lon,scale".
-             *
-             * @param [o] the orientation string
-             * @param [view] the size of the view as {width:, height:}.
-             */
             orientation: function(o, view) {
                 var projection = this.projection, rotate = projection.rotate();
                 if (µ.isValue(o)) {
@@ -114,17 +90,9 @@ var globes = function() {
                 return [(-rotate[0]).toFixed(2), (-rotate[1]).toFixed(2), Math.round(projection.scale())].join(",");
             },
 
-            /**
-             * Returns an object that mutates this globe's current projection during a drag/zoom operation.
-             * Each drag/zoom event invokes the move() method, and when the move is complete, the end() method
-             * is invoked.
-             *
-             * @param startMouse starting mouse position.
-             * @param startScale starting scale.
-             */
             manipulator: function(startMouse, startScale) {
                 var projection = this.projection;
-                var sensitivity = 150 / startScale;  // increased drag/rotation sensitivity factor
+                var sensitivity = 150 / startScale;
                 var rotation = [projection.rotate()[0] / sensitivity, -projection.rotate()[1] / sensitivity];
                 var original = projection.precision();
                 projection.precision(original * 10);
@@ -143,28 +111,15 @@ var globes = function() {
                 };
             },
 
-            /**
-             * @returns {Array} the transform to apply, if any, to orient this globe to the specified coordinates.
-             */
             locate: function(coord) {
                 return null;
             },
 
-            /**
-             * Draws a polygon on the specified context of this globe's boundary.
-             * @param context a Canvas element's 2d context.
-             * @returns the context
-             */
             defineMask: function(context) {
                 d3.geo.path().projection(this.projection).context(context)({type: "Sphere"});
                 return context;
             },
 
-            /**
-             * Appends the SVG elements that render this globe.
-             * @param mapSvg the primary map SVG container.
-             * @param foregroundSvg the foreground SVG container.
-             */
             defineMap: function(mapSvg, foregroundSvg) {
                 var path = d3.geo.path().projection(this.projection);
                 var defs = mapSvg.append("defs");
@@ -172,21 +127,36 @@ var globes = function() {
                     .attr("id", "sphere")
                     .datum({type: "Sphere"})
                     .attr("d", path);
+
+                // Water / Ocean background sphere
                 mapSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "background-sphere");
+
+                // Landmasses
+                mapSvg.append("path")
+                    .attr("class", "land");
+
+                // Coastlines
+                mapSvg.append("path")
+                    .attr("class", "coastline");
+
+                // Lakes
+                mapSvg.append("path")
+                    .attr("class", "lakes");
+
+                // Longitude & Latitude Graticule Grid
                 mapSvg.append("path")
                     .attr("class", "graticule")
-                    .datum(d3.geo.graticule())
+                    .datum(d3.geo.graticule().step([15, 15]))
                     .attr("d", path);
+
+                // Hemisphere Equator / Prime Meridian
                 mapSvg.append("path")
                     .attr("class", "hemisphere")
                     .datum(d3.geo.graticule().minorStep([0, 90]).majorStep([0, 90]))
                     .attr("d", path);
-                mapSvg.append("path")
-                    .attr("class", "coastline");
-                mapSvg.append("path")
-                    .attr("class", "lakes");
+
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
@@ -202,75 +172,197 @@ var globes = function() {
 
     // ============================================================================================
 
-    function atlantis() {
+    /**
+     * Concentric regional projection specifically bounded from:
+     * Latitude: 40°S (-40°) to 30°N (+30°)
+     * Longitude: 20°E (+20°) to 130°E (+130°)
+     * Concentric circular parallels and radial meridians, with only this region shown.
+     */
+    function concentricRegion(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
+                return d3.geo.conicEquidistant()
+                    .center([0, -5])
+                    .rotate([-75, 0])
+                    .parallels([-30, 20])
+                    .precision(0.1);
+            },
+            bounds: function(view) {
+                return clampedBounds(d3.geo.path().projection(this.projection).bounds(CONCENTRIC_BBOX), view);
+            },
+            fit: function(view) {
+                var defaultProjection = this.newProjection(view);
+                var bounds = d3.geo.path().projection(defaultProjection).bounds(CONCENTRIC_BBOX);
+                var hScale = (bounds[1][0] - bounds[0][0]) / defaultProjection.scale();
+                var vScale = (bounds[1][1] - bounds[0][1]) / defaultProjection.scale();
+                return Math.min(view.width / hScale, view.height / vScale) * 0.90;
+            },
+            center: function(view) {
+                return [view.width / 2, view.height / 2];
+            },
+            orientation: function(o, view) {
+                var projection = this.projection;
+                var defaultProjection = this.newProjection(view);
+                projection.rotate(defaultProjection.rotate());
+                projection.scale(this.fit(view));
+                projection.translate(this.center(view));
+                return this;
+            },
+            manipulator: function() {
+                return {
+                    move: function() {},
+                    end: function() {}
+                };
+            },
+            defineMap: function(mapSvg, foregroundSvg) {
+                var path = d3.geo.path().projection(this.projection);
+                var defs = mapSvg.append("defs");
+
+                // Region boundary path (40°S to 30°N, 20°E to 130°E)
+                defs.append("path")
+                    .attr("id", "concentric-bounds")
+                    .datum(CONCENTRIC_BBOX)
+                    .attr("d", path);
+
+                defs.append("clipPath")
+                    .attr("id", "concentric-clip")
+                    .append("use")
+                    .attr("xlink:href", "#concentric-bounds");
+
+                // Normal vibrant water/ocean fill specifically for this region
+                mapSvg.append("use")
+                    .attr("xlink:href", "#concentric-bounds")
+                    .attr("class", "background-sphere concentric-ocean");
+
+                // Normal vibrant landmasses clipped to this region only
+                mapSvg.append("path")
+                    .attr("class", "land concentric-land")
+                    .attr("clip-path", "url(#concentric-clip)");
+
+                // Coastlines clipped to this region only
+                mapSvg.append("path")
+                    .attr("class", "coastline")
+                    .attr("clip-path", "url(#concentric-clip)");
+
+                // Lakes clipped to this region only
+                mapSvg.append("path")
+                    .attr("class", "lakes")
+                    .attr("clip-path", "url(#concentric-clip)");
+
+                // Concentric Latitude & Longitude Graticule grid within this region
+                mapSvg.append("path")
+                    .attr("class", "graticule")
+                    .attr("clip-path", "url(#concentric-clip)")
+                    .datum(d3.geo.graticule().step([10, 10]).extent([[20, -40], [130, 30]]))
+                    .attr("d", path);
+
+                // Equator and major division lines
+                mapSvg.append("path")
+                    .attr("class", "hemisphere")
+                    .attr("clip-path", "url(#concentric-clip)")
+                    .datum(d3.geo.graticule().minorStep([0, 10]).majorStep([0, 10]).extent([[20, -40], [130, 30]]))
+                    .attr("d", path);
+
+                // Distinct glowing region boundary border
+                mapSvg.append("use")
+                    .attr("xlink:href", "#concentric-bounds")
+                    .attr("class", "region-border");
+
+                foregroundSvg.append("use")
+                    .attr("xlink:href", "#concentric-bounds")
+                    .attr("class", "foreground-sphere");
+            }
+        }, view);
+    }
+
+    function atlantis(view) {
+        return newGlobe({
+            newProjection: function(view) {
                 return d3.geo.mollweide().rotate([30, -45, 90]).precision(0.1);
             }
-        });
+        }, view);
     }
 
-    function azimuthalEquidistant() {
+    function azimuthalEquidistant(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
                 return d3.geo.azimuthalEquidistant().precision(0.1).rotate([0, -90]).clipAngle(180 - 0.001);
             }
-        });
+        }, view);
     }
 
-    function conicEquidistant() {
+    function conicEquidistant(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
                 return d3.geo.conicEquidistant().rotate(currentPosition()).precision(0.1);
             },
             center: function(view) {
                 return [view.width / 2, view.height / 2 + view.height * 0.065];
             }
-        });
+        }, view);
     }
 
-    function equirectangular() {
+    function equirectangular(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
                 return d3.geo.equirectangular().rotate(currentPosition()).precision(0.1);
             }
-        });
+        }, view);
     }
 
-    function orthographic() {
+    function orthographic(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
                 return d3.geo.orthographic().rotate(currentPosition()).precision(0.1).clipAngle(90);
             },
             defineMap: function(mapSvg, foregroundSvg) {
                 var path = d3.geo.path().projection(this.projection);
                 var defs = mapSvg.append("defs");
+
+                // Radial gradient for deep 3D ocean illumination
                 var gradientFill = defs.append("radialGradient")
-                    .attr("id", "orthographic-fill")
+                    .attr("id", "orthographic-ocean-fill")
                     .attr("gradientUnits", "objectBoundingBox")
-                    .attr("cx", "50%").attr("cy", "49%").attr("r", "50%");
-                gradientFill.append("stop").attr("stop-color", "#303030").attr("offset", "69%");
-                gradientFill.append("stop").attr("stop-color", "#202020").attr("offset", "91%");
-                gradientFill.append("stop").attr("stop-color", "#000005").attr("offset", "96%");
+                    .attr("cx", "48%").attr("cy", "46%").attr("r", "52%");
+                gradientFill.append("stop").attr("stop-color", "#162a45").attr("offset", "0%");
+                gradientFill.append("stop").attr("stop-color", "#0e1c31").attr("offset", "65%");
+                gradientFill.append("stop").attr("stop-color", "#070e1a").attr("offset", "100%");
+
                 defs.append("path")
                     .attr("id", "sphere")
                     .datum({type: "Sphere"})
                     .attr("d", path);
+
+                // Ocean water base
                 mapSvg.append("use")
                     .attr("xlink:href", "#sphere")
-                    .attr("fill", "url(#orthographic-fill)");
+                    .attr("fill", "url(#orthographic-ocean-fill)")
+                    .attr("class", "background-sphere");
+
+                // Landmasses
+                mapSvg.append("path")
+                    .attr("class", "land");
+
+                // Coastlines
+                mapSvg.append("path")
+                    .attr("class", "coastline");
+
+                // Lakes
+                mapSvg.append("path")
+                    .attr("class", "lakes");
+
+                // Latitude & Longitude Graticule lines
                 mapSvg.append("path")
                     .attr("class", "graticule")
-                    .datum(d3.geo.graticule())
+                    .datum(d3.geo.graticule().step([15, 15]))
                     .attr("d", path);
+
+                // Major Hemisphere lines (Equator / Prime Meridian)
                 mapSvg.append("path")
                     .attr("class", "hemisphere")
                     .datum(d3.geo.graticule().minorStep([0, 90]).majorStep([0, 90]))
                     .attr("d", path);
-                mapSvg.append("path")
-                    .attr("class", "coastline");
-                mapSvg.append("path")
-                    .attr("class", "lakes");
+
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
@@ -278,7 +370,7 @@ var globes = function() {
             locate: function(coord) {
                 return [-coord[0], -coord[1], this.projection.rotate()[2]];
             }
-        });
+        }, view);
     }
 
     function stereographic(view) {
@@ -293,9 +385,9 @@ var globes = function() {
         }, view);
     }
 
-    function waterman() {
+    function waterman(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
                 return d3.geo.polyhedron.waterman().rotate([20, 0]).precision(0.1);
             },
             defineMap: function(mapSvg, foregroundSvg) {
@@ -309,44 +401,54 @@ var globes = function() {
                     .attr("id", "clip")
                     .append("use")
                     .attr("xlink:href", "#sphere");
+
                 mapSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "background-sphere");
+
                 mapSvg.append("path")
-                    .attr("class", "graticule")
-                    .attr("clip-path", "url(#clip)")
-                    .datum(d3.geo.graticule())
-                    .attr("d", path);
+                    .attr("class", "land")
+                    .attr("clip-path", "url(#clip)");
+
                 mapSvg.append("path")
                     .attr("class", "coastline")
                     .attr("clip-path", "url(#clip)");
+
                 mapSvg.append("path")
                     .attr("class", "lakes")
                     .attr("clip-path", "url(#clip)");
+
+                mapSvg.append("path")
+                    .attr("class", "graticule")
+                    .attr("clip-path", "url(#clip)")
+                    .datum(d3.geo.graticule().step([15, 15]))
+                    .attr("d", path);
+
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
             }
-        });
+        }, view);
     }
 
-    function winkel3() {
+    function winkel3(view) {
         return newGlobe({
-            newProjection: function() {
+            newProjection: function(view) {
                 return d3.geo.winkel3().precision(0.1);
             }
-        });
+        }, view);
     }
 
     return d3.map({
-        atlantis: atlantis,
+        orthographic: orthographic,
+        concentric_region: concentricRegion,
+        equirectangular: equirectangular,
+        winkel3: winkel3,
+        waterman: waterman,
+        stereographic: stereographic,
         azimuthal_equidistant: azimuthalEquidistant,
         conic_equidistant: conicEquidistant,
-        equirectangular: equirectangular,
-        orthographic: orthographic,
-        stereographic: stereographic,
-        waterman: waterman,
-        winkel3: winkel3
+        atlantis: atlantis
     });
 
 }();

@@ -1,123 +1,98 @@
 <!DOCTYPE html>
-<html itemscope itemtype="http://schema.org/Map" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <base href="/earth/"/>
-    <title>Leher :: 3D Ocean Intelligence & Animated Map</title>
-    <meta itemprop="name"                                      content="Leher"/>
-    <meta itemprop="description"     name="description"        content="Leher - 3D Ocean Intelligence and Animated Map"/>
-    <meta itemprop="author"          name="author"             content="Leher"/>
-
-    <meta property="og:type"        content="website"/>
-    <meta property="og:title"       content="Leher"/>
-    <meta property="og:description" content="Leher - 3D Ocean Intelligence and Animated Map."/>
-
-    <link rel="shortcut icon" href="logo.png"/>
-    <link rel="apple-touch-icon" href="logo.png"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="./"/>
+    <title>3D Globe :: Interactive Land, Water & Coordinates</title>
+    <link rel="shortcut icon" href="favicon.ico"/>
     <link rel="stylesheet" type="text/css" href="styles/styles.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body data-lang="en">
+<body>
 
+    <!-- Full-screen Globe & World Projection Canvas / SVG -->
     <div id="display">
         <svg id="map" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
-        <canvas id="animation" class="fill-screen"></canvas>
-        <canvas id="overlay" class="fill-screen"></canvas>
         <svg id="foreground" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
     </div>
 
-    <div id="sponsor" class="invisible">
-        <p><span id="sponsor-hide" class="text-button invisible"> ✕ </span>community</p>
-        <a id="sponsor-link" href="https://www.facebook.com/EarthWindMap">EarthWindMap</a>
-    </div>
-
-    <div id="details">
-        <p id="status"></p>
-        <div id="location">
-            <p>
-                <span id="location-coord"></span>
-                <span id="location-close" class="invisible text-button"> ✕ </span>
-            </p>
-            <p>
-                <span id="location-wind"></span>
-                <span id="location-wind-units" class="text-button"></span>
-            </p>
-            <p>
-                <span id="location-value"></span>
-                <span id="location-value-units" class="text-button"></span>
-            </p>
+    <!-- Floating Coordinates & Location HUD Card -->
+    <div id="coords-panel" class="coords-card">
+        <div class="coords-header">
+            <div class="header-left">
+                <span class="radar-dot"></span>
+                <span id="coords-title" class="hud-title">3D Earth Coordinates</span>
+            </div>
+            <button id="location-close" class="hud-close-btn" title="Clear selection">✕</button>
         </div>
 
-        <p id="earth" style="display:flex;align-items:center;gap:6px;">
-            <img src="logo.png" style="width:20px;height:20px;border-radius:50%;object-fit:contain;vertical-align:middle;display:inline-block;" alt="Leher Logo"/>
-            <span id="show-menu" class="text-button" title="menu">Leher</span>
-            <span id="progress" class="invisible"></span>
-        </p>
+        <div class="coords-grid">
+            <div class="coord-box">
+                <div class="coord-badge">LATITUDE (φ)</div>
+                <div id="display-lat" class="coord-num">--° --' --"</div>
+            </div>
+            <div class="coord-box">
+                <div class="coord-badge">LONGITUDE (λ)</div>
+                <div id="display-lon" class="coord-num">--° --' --"</div>
+            </div>
+        </div>
 
-        <div id="menu" class="invisible">
-            <p>Date | <span
-                id="data-date" class="local"></span> <span
-                id="toggle-zone" class="text-button"></span>
-            </p>
-            <p>Data | <span id="data-layer"></span></p>
-            <p><span id="scale-label">Scale | </span><canvas id="scale"></canvas></p>
-            <p>Source | <span id="data-center"></span></p>
-            <p>Control | <span
-                class="text-button" id="nav-now" title="Current Conditions">Now</span><span
-                class="text-button" id="nav-backward-more"> « </span> – <span
-                class="text-button" id="nav-backward"> ‹ </span> – <span
-                class="text-button" id="nav-forward"> › </span> – <span
-                class="text-button" id="nav-forward-more"> » </span><span
-                class="text-button" id="show-location" title="Current Position">〖◯〗</span><span
-                class="text-button" id="option-show-grid" title="Toggle Grid">Grid</span>
-            </p>
-            <p>Mode | <span
-                class="text-button" id="wind-mode-enable">Air</span> – <span
-                class="text-button" id="ocean-mode-enable">Ocean</span>
-            </p>
-            <p class="wind-mode">Height | <span
-                class="surface text-button" id="surface-level" title="Surface">Sfc</span> – <span
-                class="surface text-button" id="isobaric-1000hPa">1000</span> – <span
-                class="surface text-button" id="isobaric-850hPa">850</span> – <span
-                class="surface text-button" id="isobaric-700hPa">700</span> – <span
-                class="surface text-button" id="isobaric-500hPa">500</span> – <span
-                class="surface text-button" id="isobaric-250hPa">250</span> – <span
-                class="surface text-button" id="isobaric-70hPa">70</span> – <span
-                class="surface text-button" id="isobaric-10hPa">10</span> hPa
-            </p>
-            <p class="wind-mode">Overlay | <span
-                class="text-button" id="overlay-off">None</span> – <span
-                class="text-button" id="overlay-wind" title="Wind Speed">Wind</span> – <span
-                class="text-button" id="overlay-temp" title="Temperature">Temp</span> – <span
-                class="text-button" id="overlay-relative_humidity" title="Relative Humidity">RH</span> – <span
-                class="text-button" id="overlay-air_density" title="Air Density">AD</span> – <span
-                class="text-button" id="overlay-wind_power_density" title="Wind Power Density">WPD</span>
-            </p>
-            <p class="wind-mode"><span style="visibility:hidden">Overlay</span> | <span
-                class="text-button" id="overlay-total_precipitable_water" title="Total Precipitable Water">TPW</span> – <span
-                class="text-button" id="overlay-total_cloud_water" title="Total Cloud Water">TCW</span> – <span
-                class="text-button" id="overlay-mean_sea_level_pressure" title="Mean Sea Level Pressure">MSLP</span>
-            </p>
-            <p class="ocean-mode invisible">Animate | <span
-                class="text-button" id="animate-currents" title="Currents">Currents</span>
-            </p>
-            <p class="ocean-mode invisible">Overlay | <span
-                class="text-button" id="overlay-ocean-off">None</span> – <span
-                class="text-button" id="overlay-currents" title="Currents">Currents</span>
-            </p>
-            <p class="ocean-mode invisible"><span style="visibility:hidden">Overlay</span> |</p>
-            <p>Projection | <span
-                class="proj text-button" id="atlantis" title="Atlantis">A</span> – <span
-                class="proj text-button" id="azimuthal_equidistant" title="Azimuthal Equidistant">AE</span> – <span
-                class="proj text-button" id="conic_equidistant" title="Conic Equidistant">CE</span> – <span
-                class="proj text-button" id="equirectangular" title="Equirectangular">E</span> – <span
-                class="proj text-button" id="orthographic" title="Orthographic">O</span> – <span
-                class="proj text-button" id="stereographic" title="Stereographic">S</span> – <span
-                class="proj text-button" id="waterman" title="Waterman Butterfly">WB</span> – <span
-                class="proj text-button" id="winkel3" title="Winkel Tripel">W3</span>
-            </p>
+        <div class="hud-actions">
+            <button id="locate-me-btn" class="hud-action-btn" title="Auto-detect & Center on My Location">
+                <span class="gps-icon">📍</span> Auto-Detect My Location
+            </button>
+        </div>
+
+        <div id="status" class="status-banner"></div>
+    </div>
+
+    <!-- Floating Bottom Earth Layout / Projections Switcher Dock -->
+    <div id="projections-bar" class="projections-dock">
+        <div class="dock-label">PROJECTIONS</div>
+        <div class="projection-buttons">
+            <button class="proj-btn" id="orthographic" title="3D Sphere Globe">
+                <span class="proj-icon">🌐</span>
+                <span class="proj-text">3D Globe</span>
+            </button>
+            <button class="proj-btn" id="concentric_region" title="Concentric Region (40°S–30°N, 20°E–130°E)">
+                <span class="proj-icon">🎯</span>
+                <span class="proj-text">40°S–30°N / 20°–130°E</span>
+            </button>
+            <button class="proj-btn" id="equirectangular" title="Equirectangular Flat Map">
+                <span class="proj-icon">🗺️</span>
+                <span class="proj-text">Flat Map</span>
+            </button>
+            <button class="proj-btn" id="winkel3" title="Winkel Tripel">
+                <span class="proj-icon">🪐</span>
+                <span class="proj-text">Winkel Tripel</span>
+            </button>
+            <button class="proj-btn" id="waterman" title="Waterman Butterfly">
+                <span class="proj-icon">🦋</span>
+                <span class="proj-text">Waterman</span>
+            </button>
+            <button class="proj-btn" id="stereographic" title="Stereographic">
+                <span class="proj-icon">🔭</span>
+                <span class="proj-text">Stereographic</span>
+            </button>
+            <button class="proj-btn" id="azimuthal_equidistant" title="Azimuthal Polar">
+                <span class="proj-icon">❄️</span>
+                <span class="proj-text">Azimuthal</span>
+            </button>
+            <button class="proj-btn" id="conic_equidistant" title="Conic Equidistant">
+                <span class="proj-icon">📐</span>
+                <span class="proj-text">Conic</span>
+            </button>
+            <button class="proj-btn" id="atlantis" title="Atlantis Mollweide">
+                <span class="proj-icon">🌊</span>
+                <span class="proj-text">Atlantis</span>
+            </button>
         </div>
     </div>
 
+    <!-- Core Scripts -->
     <script src="libs/underscore.js/1.6.0/underscore.js" charset="utf-8"></script>
     <script src="libs/backbone.js/1.1.0/backbone.js" charset="utf-8"></script>
     <script src="libs/topojson/1.1.0/topojson.js" charset="utf-8"></script>
@@ -128,7 +103,6 @@
 
     <script src="libs/earth/1.0.0/micro.js" charset="utf-8"></script>
     <script src="libs/earth/1.0.0/globes.js" charset="utf-8"></script>
-    <script src="libs/earth/1.0.0/products.js" charset="utf-8"></script>
     <script src="libs/earth/1.0.0/earth.js" charset="utf-8"></script>
 
 </body>

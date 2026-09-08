@@ -1,0 +1,13 @@
+{
+  "name": "leher-earth",
+  "version": "1.0.0",
+  "description": "Leher - 3D Ocean Intelligence & Animated Map",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["ocean", "weather", "earth", "d3", "visualization"],
+  "author": "Leher",
+  "license": "ISC"
+}
