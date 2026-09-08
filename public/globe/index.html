@@ -84,6 +84,7 @@
       const defaultHeading = 2.03;
       const defaultTilt = 0.13;
       const defaultAltitude = 19921223.30821;
+      const defaultLatitude = 14.94826384;
 
       const view = new SceneView({
         container: "viewDiv",
@@ -91,7 +92,7 @@
         alphaCompositingEnabled: true,
         qualityProfile: "high",
         camera: {
-          position: [-55.03975781, 14.94826384, defaultAltitude],
+          position: [-55.03975781, defaultLatitude, defaultAltitude],
           heading: defaultHeading,
           tilt: defaultTilt
         },
@@ -184,6 +185,7 @@
       // Pointer detection for clicks/taps vs drags (touchable & clickable)
       let pointerDownTime = 0;
       let pointerDownPos = { x: 0, y: 0 };
+      let resumeDebounceTimer = null;
 
       window.addEventListener("pointerdown", function (e) {
         pointerDownTime = Date.now();
@@ -203,10 +205,52 @@
               isPaused: isPaused
             }, "*");
           }
+        } else if (dist >= 12) {
+          // If user dragged to touch/rotate the globe to inspect, keep it paused where they left it
+          isPaused = true;
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              type: "LEHER_GLOBE_PAUSED_STATE",
+              isPaused: true
+            }, "*");
+          }
         }
       }, { passive: true });
 
-      // Reset orientation to initial state and resume auto-rotation
+      function checkAndRestoreCamera() {
+        if (!view || !view.camera || isRestoring || view.interacting) return;
+        const currentHeading = view.camera.heading;
+        const currentTilt = view.camera.tilt;
+        const currentLat = view.camera.position.latitude;
+        const currentAlt = view.camera.position.altitude;
+
+        const headingDiff = Math.abs(currentHeading - defaultHeading);
+        const tiltDiff = Math.abs(currentTilt - defaultTilt);
+        const latDiff = Math.abs(currentLat - defaultLatitude);
+        const altDiff = Math.abs(currentAlt - defaultAltitude);
+
+        // If camera deviated from normal state, smoothly animate back to default state
+        if (headingDiff > 0.6 || tiltDiff > 0.3 || latDiff > 0.6 || altDiff > 50000) {
+          isRestoring = true;
+          const targetCam = view.camera.clone();
+          targetCam.heading = defaultHeading;
+          targetCam.tilt = defaultTilt;
+          targetCam.position.latitude = defaultLatitude;
+          targetCam.position.altitude = defaultAltitude;
+          // Preserves current longitude for unbroken continuous spin
+
+          view.goTo(targetCam, {
+            duration: 700,
+            easing: "out-cubic"
+          }).then(function () {
+            isRestoring = false;
+          }).catch(function () {
+            isRestoring = false;
+          });
+        }
+      }
+
+      // Reset orientation to initial state and resume normal auto-rotation
       function resumeAndResetState() {
         const wasPaused = isPaused;
         isPaused = false;
@@ -218,27 +262,14 @@
           }, "*");
         }
 
-        if (view && view.camera && !isRestoring && !view.interacting) {
-          const currentHeading = view.camera.heading;
-          const currentTilt = view.camera.tilt;
-          const headingDiff = Math.abs(currentHeading - defaultHeading);
-          const tiltDiff = Math.abs(currentTilt - defaultTilt);
+        checkAndRestoreCamera();
 
-          if (headingDiff > 4 || tiltDiff > 2) {
-            isRestoring = true;
-            view.goTo({
-              heading: defaultHeading,
-              tilt: defaultTilt
-            }, {
-              duration: 900,
-              easing: "out-cubic"
-            }).then(function () {
-              isRestoring = false;
-            }).catch(function () {
-              isRestoring = false;
-            });
+        if (resumeDebounceTimer) clearTimeout(resumeDebounceTimer);
+        resumeDebounceTimer = setTimeout(function () {
+          if (!isPaused && !isRestoring && !view.interacting) {
+            checkAndRestoreCamera();
           }
-        }
+        }, 150);
       }
 
       // Listen for parent messages (e.g. scroll events or explicit resume/stop)

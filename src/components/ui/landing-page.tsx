@@ -49,7 +49,7 @@ export const PROJECTION_LIST = [
 const defaultGlobeConfig = {
   positions: [
     { top: "50%", left: "72%", scale: 1.15 }, // 0: Hero
-    { top: "48%", left: "72%", scale: 1.15 }, // 1: Spatio-Temporal
+    { top: "50%", left: "70%", scale: 1.2 },  // 1: Spatio-Temporal (Centered in background behind vertical stratification)
     { top: "28%", left: "22%", scale: 0.85 }, // 2: Data Integration
     { top: "50%", left: "80%", scale: 1.0 },  // 3: Profiles
     { top: "40%", left: "80%", scale: 0.9 },  // 4: Capabilities
@@ -225,6 +225,8 @@ export default function LeherLandingPage() {
     }));
   }, []);
 
+  const lastScrollPosRef = useRef(0);
+
   const updateScrollPosition = useCallback(() => {
     const scrollTop = window.pageYOffset;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -232,12 +234,13 @@ export default function LeherLandingPage() {
     
     setScrollProgress(progress);
 
-    // Whenever user scrolls/moves the page, restore globe to its initial orientation and resume normal rotation
-    if (scrollTop > 15) {
+    // Whenever user scrolls or moves the page, restore globe to its natural state and resume normal rotation
+    if (Math.abs(scrollTop - lastScrollPosRef.current) > 1 || scrollTop > 2) {
       const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
       globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
       setIsGlobePaused(false);
     }
+    lastScrollPosRef.current = scrollTop;
 
     const viewportCenter = window.innerHeight / 2;
     let newActiveSection = 0;
@@ -288,11 +291,21 @@ export default function LeherLandingPage() {
       }
     };
 
+    const handlePageMove = () => {
+      const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
+      globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
+      setIsGlobePaused(false);
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("wheel", handlePageMove, { passive: true });
+    window.addEventListener("touchmove", handlePageMove, { passive: true });
     updateScrollPosition();
     
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("wheel", handlePageMove);
+      window.removeEventListener("touchmove", handlePageMove);
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
   }, [updateScrollPosition]);
@@ -798,7 +811,7 @@ export default function LeherLandingPage() {
         style={{
           transform: globeTransform,
           transition: "transform 2.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
-          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : activeSection === 0 ? 0.95 : activeSection < 6 ? 0.65 : 0.2,
+          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : (activeSection === 0 || activeSection === 1 || activeSection === 5) ? 0.95 : 0.72,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100 pointer-events-auto">
@@ -930,23 +943,26 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-[#121212]/80 backdrop-blur-md border border-[#262626]/80 shadow-2xl space-y-4">
-            <div className="text-xs font-mono text-[#888888] uppercase tracking-wider">Vertical Stratification</div>
+          <div className="lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-[#0a0f18]/45 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-4">
+            <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider flex justify-between items-center">
+              <span>Vertical Stratification</span>
+              <span className="text-[10px] text-[#888888] font-sans">Depth Profile</span>
+            </div>
             
             <div className="space-y-3 text-sm">
-              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
                 <span className="text-white font-medium">Epipelagic Zone (0m – 200m)</span>
                 <span className="font-mono text-xs text-[#888888]">Surface Layer</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
                 <span className="text-white font-medium">Thermocline Layer (200m – 1,000m)</span>
                 <span className="font-mono text-xs text-[#888888]">Rapid Gradient</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
                 <span className="text-white font-medium">Bathypelagic Zone (1,000m – 4,000m)</span>
                 <span className="font-mono text-xs text-[#888888]">Deep Ocean</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
                 <span className="text-white font-medium">Seafloor Bathymetry</span>
                 <span className="font-mono text-xs text-[#888888]">Topography</span>
               </div>
