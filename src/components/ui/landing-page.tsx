@@ -26,7 +26,7 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
 const defaultGlobeConfig = {
   positions: [
     { top: "50%", left: "72%", scale: 1.15 }, // 0: Hero
-    { top: "40%", left: "78%", scale: 0.95 }, // 1: Spatio-Temporal
+    { top: "48%", left: "72%", scale: 1.15 }, // 1: Spatio-Temporal
     { top: "28%", left: "22%", scale: 0.85 }, // 2: Data Integration
     { top: "50%", left: "80%", scale: 1.0 },  // 3: Profiles
     { top: "40%", left: "80%", scale: 0.9 },  // 4: Capabilities
@@ -44,9 +44,21 @@ export default function LeherLandingPage() {
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isGlobePaused, setIsGlobePaused] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
   const [pointReport, setPointReport] = useState<TraceablePointReport | null>(null);
+
+  // Listen for globe paused / unpaused state messages from the 3D globe iframe
+  useEffect(() => {
+    const handleGlobeMessage = (event: MessageEvent) => {
+      if (event.data && typeof event.data.isPaused === "boolean") {
+        setIsGlobePaused(event.data.isPaused);
+      }
+    };
+    window.addEventListener("message", handleGlobeMessage);
+    return () => window.removeEventListener("message", handleGlobeMessage);
+  }, []);
 
   // Initialize Scientific Data Service on mount
   useEffect(() => {
@@ -118,6 +130,13 @@ export default function LeherLandingPage() {
     const progress = docHeight > 0 ? Math.min(Math.max(scrollTop / docHeight, 0), 1) : 0;
     
     setScrollProgress(progress);
+
+    // Whenever user scrolls/moves the page, restore globe to its initial orientation and resume normal rotation
+    if (scrollTop > 15) {
+      const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
+      globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
+      setIsGlobePaused(false);
+    }
 
     const viewportCenter = window.innerHeight / 2;
     let newActiveSection = 0;
@@ -365,6 +384,7 @@ export default function LeherLandingPage() {
               <img 
                 src="/logo.png" 
                 alt="Leher Logo" 
+                title="Leher"
                 className="w-full h-full object-contain rounded-full bg-black/40" 
               />
             </div>
@@ -412,7 +432,7 @@ export default function LeherLandingPage() {
           <div className="space-y-6 max-w-xl mx-auto w-full pt-4">
             <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Leher Logo" className="w-5 h-5 rounded-full object-contain" />
+                <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-5 h-5 rounded-full object-contain" />
                 <span>Navigation Menu</span>
               </div>
               <span className="text-emerald-400 font-mono text-xs">{realTimeClock}</span>
@@ -473,7 +493,7 @@ export default function LeherLandingPage() {
           </div>
 
           <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818] flex items-center justify-center gap-2">
-            <img src="/logo.png" alt="Leher Logo" className="w-4 h-4 rounded-full opacity-80" />
+            <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-4 h-4 rounded-full opacity-80" />
             <span>Leher 3D Ocean Intelligence • INCOIS</span>
           </div>
         </div>
@@ -481,7 +501,10 @@ export default function LeherLandingPage() {
 
       {/* 3D GLOBE BACKDROP (Hidden when fullscreen or at 3D workbench section) */}
       <div
-        className="fixed z-10 pointer-events-none will-change-transform"
+        className={cn(
+          "fixed pointer-events-none will-change-transform",
+          activeSection === 0 ? "z-25" : "z-10"
+        )}
         style={{
           transform: globeTransform,
           transition: "transform 2.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
@@ -493,16 +516,51 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
+      {/* Landing Page Interactive Globe Status Pill (Click to stop / resume) */}
+      {activeSection === 0 && (
+        <div 
+          onClick={() => {
+            const iframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
+            if (isGlobePaused) {
+              iframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
+              setIsGlobePaused(false);
+            } else {
+              iframe?.contentWindow?.postMessage({ type: "LEHER_STOP_ROTATION" }, "*");
+              setIsGlobePaused(true);
+            }
+          }}
+          className={cn(
+            "hidden sm:flex fixed bottom-8 right-8 lg:right-24 z-30 items-center gap-2.5 px-4 py-2 rounded-full border transition-all duration-300 cursor-pointer backdrop-blur-md shadow-xl select-none",
+            isGlobePaused 
+              ? "bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30" 
+              : "bg-[#141414]/80 border-white/15 text-[#aaaaaa] hover:text-white hover:border-white/30"
+          )}
+          title={isGlobePaused ? "Globe stopped. Click to resume auto-rotation." : "Click globe or badge to stop auto-rotation."}
+        >
+          {isGlobePaused ? (
+            <>
+              <Play className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
+              <span className="text-xs font-mono font-medium tracking-wide">Globe Paused • Click to Resume</span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span className="text-xs font-mono tracking-wide">Interactive Globe • Click / Touch to Stop</span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* ========================================================
           HERO SECTION
          ======================================================== */}
       <section
         ref={(el) => { sectionRefs.current[0] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto"
+        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto pointer-events-none"
       >
-        <div className="max-w-2xl space-y-7">
+        <div className="max-w-2xl space-y-7 pointer-events-auto">
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#121212] border border-[#262626] backdrop-blur-md shadow-sm">
-            <img src="/logo.png" alt="Leher Logo" className="w-5 h-5 rounded-full object-contain shadow" />
+            <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-5 h-5 rounded-full object-contain shadow" />
             <span className="text-xs font-mono text-cyan-300 font-medium tracking-wide">LEHER • 3D OCEAN INTELLIGENCE PLATFORM</span>
           </div>
           <div className="space-y-1">
@@ -582,23 +640,23 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-[#121212] border border-[#222222] space-y-4">
+          <div className="lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-[#121212]/80 backdrop-blur-md border border-[#262626]/80 shadow-2xl space-y-4">
             <div className="text-xs font-mono text-[#888888] uppercase tracking-wider">Vertical Stratification</div>
             
             <div className="space-y-3 text-sm">
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] flex justify-between">
+              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
                 <span className="text-white font-medium">Epipelagic Zone (0m – 200m)</span>
                 <span className="font-mono text-xs text-[#888888]">Surface Layer</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] flex justify-between">
+              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
                 <span className="text-white font-medium">Thermocline Layer (200m – 1,000m)</span>
                 <span className="font-mono text-xs text-[#888888]">Rapid Gradient</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] flex justify-between">
+              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
                 <span className="text-white font-medium">Bathypelagic Zone (1,000m – 4,000m)</span>
                 <span className="font-mono text-xs text-[#888888]">Deep Ocean</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] flex justify-between">
+              <div className="p-4 rounded-xl bg-[#090909]/80 backdrop-blur-sm border border-[#222222]/80 flex justify-between">
                 <span className="text-white font-medium">Seafloor Bathymetry</span>
                 <span className="font-mono text-xs text-[#888888]">Topography</span>
               </div>
@@ -1051,7 +1109,7 @@ export default function LeherLandingPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 text-sm">
           <div className="md:col-span-6 space-y-3">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" className="w-8 h-8 rounded-full object-contain border border-white/10 shadow-md" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-8 h-8 rounded-full object-contain border border-white/10 shadow-md" />
               <div className="font-bold text-xl text-white">Leher</div>
             </div>
             <p className="text-[#888888] text-sm max-w-md">
@@ -1094,7 +1152,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" className="w-7 h-7 rounded-full object-contain border border-white/10" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 rounded-full object-contain border border-white/10" />
               <span className="font-bold text-lg text-white flex items-center gap-2">
                 <span>Leher 3D Ocean Intelligence Engine</span>
               </span>
@@ -1266,7 +1324,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" className="w-7 h-7 rounded-full object-contain border border-white/10" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 rounded-full object-contain border border-white/10" />
               <span className="font-bold text-lg text-white">Leher 3D Ocean Intelligence Workbench</span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

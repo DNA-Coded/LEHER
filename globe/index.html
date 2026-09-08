@@ -5,7 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="initial-scale=1" />
   <meta name="color-scheme" content="dark" />
-  <title>The globe of extremes</title>
+  <title>Leher :: 3D Bathymetry Globe</title>
+  <link rel="icon" type="image/png" href="/logo.png" title="Leher" />
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.22/esri/themes/light/main.css" />
   <link rel="stylesheet" href="./style.css?v=4" />
@@ -27,6 +28,7 @@
       filter: none !important;
       -webkit-filter: none !important;
       overflow: hidden !important;
+      touch-action: none;
     }
     .esri-attribution, .esri-attribution__sources, .esri-attribution__link, a {
       display: none !important;
@@ -79,15 +81,19 @@
         basemap: basemap
       });
 
+      const defaultHeading = 2.03;
+      const defaultTilt = 0.13;
+      const defaultAltitude = 19921223.30821;
+
       const view = new SceneView({
         container: "viewDiv",
         map: map,
         alphaCompositingEnabled: true,
         qualityProfile: "high",
         camera: {
-          position: [-55.03975781, 14.94826384, 19921223.30821],
-          heading: 2.03,
-          tilt: 0.13
+          position: [-55.03975781, 14.94826384, defaultAltitude],
+          heading: defaultHeading,
+          tilt: defaultTilt
         },
         environment: {
           background: {
@@ -111,21 +117,6 @@
       });
 
       view.ui.components = [];
-
-      // Forward wheel events to parent window so landing page scrolling remains fluid
-      window.addEventListener("wheel", function (e) {
-        if (window.parent && window.parent !== window) {
-          window.parent.scrollBy({
-            top: e.deltaY,
-            left: e.deltaX,
-            behavior: "auto"
-          });
-        }
-      }, { passive: true });
-
-      view.on("mouse-wheel", function (event) {
-        event.stopPropagation();
-      });
 
       map.ground.layers = [new ExaggeratedElevationLayer({
         exaggerationBathymetry: 60,
@@ -188,9 +179,88 @@
       view.graphics.add(clouds);
 
       let isPaused = false;
-      view.on("click", function () {
-        isPaused = !isPaused;
+      let isRestoring = false;
+
+      // Pointer detection for clicks/taps vs drags (touchable & clickable)
+      let pointerDownTime = 0;
+      let pointerDownPos = { x: 0, y: 0 };
+
+      window.addEventListener("pointerdown", function (e) {
+        pointerDownTime = Date.now();
+        pointerDownPos = { x: e.clientX, y: e.clientY };
+      }, { passive: true });
+
+      window.addEventListener("pointerup", function (e) {
+        const dt = Date.now() - pointerDownTime;
+        const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+        
+        // If it is a tap or click (short duration and minimal displacement)
+        if (dt < 500 && dist < 12) {
+          isPaused = !isPaused;
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              type: "LEHER_GLOBE_PAUSED_STATE",
+              isPaused: isPaused
+            }, "*");
+          }
+        }
+      }, { passive: true });
+
+      // Reset orientation to initial state and resume auto-rotation
+      function resumeAndResetState() {
+        const wasPaused = isPaused;
+        isPaused = false;
+        
+        if (wasPaused && window.parent && window.parent !== window) {
+          window.parent.postMessage({
+            type: "LEHER_GLOBE_PAUSED_STATE",
+            isPaused: false
+          }, "*");
+        }
+
+        if (view && view.camera && !isRestoring && !view.interacting) {
+          const currentHeading = view.camera.heading;
+          const currentTilt = view.camera.tilt;
+          const headingDiff = Math.abs(currentHeading - defaultHeading);
+          const tiltDiff = Math.abs(currentTilt - defaultTilt);
+
+          if (headingDiff > 4 || tiltDiff > 2) {
+            isRestoring = true;
+            view.goTo({
+              heading: defaultHeading,
+              tilt: defaultTilt
+            }, {
+              duration: 900,
+              easing: "out-cubic"
+            }).then(function () {
+              isRestoring = false;
+            }).catch(function () {
+              isRestoring = false;
+            });
+          }
+        }
+      }
+
+      // Listen for parent messages (e.g. scroll events or explicit resume/stop)
+      window.addEventListener("message", function (e) {
+        if (e.data && (e.data.type === "LEHER_RESUME_ROTATION" || e.data.type === "LEHER_SCROLL")) {
+          resumeAndResetState();
+        } else if (e.data && e.data.type === "LEHER_STOP_ROTATION") {
+          isPaused = true;
+        }
       });
+
+      // Forward wheel events to parent window so landing page scrolling remains fluid & resumes normal rotation
+      window.addEventListener("wheel", function (e) {
+        resumeAndResetState();
+        if (window.parent && window.parent !== window) {
+          window.parent.scrollBy({
+            top: e.deltaY,
+            left: e.deltaX,
+            behavior: "auto"
+          });
+        }
+      }, { passive: true });
 
       view.when(function () {
         if (view.container) {
@@ -200,7 +270,7 @@
       });
 
       function rotate() {
-        if (!view.interacting && !isPaused) {
+        if (!view.interacting && !isPaused && !isRestoring) {
           const camera = view.camera.clone();
           camera.position.longitude += 0.2;
           view.goTo(camera, { animate: false });

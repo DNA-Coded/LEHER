@@ -4,14 +4,22 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <base href="./"/>
-    <title>3D Globe :: Interactive Land, Water & Coordinates</title>
-    <link rel="shortcut icon" href="favicon.ico"/>
+    <title>Leher :: 3D Interactive Ocean & Atmosphere Earth</title>
+    <link rel="icon" type="image/png" href="logo.png" title="Leher"/>
+    <link rel="shortcut icon" href="favicon.ico" title="Leher"/>
     <link rel="stylesheet" type="text/css" href="styles/styles.css"/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <!-- Leher Brand Header Badge -->
+    <a href="./controls.html" id="leher-brand-badge" title="Leher 3D Ocean Intelligence" style="position: fixed; top: 16px; left: 16px; z-index: 1000; display: inline-flex; align-items: center; gap: 8px; background: rgba(10,10,10,0.8); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.18); font-family: 'Outfit', sans-serif; text-decoration: none; color: white; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <img src="logo.png" alt="Leher Logo" title="Leher" style="width: 22px; height: 22px; border-radius: 50%; object-fit: contain;" onerror="this.src='../logo.png'"/>
+        <span style="font-weight: 700; font-size: 14px; letter-spacing: -0.02em;">Leher</span>
+        <span style="font-size: 11px; opacity: 0.6; font-family: 'JetBrains Mono', monospace; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 8px;">3D Earth</span>
+    </a>
 
     <!-- Full-screen Globe & World Projection Canvas / SVG -->
     <div id="display">
