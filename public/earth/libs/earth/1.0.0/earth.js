@@ -293,9 +293,29 @@
 
         activeLocation = {point: point, coord: coord};
 
-        d3.select("#display-lat").text(formatDMS(φ, true));
-        d3.select("#display-lon").text(formatDMS(λ, false));
+        var latDMS = formatDMS(φ, true);
+        var lonDMS = formatDMS(λ, false);
+
+        d3.select("#display-lat").text(latDMS);
+        d3.select("#display-lon").text(lonDMS);
         d3.select("#location-close").style("display", "inline-flex");
+
+        // Broadcast to parent / embedder / Controls & Analytics page
+        try {
+            var msg = {
+                type: "earth:location",
+                latitude: φ,
+                longitude: λ,
+                latDMS: latDMS,
+                lonDMS: lonDMS,
+                coord: coord,
+                point: point
+            };
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage(msg, "*");
+            }
+            window.postMessage(msg, "*");
+        } catch (e) {}
     }
 
     function clearLocationDetails(clearEverything) {
@@ -307,6 +327,13 @@
             activeLocation = {};
             d3.select(".location-mark").remove();
         }
+        try {
+            var clearMsg = { type: "earth:clear" };
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage(clearMsg, "*");
+            }
+            window.postMessage(clearMsg, "*");
+        } catch (e) {}
     }
 
     /**
@@ -468,6 +495,26 @@
             view = µ.view();
             globeAgent.submit(buildGlobe, configuration.get("projection"));
         });
+
+        // Remote control message listener for Controls & Analytics dashboard / iframe host
+        window.addEventListener("message", function(e) {
+            if (!e.data || typeof e.data !== "object") return;
+            if (e.data.action === "setProjection" && e.data.projection) {
+                setProjection(e.data.projection);
+            } else if (e.data.action === "locateMe") {
+                fetchUserLocation(true);
+            } else if (e.data.action === "clearLocation") {
+                clearLocationDetails(true);
+            }
+        });
+
+        // Expose public API for intra-window or script-based Controls & Analytics integration
+        window.earthControls = {
+            setProjection: setProjection,
+            fetchUserLocation: fetchUserLocation,
+            clearLocationDetails: clearLocationDetails,
+            getActiveLocation: function() { return activeLocation; }
+        };
     }
 
     function start() {

@@ -19,78 +19,7 @@
         <svg id="foreground" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
     </div>
 
-    <!-- Floating Coordinates & Location HUD Card -->
-    <div id="coords-panel" class="coords-card">
-        <div class="coords-header">
-            <div class="header-left">
-                <span class="radar-dot"></span>
-                <span id="coords-title" class="hud-title">3D Earth Coordinates</span>
-            </div>
-            <button id="location-close" class="hud-close-btn" title="Clear selection">✕</button>
-        </div>
 
-        <div class="coords-grid">
-            <div class="coord-box">
-                <div class="coord-badge">LATITUDE (φ)</div>
-                <div id="display-lat" class="coord-num">--° --' --"</div>
-            </div>
-            <div class="coord-box">
-                <div class="coord-badge">LONGITUDE (λ)</div>
-                <div id="display-lon" class="coord-num">--° --' --"</div>
-            </div>
-        </div>
-
-        <div class="hud-actions">
-            <button id="locate-me-btn" class="hud-action-btn" title="Auto-detect & Center on My Location">
-                <span class="gps-icon">📍</span> Auto-Detect My Location
-            </button>
-        </div>
-
-        <div id="status" class="status-banner"></div>
-    </div>
-
-    <!-- Floating Bottom Earth Layout / Projections Switcher Dock -->
-    <div id="projections-bar" class="projections-dock">
-        <div class="dock-label">PROJECTIONS</div>
-        <div class="projection-buttons">
-            <button class="proj-btn" id="orthographic" title="3D Sphere Globe">
-                <span class="proj-icon">🌐</span>
-                <span class="proj-text">3D Globe</span>
-            </button>
-            <button class="proj-btn" id="concentric_region" title="Concentric Region (40°S–30°N, 20°E–130°E)">
-                <span class="proj-icon">🎯</span>
-                <span class="proj-text">40°S–30°N / 20°–130°E</span>
-            </button>
-            <button class="proj-btn" id="equirectangular" title="Equirectangular Flat Map">
-                <span class="proj-icon">🗺️</span>
-                <span class="proj-text">Flat Map</span>
-            </button>
-            <button class="proj-btn" id="winkel3" title="Winkel Tripel">
-                <span class="proj-icon">🪐</span>
-                <span class="proj-text">Winkel Tripel</span>
-            </button>
-            <button class="proj-btn" id="waterman" title="Waterman Butterfly">
-                <span class="proj-icon">🦋</span>
-                <span class="proj-text">Waterman</span>
-            </button>
-            <button class="proj-btn" id="stereographic" title="Stereographic">
-                <span class="proj-icon">🔭</span>
-                <span class="proj-text">Stereographic</span>
-            </button>
-            <button class="proj-btn" id="azimuthal_equidistant" title="Azimuthal Polar">
-                <span class="proj-icon">❄️</span>
-                <span class="proj-text">Azimuthal</span>
-            </button>
-            <button class="proj-btn" id="conic_equidistant" title="Conic Equidistant">
-                <span class="proj-icon">📐</span>
-                <span class="proj-text">Conic</span>
-            </button>
-            <button class="proj-btn" id="atlantis" title="Atlantis Mollweide">
-                <span class="proj-icon">🌊</span>
-                <span class="proj-text">Atlantis</span>
-            </button>
-        </div>
-    </div>
 
     <!-- Core Scripts -->
     <script src="libs/underscore.js/1.6.0/underscore.js" charset="utf-8"></script>

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Leher :: Controls & Analytics Dashboard</title>
+    <link rel="shortcut icon" href="favicon.ico"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-canvas: #040404;
+            --bg-panel: #0d1117;
+            --bg-card: #151b23;
+            --bg-card-hover: #1c2430;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(56, 189, 248, 0.5);
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --text-dim: #6e7681;
+            --accent-cyan: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-amber: #f59e0b;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Top Header Navigation Bar */
+        .top-nav {
+            height: 58px;
+            background: rgba(13, 17, 23, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+            object-fit: cover;
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 2px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-green);
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .nav-link-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Workspace Container */
+        .workspace-body {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 3D Earth Globe Canvas Area */
+        .globe-viewport {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            background: #000000;
+            overflow: hidden;
+        }
+
+        .globe-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #000000;
+        }
+
+        /* Right Side: Controls & Analytics Sidebar */
+        .controls-sidebar {
+            width: 400px;
+            max-width: 42vw;
+            height: 100%;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 40;
+            box-shadow: -8px 0 28px rgba(0, 0, 0, 0.6);
+        }
+
+        .controls-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .controls-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--bg-panel);
+            z-index: 10;
+        }
+
+        .panel-title {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+
+        .panel-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Section Container */
+        .section-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .section-box:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .heading-tag {
+            color: var(--accent-cyan);
+            font-size: 10px;
+        }
+
+        /* Coordinates Display Grid */
+        .coords-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .coord-card {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .coord-label {
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            letter-spacing: 0.04em;
+        }
+
+        .coord-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            letter-spacing: -0.01em;
+            word-break: break-all;
+        }
+
+        .coord-decimal {
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        /* Location Action Buttons */
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-icon-clear {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 9px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-icon-clear:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        /* Projections Grid */
+        .projections-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .proj-btn {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.18s ease-out;
+            color: var(--text-main);
+            position: relative;
+        }
+
+        .proj-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .proj-btn.active {
+            background: rgba(2, 132, 199, 0.18);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+        }
+
+        .proj-btn.highlight-special {
+            grid-column: span 2;
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(2, 132, 199, 0.18));
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .proj-btn.highlight-special.active {
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+        }
+
+        .proj-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .proj-icon {
+            font-size: 16px;
+        }
+
+        .proj-badge-mini {
+            font-size: 9px;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+
+        .proj-btn.active .proj-badge-mini {
+            background: var(--accent-cyan);
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .proj-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        .proj-desc {
+            font-size: 10px;
+            color: var(--text-dim);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.25;
+        }
+
+        /* Analytics Telemetry Rows */
+        .telemetry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+
+        .telemetry-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .telemetry-row .label {
+            color: var(--text-muted);
+        }
+
+        .telemetry-row .val {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .val.highlight {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        /* Regional Focus Specifications */
+        .spec-box {
+            background: rgba(22, 163, 74, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #86efac;
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .workspace-body {
+                flex-direction: column;
+            }
+            .controls-sidebar {
+                width: 100%;
+                max-width: 100%;
+                height: 48%;
+                border-left: none;
+                border-top: 1px solid var(--border-subtle);
+            }
+            .globe-viewport {
+                height: 52%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP HEADER NAVIGATION -->
+    <header class="top-nav">
+        <div class="brand-group">
+            <img src="logo.png" alt="Leher Logo" class="brand-logo" onerror="this.src='favicon.ico'"/>
+            <span class="brand-title">
+                Leher
+                <span class="brand-subtitle">Controls & Analytics</span>
+            </span>
+        </div>
+
+        <div class="nav-actions">
+            <div class="live-status">
+                <span class="pulse-dot"></span>
+                <span>SYSTEM ONLINE</span>
+            </div>
+            <a href="index.html" class="nav-link-btn" title="Open Pure Distraction-Free Globe Canvas">
+                <span>Pure Globe</span>
+                <span>↗</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="workspace-body">
+        <!-- 3D Earth Globe Viewport (Clean Canvas) -->
+        <section class="globe-viewport">
+            <iframe id="earth-frame" class="globe-iframe" src="index.html" title="Leher Interactive 3D Earth"></iframe>
+        </section>
+
+        <!-- Right Side: Controls & Analytics Workbench -->
+        <aside class="controls-sidebar">
+            <div class="panel-header">
+                <span class="panel-title">
+                    <span>⚡</span> Controls & Analytics
+                </span>
+                <span class="panel-badge" id="telemetry-mode">LIVE TELEMETRY</span>
+            </div>
+
+            <div class="panel-content">
+                <!-- 1. LIVE COORDINATES & LOCATION INSPECTOR -->
+                <div class="section-box">
+                    <div class="section-heading">
+                        <span>Geographic Coordinates</span>
+                        <span class="heading-tag" id="selection-status">Click Globe To Inspect</span>
+                    </div>
+
+                    <div class="coords-grid">
+                        <div class="coord-card">
+                            <span class="coord-label">LATITUDE (φ)</span>
+                            <span class="coord-value" id="val-lat">--° --' --"</span>
+                            <span class="coord-decimal" id="dec-lat">--.----°</span>
+                        </div>
+                        <div class="coord-card">
+                            <span class="coord-label">LONGITUDE (λ)</span>
+                            <span class="coord-value" id="val-lon">--° --' --"</span>
+                            <span class="coord-decimal" id="dec-lon">--.----°</span>
+                        </div>
+                    </div>
+
+                    <div class="action-row">
+                        <button id="btn-locate" class="btn-primary" title="Detect device GPS & center on location">
+                            <span>📍</span> Auto-Detect My Location
+                        </button>
+                        <button id="btn-clear" class="btn-icon-clear" title="Clear selection">✕</button>
+                    </div>
+                </div>
+
+                <!-- 2. MAP PROJECTIONS SWITCHER -->
+                <div class="section-box">
+                    <div class="section-heading">
+                        <span>Earth Projections</span>
+                        <span class="heading-tag" id="active-proj-tag">3D Globe</span>
+                    </div>
+
+                    <div class="projections-grid">
+                        <!-- Concentric Region (Special) -->
+                        <button class="proj-btn highlight-special" data-proj="concentric_region" title="Concentric Regional Projection (40°S–30°N, 20°E–130°E)">
+                            <div class="proj-top">
+                                <span class="proj-icon">🎯</span>
+                                <span class="proj-badge-mini">CONCENTRIC FOCUS</span>
+                            </div>
+                            <span class="proj-name">40°S–30°N / 20°–130°E</span>
+                            <span class="proj-desc">Indian Ocean & Indo-Pacific Regional Bounding Box</span>
+                        </button>
+
+                        <!-- Standard Projections -->
+                        <button class="proj-btn active" data-proj="orthographic" title="Orthographic 3D Globe">
+                            <div class="proj-top">
+                                <span class="proj-icon">🌐</span>
+                                <span class="proj-badge-mini">3D</span>
+                            </div>
+                            <span class="proj-name">3D Globe</span>
+                            <span class="proj-desc">Spherical Orthographic</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="equirectangular" title="Equirectangular Plate Carrée">
+                            <div class="proj-top">
+                                <span class="proj-icon">🗺️</span>
+                                <span class="proj-badge-mini">FLAT</span>
+                            </div>
+                            <span class="proj-name">Flat Map</span>
+                            <span class="proj-desc">Plate Carrée Cylindrical</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="winkel3" title="Winkel Tripel">
+                            <div class="proj-top">
+                                <span class="proj-icon">🪐</span>
+                                <span class="proj-badge-mini">GLOBAL</span>
+                            </div>
+                            <span class="proj-name">Winkel Tripel</span>
+                            <span class="proj-desc">Compromise World Map</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="waterman" title="Waterman Butterfly">
+                            <div class="proj-top">
+                                <span class="proj-icon">🦋</span>
+                                <span class="proj-badge-mini">POLY</span>
+                            </div>
+                            <span class="proj-name">Waterman</span>
+                            <span class="proj-desc">Butterfly Octahedron</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="stereographic" title="Stereographic Conformal">
+                            <div class="proj-top">
+                                <span class="proj-icon">🔭</span>
+                                <span class="proj-badge-mini">CONFORM</span>
+                            </div>
+                            <span class="proj-name">Stereographic</span>
+                            <span class="proj-desc">True-Shape Perspective</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="azimuthal_equidistant" title="Azimuthal Polar">
+                            <div class="proj-top">
+                                <span class="proj-icon">❄️</span>
+                                <span class="proj-badge-mini">POLAR</span>
+                            </div>
+                            <span class="proj-name">Azimuthal</span>
+                            <span class="proj-desc">Equidistant True-Distance</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="conic_equidistant" title="Conic Equidistant">
+                            <div class="proj-top">
+                                <span class="proj-icon">📐</span>
+                                <span class="proj-badge-mini">CONIC</span>
+                            </div>
+                            <span class="proj-name">Conic</span>
+                            <span class="proj-desc">Mid-Latitude Equidistant</span>
+                        </button>
+
+                        <button class="proj-btn" data-proj="atlantis" title="Atlantis Transverse Mollweide">
+                            <div class="proj-top">
+                                <span class="proj-icon">🌊</span>
+                                <span class="proj-badge-mini">OCEAN</span>
+                            </div>
+                            <span class="proj-name">Atlantis</span>
+                            <span class="proj-desc">Transverse Equal-Area</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. CONCENTRIC REGIONAL ANALYTICS -->
+                <div class="section-box">
+                    <div class="section-heading">
+                        <span>Concentric Region Analytics</span>
+                        <span class="heading-tag">INDO-PACIFIC</span>
+                    </div>
+                    <div class="spec-box">
+                        <div><strong>Latitude Range:</strong> 40°00'00"S to 30°00'00"N</div>
+                        <div><strong>Longitude Range:</strong> 20°00'00"E to 130°00'00"E</div>
+                        <div style="margin-top: 4px; color: #a7f3d0;">
+                            ✨ Target region rendered in vivid green & ocean blue. Exterior clamped to pitch black (#000000).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. LIVE TELEMETRY & SYSTEM STATUS -->
+                <div class="section-box">
+                    <div class="section-heading">
+                        <span>Projection Telemetry</span>
+                        <span class="heading-tag">REAL-TIME</span>
+                    </div>
+                    <div class="telemetry-list">
+                        <div class="telemetry-row">
+                            <span class="label">Projection Type:</span>
+                            <span class="val highlight" id="tel-proj">Orthographic (3D Globe)</span>
+                        </div>
+                        <div class="telemetry-row">
+                            <span class="label">Coordinate System:</span>
+                            <span class="val">WGS 84 / Geographic</span>
+                        </div>
+                        <div class="telemetry-row">
+                            <span class="label">Interaction Mode:</span>
+                            <span class="val">Drag Rotate & Multi-touch Zoom</span>
+                        </div>
+                        <div class="telemetry-row">
+                            <span class="label">Event Bridge:</span>
+                            <span class="val highlight" style="color: var(--accent-green);">postMessage Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Interactive Scripts -->
+    <script>
+        (function() {
+            var iframe = document.getElementById("earth-frame");
+            var valLat = document.getElementById("val-lat");
+            var valLon = document.getElementById("val-lon");
+            var decLat = document.getElementById("dec-lat");
+            var decLon = document.getElementById("dec-lon");
+            var selectionStatus = document.getElementById("selection-status");
+            var btnLocate = document.getElementById("btn-locate");
+            var btnClear = document.getElementById("btn-clear");
+            var activeProjTag = document.getElementById("active-proj-tag");
+            var telProj = document.getElementById("tel-proj");
+            var projButtons = document.querySelectorAll(".proj-btn");
+
+            var currentProjection = "orthographic";
+
+            var projectionMetadata = {
+                "orthographic": "Orthographic (3D Globe)",
+                "concentric_region": "Concentric Region (40°S–30°N, 20°E–130°E)",
+                "equirectangular": "Equirectangular (Flat Map)",
+                "winkel3": "Winkel Tripel (Compromise)",
+                "waterman": "Waterman Butterfly (Polyhedral)",
+                "stereographic": "Stereographic (Conformal)",
+                "azimuthal_equidistant": "Azimuthal Equidistant (Polar)",
+                "conic_equidistant": "Conic Equidistant",
+                "atlantis": "Atlantis (Transverse Mollweide)"
+            };
+
+            // Switch active projection on button click
+            projButtons.forEach(function(btn) {
+                btn.addEventListener("click", function() {
+                    var proj = btn.getAttribute("data-proj");
+                    if (!proj) return;
+                    setProjection(proj);
+                });
+            });
+
+            function setProjection(proj) {
+                currentProjection = proj;
+                projButtons.forEach(function(b) {
+                    b.classList.toggle("active", b.getAttribute("data-proj") === proj);
+                });
+
+                var label = projectionMetadata[proj] || proj;
+                activeProjTag.textContent = label;
+                telProj.textContent = label;
+
+                // Send command to embedded clean globe
+                sendToGlobe({
+                    action: "setProjection",
+                    projection: proj
+                });
+
+                // Also update iframe hash
+                try {
+                    if (iframe.contentWindow) {
+                        iframe.contentWindow.location.hash = proj;
+                    }
+                } catch(e) {}
+            }
+
+            function sendToGlobe(data) {
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(data, "*");
+                }
+            }
+
+            // Auto-locate click
+            btnLocate.addEventListener("click", function() {
+                btnLocate.disabled = true;
+                btnLocate.innerHTML = "<span>⏳</span> Detecting Location...";
+                sendToGlobe({ action: "locateMe" });
+                setTimeout(function() {
+                    btnLocate.disabled = false;
+                    btnLocate.innerHTML = "<span>📍</span> Auto-Detect My Location";
+                }, 3000);
+            });
+
+            // Clear coordinates click
+            btnClear.addEventListener("click", function() {
+                valLat.textContent = "--° --' --\"";
+                valLon.textContent = "--° --' --\"";
+                decLat.textContent = "--.----°";
+                decLon.textContent = "--.----°";
+                selectionStatus.textContent = "Click Globe To Inspect";
+                sendToGlobe({ action: "clearLocation" });
+            });
+
+            // Listen for postMessage updates from clean globe
+            window.addEventListener("message", function(e) {
+                if (!e.data || typeof e.data !== "object") return;
+
+                if (e.data.type === "earth:location") {
+                    var lat = e.data.latitude;
+                    var lon = e.data.longitude;
+                    valLat.textContent = e.data.latDMS || (lat.toFixed(4) + "°");
+                    valLon.textContent = e.data.lonDMS || (lon.toFixed(4) + "°");
+                    decLat.textContent = (lat >= 0 ? lat.toFixed(4) + "° N" : Math.abs(lat).toFixed(4) + "° S");
+                    decLon.textContent = (lon >= 0 ? lon.toFixed(4) + "° E" : Math.abs(lon).toFixed(4) + "° W");
+                    selectionStatus.textContent = "Point Inspected";
+                } else if (e.data.type === "earth:clear") {
+                    valLat.textContent = "--° --' --\"";
+                    valLon.textContent = "--° --' --\"";
+                    decLat.textContent = "--.----°";
+                    decLon.textContent = "--.----°";
+                    selectionStatus.textContent = "Cleared";
+                }
+            });
+
+            // Sync initial state when iframe loads
+            iframe.addEventListener("load", function() {
+                setTimeout(function() {
+                    sendToGlobe({
+                        action: "setProjection",
+                        projection: currentProjection
+                    });
+                }, 400);
+            });
+        })();
+    </script>
+</body>
+</html>
