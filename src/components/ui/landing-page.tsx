@@ -23,6 +23,29 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
   SGT: { name: 'SGT (Singapore)', timeZone: 'Asia/Singapore', offsetLabel: 'UTC+08:00' },
 };
 
+export const PROJECTION_METADATA: Record<string, string> = {
+  orthographic: "3D Globe (Orthographic)",
+  concentric_region: "Concentric Focus (40°S–30°N, 20°–130°E)",
+  equirectangular: "Flat Map (Plate Carrée)",
+  winkel3: "Winkel Tripel (Compromise)",
+  waterman: "Waterman Butterfly (Polyhedron)",
+  stereographic: "Stereographic (Conformal)",
+  azimuthal_equidistant: "Azimuthal Polar (Equidistant)",
+  conic_equidistant: "Conic Equidistant",
+  atlantis: "Atlantis (Transverse Equal-Area)",
+};
+
+export const PROJECTION_LIST = [
+  { key: 'orthographic', name: '3D Globe', desc: 'Spherical Orthographic', icon: '🌐', badge: '3D' },
+  { key: 'equirectangular', name: 'Flat Map', desc: 'Plate Carrée Cylindrical', icon: '🗺️', badge: 'FLAT' },
+  { key: 'winkel3', name: 'Winkel Tripel', desc: 'Compromise World Map', icon: '🪐', badge: 'GLOBAL' },
+  { key: 'waterman', name: 'Waterman', desc: 'Butterfly Octahedron', icon: '🦋', badge: 'POLY' },
+  { key: 'stereographic', name: 'Stereographic', desc: 'True-Shape Perspective', icon: '🔭', badge: 'CONFORM' },
+  { key: 'azimuthal_equidistant', name: 'Azimuthal', desc: 'Equidistant True-Distance', icon: '❄️', badge: 'POLAR' },
+  { key: 'conic_equidistant', name: 'Conic', desc: 'Mid-Latitude Equidistant', icon: '📐', badge: 'CONIC' },
+  { key: 'atlantis', name: 'Atlantis', desc: 'Transverse Equal-Area', icon: '🌊', badge: 'OCEAN' },
+];
+
 const defaultGlobeConfig = {
   positions: [
     { top: "50%", left: "72%", scale: 1.15 }, // 0: Hero
@@ -103,7 +126,85 @@ export default function LeherLandingPage() {
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(150);
   const [workbenchMode, setWorkbenchMode] = useState<'ocean' | 'air'>('ocean');
   const [workbenchAnimate, setWorkbenchAnimate] = useState<'currents' | 'wind'>('currents');
-  const [workbenchProjection, setWorkbenchProjection] = useState<'O' | 'E' | 'S' | 'A' | 'AE' | 'CE' | 'WB' | 'W3'>('O');
+  const [activeProjection, setActiveProjection] = useState<string>('orthographic');
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [inspectedCoords, setInspectedCoords] = useState<{
+    valLat: string;
+    valLon: string;
+    decLat: string;
+    decLon: string;
+    status: string;
+  }>({
+    valLat: "--° --' --\"",
+    valLon: "--° --' --\"",
+    decLat: "--.----°",
+    decLon: "--.----°",
+    status: "Click Globe To Inspect",
+  });
+
+  // Listen for coordinates from Earth iframe inspection
+  useEffect(() => {
+    const handleEarthMessage = (e: MessageEvent) => {
+      if (!e.data || typeof e.data !== "object") return;
+      if (e.data.type === "earth:location") {
+        const lat = typeof e.data.latitude === "number" ? e.data.latitude : 0;
+        const lon = typeof e.data.longitude === "number" ? e.data.longitude : 0;
+        setInspectedCoords({
+          valLat: e.data.latDMS || `${Math.abs(lat).toFixed(2)}°`,
+          valLon: e.data.lonDMS || `${Math.abs(lon).toFixed(2)}°`,
+          decLat: lat >= 0 ? `${lat.toFixed(4)}° N` : `${Math.abs(lat).toFixed(4)}° S`,
+          decLon: lon >= 0 ? `${lon.toFixed(4)}° E` : `${Math.abs(lon).toFixed(4)}° W`,
+          status: "Point Inspected",
+        });
+      } else if (e.data.type === "earth:clear") {
+        setInspectedCoords({
+          valLat: "--° --' --\"",
+          valLon: "--° --' --\"",
+          decLat: "--.----°",
+          decLon: "--.----°",
+          status: "Click Globe To Inspect",
+        });
+      }
+    };
+    window.addEventListener("message", handleEarthMessage);
+    return () => window.removeEventListener("message", handleEarthMessage);
+  }, []);
+
+  const sendToEarthIframe = useCallback((data: { action: string; projection?: string }) => {
+    const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[title*="Earth"]');
+    iframes.forEach((iframe) => {
+      try {
+        iframe.contentWindow?.postMessage(data, "*");
+      } catch (err) {
+        console.warn("Unable to postMessage to Earth iframe", err);
+      }
+    });
+  }, []);
+
+  const handleLocateMe = useCallback(() => {
+    setIsLocating(true);
+    setInspectedCoords((prev) => ({ ...prev, status: "Detecting GPS..." }));
+    sendToEarthIframe({ action: "locateMe" });
+    setTimeout(() => {
+      setIsLocating(false);
+    }, 3500);
+  }, [sendToEarthIframe]);
+
+  const handleClearCoords = useCallback(() => {
+    setInspectedCoords({
+      valLat: "--° --' --\"",
+      valLon: "--° --' --\"",
+      decLat: "--.----°",
+      decLon: "--.----°",
+      status: "Click Globe To Inspect",
+    });
+    sendToEarthIframe({ action: "clearLocation" });
+  }, [sendToEarthIframe]);
+
+  const handleSelectProjection = useCallback((projKey: string) => {
+    setActiveProjection(projKey);
+    sendToEarthIframe({ action: "setProjection", projection: projKey });
+  }, [sendToEarthIframe]);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [activeLayers, setActiveLayers] = useState({
     model: true,
@@ -232,18 +333,9 @@ export default function LeherLandingPage() {
   const getEarthIframeUrl = (
     varType: 'temp' | 'sal' | 'chl' | 'cur',
     mode: 'ocean' | 'air' = workbenchMode,
-    proj: string = workbenchProjection
+    proj: string = activeProjection
   ) => {
-    const projMap: Record<string, string> = {
-      'O': 'orthographic',
-      'E': 'equirectangular',
-      'S': 'stereographic',
-      'A': 'azimuthal_equidistant',
-      'CE': 'conic_equidistant',
-      'WB': 'waterman',
-      'W3': 'winkel3',
-    };
-    const projName = projMap[proj] || 'orthographic';
+    const projName = proj || 'orthographic';
 
     if (mode === 'air') {
       let ovStr = 'none';
@@ -262,94 +354,292 @@ export default function LeherLandingPage() {
     }
   };
 
-  const renderControlsAndAnalytics = () => (
-    <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-4 font-mono text-xs">
-      <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
-        <span className="text-white font-bold uppercase tracking-wider text-[11px]">Controls & Options</span>
-        <span className="text-cyan-400 text-[10px] bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">LIVE OPTIONS</span>
+  const renderMergedControlsAndAnalytics = () => (
+    <div className="space-y-5">
+      {/* Top Header */}
+      <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-amber-400 text-sm">⚡</span>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Controls & Analytics</h3>
+        </div>
+        <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span>ONLINE</span>
+        </div>
       </div>
 
-      {/* Mode: Air | Ocean */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Mode</div>
+      {/* System Clock Card */}
+      <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
+        <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
+          <span>System Clock</span>
+          <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
+        </div>
+        <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
+          <Clock className="w-4 h-4 text-emerald-400" />
+          <span>{realTimeClock}</span>
+        </div>
+        <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
+          <label className="text-[11px] text-[#aaaaaa]">Timezone:</label>
+          <select
+            value={selectedTimeZone}
+            onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+            className="bg-[#1f1f1f] text-white text-xs font-mono rounded-lg px-2 py-1 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
+          >
+            {Object.entries(timeZoneMap).map(([tz, info]) => (
+              <option key={tz} value={tz}>
+                {tz} ({info.offsetLabel})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Geographic Coordinates Inspector */}
+      <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3">
+        <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+          <span className="text-[#888888]">Geographic Coordinates</span>
+          <span className="text-cyan-400 font-semibold">{inspectedCoords.status}</span>
+        </div>
+
         <div className="grid grid-cols-2 gap-2">
-          <button 
-            onClick={() => setWorkbenchMode('ocean')} 
-            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'ocean' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+          <div className="bg-black/50 border border-white/5 rounded-xl p-2.5">
+            <div className="text-[10px] font-mono text-[#666666]">LATITUDE (φ)</div>
+            <div className="text-xs font-mono font-bold text-cyan-300 mt-0.5 truncate">{inspectedCoords.valLat}</div>
+            <div className="text-[10px] font-mono text-[#888888] mt-0.5">{inspectedCoords.decLat}</div>
+          </div>
+          <div className="bg-black/50 border border-white/5 rounded-xl p-2.5">
+            <div className="text-[10px] font-mono text-[#666666]">LONGITUDE (λ)</div>
+            <div className="text-xs font-mono font-bold text-cyan-300 mt-0.5 truncate">{inspectedCoords.valLon}</div>
+            <div className="text-[10px] font-mono text-[#888888] mt-0.5">{inspectedCoords.decLon}</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <button
+            onClick={handleLocateMe}
+            disabled={isLocating}
+            className="py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-900/30 disabled:opacity-60"
           >
-            Ocean
+            <span>{isLocating ? "⏳" : "📍"}</span>
+            <span>{isLocating ? "Detecting Location..." : "Auto-Detect My Location"}</span>
           </button>
-          <button 
-            onClick={() => setWorkbenchMode('air')} 
-            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'air' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+          <button
+            onClick={handleClearCoords}
+            title="Clear Selection"
+            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 text-[#aaaaaa] hover:text-red-300 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
           >
-            Air
+            ✕
           </button>
         </div>
       </div>
 
-      {/* Animate: Currents | Wind */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Animate</div>
+      {/* Earth Projections Switcher */}
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center text-xs font-mono text-[#888888]">
+          <span className="uppercase tracking-wider">Earth Projections</span>
+          <span className="text-cyan-400 font-semibold text-[10px]">
+            {PROJECTION_METADATA[activeProjection] || activeProjection}
+          </span>
+        </div>
+
+        {/* Concentric Region Special Button */}
+        <button 
+          onClick={() => handleSelectProjection('concentric_region')}
+          className={cn(
+            "w-full p-3 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden",
+            activeProjection === 'concentric_region'
+              ? "bg-gradient-to-br from-emerald-950/70 to-cyan-950/70 border-cyan-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]"
+              : "bg-gradient-to-br from-emerald-950/25 to-cyan-950/25 border-cyan-800/40 hover:border-cyan-500/60"
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-base">🎯</span>
+            <span className={cn(
+              "text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold tracking-wider",
+              activeProjection === 'concentric_region' ? "bg-cyan-400 text-black" : "bg-cyan-950/60 text-cyan-300 border border-cyan-800/40"
+            )}>
+              CONCENTRIC FOCUS
+            </span>
+          </div>
+          <div className="font-bold text-white font-mono text-xs mt-1.5">40°S–30°N / 20°–130°E</div>
+          <div className="text-[11px] text-[#aaaaaa] font-sans mt-0.5">Indian Ocean & Indo-Pacific Regional Bounding Box</div>
+        </button>
+
+        {/* 8 Standard Projections Grid */}
         <div className="grid grid-cols-2 gap-2">
-          <button 
-            onClick={() => { setWorkbenchAnimate('currents'); setWorkbenchVar('cur'); setWorkbenchMode('ocean'); }} 
-            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'currents' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
-          >
-            Currents
-          </button>
-          <button 
-            onClick={() => { setWorkbenchAnimate('wind'); setWorkbenchMode('air'); }} 
-            className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'wind' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
-          >
-            Wind
-          </button>
+          {PROJECTION_LIST.map((p) => {
+            const isActive = activeProjection === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => handleSelectProjection(p.key)}
+                className={cn(
+                  "p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1",
+                  isActive
+                    ? "bg-cyan-950/40 border-cyan-400 shadow-[0_0_15px_rgba(56,189,248,0.25)] text-white"
+                    : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:border-[#3a3a3a] hover:text-white"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{p.icon}</span>
+                  <span className={cn(
+                    "text-[9px] font-mono px-1.5 py-0.5 rounded",
+                    isActive ? "bg-cyan-400 text-black font-bold" : "bg-white/5 text-[#888888]"
+                  )}>
+                    {p.badge}
+                  </span>
+                </div>
+                <div className="font-bold text-white font-sans text-xs">{p.name}</div>
+                <div className="text-[10px] text-[#777777] font-sans truncate">{p.desc}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Concentric Region Spec Box */}
+        {activeProjection === 'concentric_region' && (
+          <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-[11px] font-mono space-y-1 text-emerald-300">
+            <div className="font-bold text-xs text-white">Concentric Region Analytics</div>
+            <div><strong>Latitude:</strong> 40°00'00"S to 30°00'00"N</div>
+            <div><strong>Longitude:</strong> 20°00'00"E to 130°00'00"E</div>
+            <div className="text-[10px] text-emerald-400/80 pt-1 border-t border-emerald-900/40">
+              ✨ Target region rendered in vivid green & ocean blue. High-resolution regional domain.
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Variable Selector */}
+      <div className="space-y-2">
+        <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable Layer</label>
+        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+          <button onClick={() => { setWorkbenchVar('cur'); setWorkbenchMode('ocean'); setWorkbenchAnimate('currents'); }} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
+          <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Temperature</button>
+          <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
+          <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Chlorophyll</button>
         </div>
       </div>
 
-      {/* Projection: A, AE, CE, E, O, S, WB, W3 */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Projection</div>
-        <div className="flex flex-wrap gap-1">
-          {(['A', 'AE', 'CE', 'E', 'O', 'S', 'WB', 'W3'] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setWorkbenchProjection(p)}
-              className={cn(
-                "px-2 py-1 rounded border text-[11px] font-mono transition-all cursor-pointer",
-                workbenchProjection === p ? "bg-white text-black font-bold border-white" : "bg-[#090909] border-[#222222] text-[#aaaaaa] hover:text-white"
-              )}
+      {/* Depth Slice Level Slider */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-xs font-mono text-[#888888]">
+          <span>Depth Slice Level</span>
+          <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
+        </div>
+        <input 
+          type="range" min="0" max="2000" step="10" 
+          value={workbenchDepth} 
+          onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
+          className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
+        />
+        <div className="flex justify-between text-[10px] font-mono text-[#666666]">
+          <span>Surface (0m)</span>
+          <span>Thermocline (500m)</span>
+          <span>Abyssal (2000m)</span>
+        </div>
+      </div>
+
+      {/* Mode & Animate Options Box */}
+      <div className="p-3.5 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
+        <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
+          <span className="text-white font-bold uppercase tracking-wider text-[11px]">Controls & Options</span>
+          <span className="text-cyan-400 text-[10px] bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">LIVE OPTIONS</span>
+        </div>
+
+        {/* Mode: Air | Ocean */}
+        <div className="space-y-1.5">
+          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Mode</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button 
+              onClick={() => setWorkbenchMode('ocean')} 
+              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'ocean' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
             >
-              {p}
+              Ocean
             </button>
-          ))}
+            <button 
+              onClick={() => setWorkbenchMode('air')} 
+              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'air' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+            >
+              Air
+            </button>
+          </div>
+        </div>
+
+        {/* Animate: Currents | Wind */}
+        <div className="space-y-1.5">
+          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Animate</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button 
+              onClick={() => { setWorkbenchAnimate('currents'); setWorkbenchVar('cur'); setWorkbenchMode('ocean'); }} 
+              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'currents' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+            >
+              Currents
+            </button>
+            <button 
+              onClick={() => { setWorkbenchAnimate('wind'); setWorkbenchMode('air'); }} 
+              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'wind' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
+            >
+              Wind
+            </button>
+          </div>
+        </div>
+
+        {/* Data & Source Scale Bar */}
+        <div className="space-y-2 pt-2 border-t border-[#222222]">
+          <div className="flex justify-between text-[10px] text-[#888888]">
+            <span>DATA: <strong className="text-white">Ocean Currents @ Surface</strong></span>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[10px] text-[#888888]">Scale:</div>
+            <div className="h-2 w-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-green-400 via-yellow-400 to-red-600 border border-white/20" />
+          </div>
+          <div className="text-[10px] text-[#888888]">
+            SOURCE: <span className="text-[#cccccc]">OSCAR / Earth & Space Research</span>
+          </div>
         </div>
       </div>
 
-      {/* Control Navigation Stepper */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] text-[#888888] uppercase tracking-wider">Control</div>
-        <div className="flex items-center justify-between gap-1 p-1.5 rounded-lg bg-[#090909] border border-[#222222] text-center font-mono text-xs">
-          <button onClick={() => setIsPlaying(true)} className="px-2 py-0.5 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white rounded cursor-pointer">Now</button>
-          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">«</button>
-          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">‹</button>
-          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">›</button>
-          <button onClick={() => setIsPlaying(false)} className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">»</button>
-          <button className="px-2 py-0.5 bg-[#141414] hover:bg-[#222222] text-[#aaaaaa] hover:text-white rounded cursor-pointer">Grid</button>
+      {/* In-Situ Instrument Telemetry */}
+      <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
+        <div className="border-b border-[#222222] pb-2">
+          <div className="flex justify-between items-center">
+            <div className="text-[10px] text-[#888888] uppercase">IN-SITU TELEMETRY & DATA PROVENANCE</div>
+            <span className="text-[10px] text-emerald-400 font-mono">Traceable</span>
+          </div>
+          <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
+          <div className="text-[#666666] text-[11px]">Arabian Sea (15.4°N, 71.2°E)</div>
         </div>
-      </div>
 
-      {/* Data & Source Metadata Card */}
-      <div className="space-y-2 pt-2 border-t border-[#222222]">
-        <div className="flex justify-between text-[10px] text-[#888888]">
-          <span>DATA: <strong className="text-white">Ocean Currents @ Surface</strong></span>
-        </div>
-        <div className="space-y-1">
-          <div className="text-[10px] text-[#888888]">Scale:</div>
-          <div className="h-2 w-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-green-400 via-yellow-400 to-red-600 border border-white/20" />
-        </div>
-        <div className="text-[10px] text-[#888888]">
-          SOURCE: <span className="text-[#cccccc]">OSCAR / Earth & Space Research</span>
+        <div className="space-y-2">
+          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+            <span className="text-[#888888]">GFS 2m Air Temp:</span>
+            <span className="text-white font-bold">
+              {pointReport?.measurements.atmosphericTemperature
+                ? `${pointReport.measurements.atmosphericTemperature.value} °C`
+                : "27.8 °C"}
+            </span>
+          </div>
+          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+            <span className="text-[#888888]">OSCAR Current Speed:</span>
+            <span className="text-white font-bold">
+              {pointReport?.measurements.oceanCurrentSpeed
+                ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s`
+                : "0.42 m/s"}
+            </span>
+          </div>
+          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+            <span className="text-[#888888]">Model Predicted:</span>
+            <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
+          </div>
+          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
+            <span className="text-[#888888]">Observed Cast:</span>
+            <span className="text-emerald-400 font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
+          </div>
+          {workbenchDepth > 15 && (
+            <div className="p-2 rounded bg-[#1a1405] border border-amber-900/40 text-[10px] text-amber-300">
+              Depth Slice ({workbenchDepth}m): Grid dataset coverage restricted to surface/15m level. No arbitrary synthetic depth values calculated.
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1201,115 +1491,9 @@ export default function LeherLandingPage() {
               />
             </div>
 
-            {/* RIGHT SIDE CONTROL WORKBENCH PANEL */}
-            <div className="w-80 lg:w-96 bg-[#0c0c0c] border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl">
-              <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Control Workbench</h3>
-                <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded border border-cyan-800/40">LIVE CONTROL</span>
-              </div>
-
-              {/* Ticking Clock Widget */}
-              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
-                <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
-                  <span>Real-Time Clock</span>
-                  <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
-                </div>
-                <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-400" />
-                  <span>{realTimeClock}</span>
-                </div>
-                <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
-                  <label className="text-[11px] text-[#aaaaaa]">Timezone:</label>
-                  <select
-                    value={selectedTimeZone}
-                    onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
-                    className="bg-[#1f1f1f] text-white text-xs font-mono rounded-lg px-2 py-1 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
-                  >
-                    {Object.entries(timeZoneMap).map(([tz, info]) => (
-                      <option key={tz} value={tz}>
-                        {tz} ({info.offsetLabel})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Variable Selector */}
-              <div className="space-y-2.5">
-                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable Layer</label>
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Temperature</button>
-                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Chlorophyll</button>
-                </div>
-              </div>
-
-              {/* Depth Slice Control */}
-              <div className="space-y-2.5">
-                <div className="flex justify-between text-xs font-mono text-[#888888]">
-                  <span>Depth Slice Level</span>
-                  <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
-                </div>
-                <input 
-                  type="range" min="0" max="2000" step="10" 
-                  value={workbenchDepth} 
-                  onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] font-mono text-[#666666]">
-                  <span>Surface (0m)</span>
-                  <span>Thermocline (500m)</span>
-                  <span>Abyssal (2000m)</span>
-                </div>
-              </div>
-
-              {/* Controls & Analytics Options Box */}
-              {renderControlsAndAnalytics()}
-
-              {/* Real-time Instrument Telemetry */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
-                <div className="border-b border-[#222222] pb-2">
-                  <div className="flex justify-between items-center">
-                    <div className="text-[10px] text-[#888888] uppercase">IN-SITU TELEMETRY & DATA PROVENANCE</div>
-                    <span className="text-[10px] text-emerald-400 font-mono">Traceable</span>
-                  </div>
-                  <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
-                  <div className="text-[#666666] text-[11px]">Arabian Sea (15.4°N, 71.2°E)</div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">GFS 2m Air Temp:</span>
-                    <span className="text-white font-bold">
-                      {pointReport?.measurements.atmosphericTemperature
-                        ? `${pointReport.measurements.atmosphericTemperature.value} °C`
-                        : "Data Unavailable"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">OSCAR Current Speed:</span>
-                    <span className="text-white font-bold">
-                      {pointReport?.measurements.oceanCurrentSpeed
-                        ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s`
-                        : "Data Unavailable"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">Argo Temp (15m):</span>
-                    <span className="text-emerald-400 font-bold">
-                      {pointReport?.argoTelemetry?.measurements.temperature
-                        ? `${pointReport.argoTelemetry.measurements.temperature.value} ${pointReport.argoTelemetry.measurements.temperature.unit}`
-                        : "28.12 °C"}
-                    </span>
-                  </div>
-                  {workbenchDepth > 15 && (
-                    <div className="p-2 rounded bg-[#1a1405] border border-amber-900/40 text-[10px] text-amber-300">
-                      Depth Slice ({workbenchDepth}m): Grid dataset coverage restricted to surface/15m level. No arbitrary synthetic depth values calculated.
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* SINGLE RIGHT SIDE WORKBENCH CONTROLS */}
+            <div className="w-84 sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl">
+              {renderMergedControlsAndAnalytics()}
             </div>
           </div>
         </div>
@@ -1371,84 +1555,9 @@ export default function LeherLandingPage() {
               />
             </div>
 
-            {/* RIGHT SIDE WORKBENCH CONTROLS */}
-            <div className="w-80 lg:w-96 bg-[#0c0c0c] border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl">
-              <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Controls & Analytics</h3>
-                <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded border border-cyan-800/40">ONLINE</span>
-              </div>
-
-              {/* Ticking Clock Widget */}
-              <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
-                <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
-                  <span>System Clock</span>
-                  <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
-                </div>
-                <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-400" />
-                  <span>{realTimeClock}</span>
-                </div>
-                <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
-                  <label className="text-[11px] text-[#aaaaaa]">Timezone:</label>
-                  <select
-                    value={selectedTimeZone}
-                    onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
-                    className="bg-[#1f1f1f] text-white text-xs font-mono rounded-lg px-2 py-1 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
-                  >
-                    {Object.entries(timeZoneMap).map(([tz, info]) => (
-                      <option key={tz} value={tz}>
-                        {tz} ({info.offsetLabel})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Variable Selector */}
-              <div className="space-y-2.5">
-                <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable</label>
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Temperature</button>
-                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Chlorophyll</button>
-                </div>
-              </div>
-
-              {/* Depth Slice Control */}
-              <div className="space-y-2.5">
-                <div className="flex justify-between text-xs font-mono text-[#888888]">
-                  <span>Depth Slice</span>
-                  <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
-                </div>
-                <input 
-                  type="range" min="0" max="2000" step="10" 
-                  value={workbenchDepth} 
-                  onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Controls & Analytics Options Box */}
-              {renderControlsAndAnalytics()}
-
-              {/* Live Telemetry */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
-                <div className="border-b border-[#222222] pb-2">
-                  <div className="text-[10px] text-[#888888] uppercase">SELECTED INSTRUMENT</div>
-                  <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">Model Predicted:</span>
-                    <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
-                  </div>
-                  <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-                    <span className="text-[#888888]">Observed Cast:</span>
-                    <span className="text-white font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
-                  </div>
-                </div>
-              </div>
+            {/* SINGLE RIGHT SIDE WORKBENCH CONTROLS */}
+            <div className="w-84 sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl">
+              {renderMergedControlsAndAnalytics()}
             </div>
           </div>
         </div>
