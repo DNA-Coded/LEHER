@@ -472,59 +472,40 @@ export default function LeherLandingPage() {
     }
   };
 
-  /**
-   * Reframed Input Controls Panel
-   * Order:
-   * 1. Latitude & Longitude inputs
-   * 2. Locate Yourself (Auto-Detect Location)
-   * 3. Depth Measurement Slider
-   * 4. Globe Shape Dropdown (Concentric Bounded 1st)
-   * 5. Predict Button
-   */
   const renderOperationInputs = () => (
-    <div className="space-y-4 font-mono text-xs">
-      {/* 1. Globe Shape Dropdown (Concentric Bounded 1st) */}
-      <div className="space-y-1.5 p-3 rounded-xl bg-[#121212] border border-[#222222]">
-        <label className="text-[10px] uppercase tracking-wider text-[#888888] flex items-center justify-between">
-          <span>Globe Shape / Projection</span>
-          <span className="text-[9px] text-cyan-400 font-bold">
-            {PROJECTION_METADATA[activeProjection] || activeProjection}
-          </span>
-        </label>
+    <div className="space-y-4 text-xs font-sans">
+      {/* 1. Globe Shape Dropdown */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between items-center text-[11px] text-[#888888]">
+          <span>Projection</span>
+          <span className="text-cyan-400 font-mono text-[10px]">{PROJECTION_METADATA[activeProjection] || activeProjection}</span>
+        </div>
         <div className="relative">
           <select
             value={activeProjection}
             onChange={(e) => handleSelectProjection(e.target.value)}
-            className="w-full bg-[#141414] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#333333] hover:border-cyan-500/60 focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-9 shadow-inner"
+            className="w-full bg-[#121212] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#262626] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
           >
             {PROJECTION_LIST.map((p) => (
-              <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono py-1">
+              <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
                 {p.name}
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#888888]">
-            <ChevronDown className="w-4 h-4" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
+            <ChevronDown className="w-3.5 h-3.5" />
           </div>
-        </div>
-        <div className="text-[9px] text-[#666666] font-mono leading-tight">
-          First option represents the latitudinally &amp; longitudinally bounded Indian Ocean domain (40°S–30°N, 20°–130°E).
         </div>
       </div>
 
-      {/* 2. Latitude & Longitude Inputs */}
+      {/* 2. Coordinates */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#888888]">
-          <span>Geographic Coordinates</span>
-          <span className="text-cyan-400 font-semibold text-[9px]">{inspectedCoords.status}</span>
-        </div>
-        {/* Latitude: Full 1 Line */}
-        <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl px-3 py-2 flex items-center justify-between gap-2 focus-within:border-cyan-400/80 transition-colors shadow-inner">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] text-[#777777] font-semibold uppercase tracking-wider">LATITUDE (φ)</span>
-            <span className="text-[9px] text-[#555555] font-mono">{Math.abs(inputLat).toFixed(2)}° Dec</span>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="text-[11px] text-[#888888]">Coordinates</div>
+        
+        {/* Latitude */}
+        <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
+          <span className="text-[#888888] text-xs">Latitude</span>
+          <div className="flex items-center gap-2">
             <input
               type="number"
               step="0.01"
@@ -532,22 +513,19 @@ export default function LeherLandingPage() {
               max="90"
               value={inputLat}
               onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-              className="w-24 bg-[#181818] border border-[#333333] rounded-lg px-2.5 py-1 text-white font-bold text-xs text-right focus:outline-none focus:border-cyan-400 font-mono"
-              placeholder="15.4"
+              className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+              placeholder="15.40"
             />
-            <span className="text-[10px] text-cyan-400 font-bold w-6 text-center">
+            <span className="text-[#666666] font-mono text-xs w-6 text-right">
               {inputLat >= 0 ? "°N" : "°S"}
             </span>
           </div>
         </div>
 
-        {/* Longitude: Full 1 Line */}
-        <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl px-3 py-2 flex items-center justify-between gap-2 focus-within:border-cyan-400/80 transition-colors shadow-inner">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] text-[#777777] font-semibold uppercase tracking-wider">LONGITUDE (λ)</span>
-            <span className="text-[9px] text-[#555555] font-mono">{Math.abs(inputLon).toFixed(2)}° Dec</span>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+        {/* Longitude */}
+        <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
+          <span className="text-[#888888] text-xs">Longitude</span>
+          <div className="flex items-center gap-2">
             <input
               type="number"
               step="0.01"
@@ -555,16 +533,16 @@ export default function LeherLandingPage() {
               max="180"
               value={inputLon}
               onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-              className="w-24 bg-[#181818] border border-[#333333] rounded-lg px-2.5 py-1 text-white font-bold text-xs text-right focus:outline-none focus:border-cyan-400 font-mono"
-              placeholder="71.2"
+              className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+              placeholder="71.20"
             />
-            <span className="text-[10px] text-cyan-400 font-bold w-6 text-center">
+            <span className="text-[#666666] font-mono text-xs w-6 text-right">
               {inputLon >= 0 ? "°E" : "°W"}
             </span>
           </div>
         </div>
 
-        {/* Location Quick Preset Chips - Exactly 2 Balanced Lines (4 per line) */}
+        {/* Presets */}
         <div className="grid grid-cols-4 gap-1 pt-0.5">
           {LOCATION_PRESETS.map((loc) => {
             const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
@@ -576,11 +554,10 @@ export default function LeherLandingPage() {
                   setInputLat(loc.lat);
                   setInputLon(loc.lon);
                 }}
-                title={`${loc.label} (${loc.lat}°, ${loc.lon}°)`}
                 className={cn(
-                  "px-1 py-1 rounded-md text-[9px] border transition-all cursor-pointer text-center truncate",
+                  "px-1.5 py-1 rounded-lg text-[10px] border transition-all cursor-pointer text-center truncate",
                   isSelected
-                    ? "bg-cyan-950/70 border-cyan-400 text-cyan-300 font-bold shadow-[0_0_10px_rgba(56,189,248,0.2)]"
+                    ? "bg-white text-black font-semibold border-white"
                     : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
                 )}
               >
@@ -591,28 +568,23 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* 3. Locate Yourself (Auto-Detect Location) */}
-      <div className="space-y-1">
-        <button
-          type="button"
-          onClick={handleLocateMe}
-          disabled={isLocating}
-          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 hover:from-sky-500 hover:via-cyan-500 hover:to-teal-500 text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-cyan-950/40 disabled:opacity-60"
-        >
-          <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
-          <span>{isLocating ? "Detecting GPS Position..." : "Locate Yourself (Auto-Detect Location)"}</span>
-        </button>
-        <div className="text-[9px] text-[#666666] text-center font-sans">
-          Auto-detects device coordinates and aligns map focus point
-        </div>
-      </div>
+      {/* 3. Locate Yourself */}
+      <button
+        type="button"
+        onClick={handleLocateMe}
+        disabled={isLocating}
+        className="w-full py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+      >
+        <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
+        <span>{isLocating ? "Locating..." : "Locate Yourself"}</span>
+      </button>
 
-      {/* 4. Depth Measurement Slider */}
-      <div className="space-y-2 p-3 rounded-xl bg-[#121212] border border-[#222222]">
-        <div className="flex justify-between items-center text-[10px] text-[#888888]">
-          <span className="uppercase tracking-wider">Depth Measurement</span>
-          <span className="text-white font-bold bg-[#1e2025] px-2 py-0.5 rounded border border-[#333333] text-[11px]">
-            {workbenchDepth}m Level
+      {/* 4. Depth Measurement */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-[11px] text-[#888888]">
+          <span>Depth</span>
+          <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[11px]">
+            {workbenchDepth}m
           </span>
         </div>
         <input 
@@ -622,7 +594,7 @@ export default function LeherLandingPage() {
           step="10" 
           value={workbenchDepth} 
           onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-          className="w-full accent-cyan-400 h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
+          className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
         />
         <div className="grid grid-cols-6 gap-1 text-center">
           {[0, 50, 150, 500, 1000, 2000].map((d) => (
@@ -631,146 +603,89 @@ export default function LeherLandingPage() {
               type="button"
               onClick={() => setWorkbenchDepth(d)}
               className={cn(
-                "py-1 rounded text-[9px] border transition-all cursor-pointer",
+                "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
                 workbenchDepth === d
                   ? "bg-white text-black font-bold border-white"
-                  : "bg-[#161616] border-[#222222] text-[#777777] hover:text-white"
+                  : "bg-[#141414] border-[#222222] text-[#666666] hover:text-white"
               )}
             >
               {d === 0 ? "0m" : `${d}m`}
             </button>
           ))}
         </div>
-        <div className="flex justify-between text-[9px] text-[#666666] pt-0.5">
-          <span>Surface (0m)</span>
-          <span>Thermocline (150m)</span>
-          <span>Abyssal (2000m)</span>
-        </div>
       </div>
 
       {/* 5. Predict Button */}
-      <div className="pt-1">
+      <div className="pt-2">
         <button
           type="button"
           onClick={handlePredict}
           disabled={isPredicting}
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-black font-extrabold text-xs font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-[0.99] disabled:opacity-75"
+          className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#e6e6e6] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
         >
           {isPredicting ? (
             <>
               <RefreshCw className="w-4 h-4 animate-spin text-black" />
-              <span>COMPUTING OCEAN STATE...</span>
+              <span>Predicting...</span>
             </>
           ) : (
-            <>
-              <Sparkles className="w-4 h-4 text-black" />
-              <span>RUN OCEAN INTELLIGENCE PREDICTION</span>
-            </>
+            <span>Predict Ocean State</span>
           )}
         </button>
       </div>
     </div>
   );
 
-  /**
-   * Reframed Answer Section
-   * Displays all 10 Copernicus Marine standardized variables with units, descriptions, and telemetry
-   */
   const renderPredictionAnswerSection = () => (
-    <div className="space-y-4 font-mono text-xs">
-      {/* Region & Telemetry Header */}
-      <div className="border-b border-[#222222] pb-3 space-y-1.5">
-        <div className="flex justify-between items-center">
-          <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            COPERNICUS MARINE OUTPUT
-          </span>
-          <span className={cn(
-            "text-[9px] font-mono px-2 py-0.5 rounded border font-bold uppercase",
-            predictionResult.summary.riskStatus === 'SAFE' 
-              ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
-              : predictionResult.summary.riskStatus === 'ADVISORY'
-              ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
-              : "bg-red-950/60 border-red-800/60 text-red-400"
-          )}>
-            {predictionResult.summary.riskStatus}
-          </span>
+    <div className="space-y-4 text-xs font-sans">
+      {/* Top Header: Region & Status */}
+      <div className="flex justify-between items-center pb-1">
+        <div className="text-white font-bold text-sm">
+          {predictionResult.location.regionName}
         </div>
-        <div className="flex justify-between items-baseline">
-          <h4 className="text-sm font-bold text-white font-sans">
-            {predictionResult.location.regionName}
-          </h4>
-          <span className="text-[10px] text-[#888888]">
-            {predictionResult.location.lat >= 0 ? `${predictionResult.location.lat}°N` : `${Math.abs(predictionResult.location.lat)}°S`}, {predictionResult.location.lon >= 0 ? `${predictionResult.location.lon}°E` : `${Math.abs(predictionResult.location.lon)}°W`} @ {predictionResult.location.depth}m
-          </span>
-        </div>
+        <span className={cn(
+          "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
+          predictionResult.summary.riskStatus === 'SAFE' 
+            ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
+            : predictionResult.summary.riskStatus === 'ADVISORY'
+            ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
+            : "bg-red-950/60 border-red-800/60 text-red-400"
+        )}>
+          {predictionResult.summary.riskStatus}
+        </span>
       </div>
 
-      {/* Summary Velocity & Bearing Cards */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="p-2.5 rounded-xl bg-[#141414] border border-[#222222]">
-          <div className="text-[10px] text-[#777777]">CURRENT VELOCITY</div>
-          <div className="text-xs font-bold text-white mt-0.5">
-            {predictionResult.summary.currentSpeedMs} m s⁻¹
-          </div>
-          <div className="text-[9px] text-[#888888]">
-            {predictionResult.summary.currentSpeedKnots} knots
-          </div>
+      {/* Clean Parameters Box (Style of the trading widget in screenshot) */}
+      <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 space-y-2.5 shadow-inner">
+        <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
+          <span className="text-[#888888]">Current speed</span>
+          <span className="font-bold text-white font-mono">{predictionResult.summary.currentSpeedMs} m s⁻¹</span>
         </div>
-        <div className="p-2.5 rounded-xl bg-[#141414] border border-[#222222]">
-          <div className="text-[10px] text-[#777777]">CURRENT BEARING</div>
-          <div className="text-xs font-bold text-cyan-300 mt-0.5">
-            {predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)
-          </div>
-          <div className="text-[9px] text-[#888888]">
-            Flow Vector (uo, vo)
-          </div>
+        <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
+          <span className="text-[#888888]">Current bearing</span>
+          <span className="font-bold text-white font-mono">{predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)</span>
         </div>
+        {Object.values(predictionResult.variables).map((v) => (
+          <div key={v.variable} className="flex justify-between items-center text-xs">
+            <span className="text-[#888888]">
+              {v.commonName}
+            </span>
+            <span className="font-bold text-white font-mono">
+              {v.formattedValue}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Ocean Parameters Table (Parameter and Value/Units only) */}
-      <div className="rounded-xl border border-[#222222] bg-[#090909] overflow-hidden shadow-inner">
-        <div className="bg-[#121212] px-3.5 py-2.5 border-b border-[#222222] flex justify-between items-center text-[10px] text-[#888888] uppercase tracking-wider font-semibold">
-          <span>Ocean Parameter</span>
-          <span className="text-right">Value (Units)</span>
-        </div>
-        <div className="divide-y divide-[#181818] max-h-[360px] overflow-y-auto">
-          {Object.values(predictionResult.variables).map((v) => (
-            <div 
-              key={v.variable} 
-              className="px-3.5 py-2.5 flex justify-between items-center hover:bg-white/[0.03] transition-colors gap-2 text-xs"
-            >
-              <span className="font-medium text-white">
-                {v.commonName}
-              </span>
-              <span className="font-bold text-white text-xs font-mono">
-                {v.formattedValue}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Button: View In Detail (Opens Full Individual Dossier) */}
+      {/* View in Detail Button */}
       <button
         type="button"
         onClick={() => setIsDetailModalOpen(true)}
-        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-950/60 via-[#161616] to-[#121212] hover:from-cyan-900/60 hover:to-[#1a1a1a] border border-cyan-800/40 hover:border-cyan-400 text-cyan-300 font-mono text-xs flex items-center justify-between transition-all cursor-pointer shadow-lg shadow-cyan-950/20 group"
+        className="w-full py-2.5 px-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
       >
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:rotate-12 transition-transform" />
-          <span className="font-bold tracking-wide">VIEW DETAILED PARAMETER ANALYSIS</span>
-        </div>
-        <ArrowUpRight className="w-4 h-4 text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        <span>View in detail</span>
+        <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
       </button>
-
-      {/* Advisory Note */}
-      <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] text-[10px] space-y-1">
-        <div className="text-[#888888] uppercase tracking-wider font-semibold">ADVISORY STATUS</div>
-        <div className="text-[#cccccc] font-sans leading-relaxed">
-          {predictionResult.summary.riskMessage}
-        </div>
-      </div>
     </div>
   );
 
