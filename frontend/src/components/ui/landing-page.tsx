@@ -960,28 +960,80 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-[#0a0f18]/45 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-4">
-            <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider flex justify-between items-center">
-              <span>Operational Conditions</span>
-              <span className="text-[10px] text-[#888888] font-sans">Active Status</span>
+          <div className="lg:col-span-6 rounded-2xl bg-[#0e0e11]/90 backdrop-blur-xl border border-[#242429] p-5 sm:p-6 shadow-2xl space-y-4">
+            {/* Top macOS-style window header */}
+            <div className="flex items-center justify-between pb-1 text-xs font-mono text-[#666670]">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+              </div>
+              <div className="tracking-wide text-[#777780]">
+                ocean conditions &middot; live output
+              </div>
+              <div className="w-2 h-2 rounded-full bg-[#ffbd2e]" />
             </div>
-            
-            <div className="space-y-3 text-sm">
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Sea Surface Temperature</span>
-                <span className="font-mono text-xs text-[#888888]">Thermal Status</span>
+
+            {/* Top single card */}
+            <div className="rounded-xl bg-[#141417] border border-[#242429] p-4 flex items-center gap-3.5 hover:border-[#383842] transition-colors">
+              <div className="px-2.5 py-0.5 rounded bg-[#202025] border border-[#2f2f36] text-xs font-mono font-bold text-[#888890] shrink-0">
+                SST
               </div>
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Surface Current Speed</span>
-                <span className="font-mono text-xs text-[#888888]">Drift Vector</span>
+              <div>
+                <div className="text-white font-semibold italic text-base leading-snug">
+                  &ldquo;Sea Surface Temperature&rdquo;
+                </div>
+                <div className="text-xs font-mono text-[#55555e] mt-0.5">
+                  thermal status &middot; surface layer
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Salinity</span>
-                <span className="font-mono text-xs text-[#888888]">Water Mass</span>
+            </div>
+
+            {/* Bottom grouped cards with dividers */}
+            <div className="rounded-xl bg-[#141417] border border-[#242429] divide-y divide-[#202025] overflow-hidden">
+              {/* CUR */}
+              <div className="p-4 flex items-start gap-3.5 hover:bg-white/[0.02] transition-colors">
+                <div className="border border-[#785b1a] bg-[#292215]/60 text-[#eab308] text-xs font-mono font-bold px-2.5 py-0.5 rounded shrink-0 mt-0.5">
+                  CUR
+                </div>
+                <div>
+                  <div className="text-white font-bold text-base leading-snug">
+                    &ldquo;Surface Current Speed&rdquo;
+                  </div>
+                  <div className="text-xs font-mono text-[#55555e] mt-1">
+                    drift vector &middot; hydrodynamic flow
+                  </div>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Sea State</span>
-                <span className="font-mono text-xs text-[#888888]">Roughness</span>
+
+              {/* SAL */}
+              <div className="p-4 flex items-start gap-3.5 hover:bg-white/[0.02] transition-colors">
+                <div className="border border-[#785b1a] bg-[#292215]/60 text-[#eab308] text-xs font-mono font-bold px-2.5 py-0.5 rounded shrink-0 mt-0.5">
+                  SAL
+                </div>
+                <div>
+                  <div className="text-white font-bold text-base leading-snug">
+                    &ldquo;Salinity&rdquo;
+                  </div>
+                  <div className="text-xs font-mono text-[#55555e] mt-1">
+                    water mass &middot; practical salinity
+                  </div>
+                </div>
+              </div>
+
+              {/* SEA */}
+              <div className="p-4 flex items-start gap-3.5 hover:bg-white/[0.02] transition-colors">
+                <div className="border border-[#785b1a] bg-[#292215]/60 text-[#eab308] text-xs font-mono font-bold px-2.5 py-0.5 rounded shrink-0 mt-0.5">
+                  SEA
+                </div>
+                <div>
+                  <div className="text-white font-bold text-base leading-snug">
+                    &ldquo;Sea State&rdquo;
+                  </div>
+                  <div className="text-xs font-mono text-[#55555e] mt-1">
+                    roughness &middot; wave height dynamics
+                  </div>
+                </div>
               </div>
             </div>
           </div>
