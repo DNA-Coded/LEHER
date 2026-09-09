@@ -751,12 +751,12 @@ export default function LeherLandingPage() {
             className="flex items-center gap-3.5 cursor-pointer group" 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="relative w-10 h-10 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+            <div className="relative h-9 sm:h-10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
               <img 
                 src="/logo.png" 
                 alt="Leher Logo" 
                 title="Leher"
-                className="w-full h-full object-contain" 
+                className="h-8 sm:h-9 w-auto object-contain filter drop-shadow-[0_0_10px_rgba(56,189,248,0.35)]" 
               />
             </div>
             <div className="flex items-center gap-3">
@@ -803,7 +803,7 @@ export default function LeherLandingPage() {
           <div className="space-y-6 max-w-xl mx-auto w-full pt-4">
             <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-5 h-5 rounded-full object-contain" />
+                <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-5 w-auto object-contain" />
                 <span>Operations Menu</span>
               </div>
               <span className="text-emerald-400 font-mono text-xs">{realTimeClock}</span>
@@ -863,7 +863,7 @@ export default function LeherLandingPage() {
           </div>
 
           <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818] flex items-center justify-center gap-2">
-            <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-4 h-4 rounded-full opacity-80" />
+            <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-4 w-auto object-contain opacity-80" />
             <span>Leher Maritime Safety & Hazard Intelligence • INCOIS</span>
           </div>
         </div>
@@ -1397,7 +1397,7 @@ export default function LeherLandingPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 text-sm">
           <div className="md:col-span-6 space-y-3">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-8 h-8 object-contain" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-8 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.3)]" />
               <div className="font-bold text-xl text-white">Leher</div>
             </div>
             <p className="text-[#888888] text-sm max-w-md">
@@ -1440,7 +1440,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20 shrink-0">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-7 w-auto object-contain" />
               <div>
                 <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
                   <span>Copernicus Marine Oceanographic Dossier</span>
@@ -1603,7 +1603,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-7 w-auto object-contain" />
               <span className="font-bold text-lg text-white flex items-center gap-2">
                 <span>Indian Ocean Maritime Operations Console</span>
               </span>
@@ -1675,7 +1675,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-7 w-auto object-contain" />
               <span className="font-bold text-lg text-white">Leher 3D Ocean Intelligence Workbench</span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
