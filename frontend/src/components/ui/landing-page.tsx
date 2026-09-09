@@ -789,17 +789,6 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* System Clock Card */}
-      <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] space-y-1.5">
-        <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
-          <span>Operations Clock</span>
-          <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
-        </div>
-        <div className="text-xs font-mono text-white font-bold">
-          <span>{realTimeClock}</span>
-        </div>
-      </div>
-
       {/* Inputs Section */}
       {renderOperationInputs()}
 
