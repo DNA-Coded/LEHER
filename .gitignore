@@ -37,3 +37,6 @@ frontend/.env.*
 # Deployment
 .vercel
 frontend/.vercel
+
+.vercel
+.env*

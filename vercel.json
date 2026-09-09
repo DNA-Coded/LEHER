@@ -5,16 +5,9 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/earth",
-      "destination": "/earth/index.html"
-    },
-    {
-      "source": "/globe",
-      "destination": "/globe/index.html"
-    },
-    {
-      "source": "/((?!(earth|globe)/).*)",
+      "source": "/((?!earth|globe).*)",
       "destination": "/index.html"
     }
   ]
 }
+
