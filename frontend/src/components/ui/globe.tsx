@@ -8,10 +8,7 @@ const Globe: React.FC<GlobeProps> = ({ className = "" }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <div 
-      className={`flex items-center justify-center translate-x-[1cm] ${className}`}
-      style={{ transform: "translateX(1cm)" }}
-    >
+    <div className={`flex items-center justify-center ${className}`}>
       <div className="relative w-[340px] h-[340px] sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px]">
         {/* 3D Interactive Bathymetry Globe iframe */}
         <iframe
