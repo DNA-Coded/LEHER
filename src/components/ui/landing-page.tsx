@@ -11,6 +11,7 @@ import {
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { SpinningBorderButton } from "@/components/ui/spinning-border-button";
+import { MenuHoverLink } from "@/components/ui/menu-hover-effects";
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
@@ -724,13 +725,13 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#aaaaaa]">
-            <button onClick={() => scrollToSection('section-story')} className="hover:text-white transition-colors cursor-pointer">Explore</button>
-            <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors cursor-pointer">Conditions</button>
-            <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors cursor-pointer">Capabilities</button>
-            <button onClick={() => scrollToSection('section-model')} className="hover:text-white transition-colors cursor-pointer">Location Assessment</button>
-            <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors cursor-pointer">Operations</button>
+          {/* Nav Links with Menu Hover Effects (Light Sky Blue) */}
+          <div className="hidden md:flex items-center gap-1 lg:gap-3 text-sm font-medium">
+            <MenuHoverLink onClick={() => scrollToSection('section-story')}>Explore</MenuHoverLink>
+            <MenuHoverLink onClick={() => scrollToSection('section-data')}>Conditions</MenuHoverLink>
+            <MenuHoverLink onClick={() => scrollToSection('section-capabilities')}>Capabilities</MenuHoverLink>
+            <MenuHoverLink onClick={() => scrollToSection('section-model')}>Location Assessment</MenuHoverLink>
+            <MenuHoverLink onClick={() => scrollToSection('section-preview')}>Operations</MenuHoverLink>
           </div>
 
           {/* Action CTA & Hamburger Menu */}
@@ -766,38 +767,38 @@ export default function LeherLandingPage() {
             <div className="flex flex-col gap-3 text-base sm:text-lg font-semibold text-[#cccccc]">
               <button 
                 onClick={() => { scrollToSection('section-story'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
               >
-                <span>Open Operations</span>
-                <span className="text-xs font-mono text-[#666666]">01</span>
+                <span className="group-hover:translate-x-1 transition-transform">Open Operations</span>
+                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">01</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-data'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
               >
-                <span>Maritime Conditions</span>
-                <span className="text-xs font-mono text-[#666666]">02</span>
+                <span className="group-hover:translate-x-1 transition-transform">Maritime Conditions</span>
+                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">02</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-capabilities'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
               >
-                <span>Risk & Hazard Intelligence</span>
-                <span className="text-xs font-mono text-[#666666]">03</span>
+                <span className="group-hover:translate-x-1 transition-transform">Risk & Hazard Intelligence</span>
+                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">03</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-model'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
               >
-                <span>Location Assessment</span>
-                <span className="text-xs font-mono text-[#666666]">04</span>
+                <span className="group-hover:translate-x-1 transition-transform">Location Assessment</span>
+                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">04</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-preview'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
+                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
               >
-                <span>Operations Console</span>
-                <span className="text-xs font-mono text-[#666666]">05</span>
+                <span className="group-hover:translate-x-1 transition-transform">Operations Console</span>
+                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">05</span>
               </button>
             </div>
 
