@@ -704,12 +704,12 @@ export default function LeherLandingPage() {
             className="flex items-center gap-3.5 cursor-pointer group" 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400/40 via-white/20 to-transparent border border-white/20 shadow-md shadow-cyan-950/20 group-hover:border-cyan-400/80 group-hover:scale-105 transition-all duration-300">
+            <div className="relative w-10 h-10 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
               <img 
                 src="/logo.png" 
                 alt="Leher Logo" 
                 title="Leher"
-                className="w-full h-full object-contain rounded-full bg-black/40" 
+                className="w-full h-full object-contain" 
               />
             </div>
             <div className="flex items-center gap-3">
@@ -1434,7 +1434,7 @@ export default function LeherLandingPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 text-sm">
           <div className="md:col-span-6 space-y-3">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-8 h-8 rounded-full object-contain border border-white/10 shadow-md" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-8 h-8 object-contain" />
               <div className="font-bold text-xl text-white">Leher</div>
             </div>
             <p className="text-[#888888] text-sm max-w-md">
@@ -1477,7 +1477,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 rounded-full object-contain border border-white/10" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
               <span className="font-bold text-lg text-white flex items-center gap-2">
                 <span>Leher 3D Ocean Intelligence Engine</span>
               </span>
@@ -1542,7 +1542,7 @@ export default function LeherLandingPage() {
           {/* Header Bar */}
           <div className="h-16 bg-[#0f0f0f] border-b border-[#222222] px-6 flex justify-between items-center z-20">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 rounded-full object-contain border border-white/10" />
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
               <span className="font-bold text-lg text-white">Leher 3D Ocean Intelligence Workbench</span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
