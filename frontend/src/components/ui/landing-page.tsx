@@ -1046,58 +1046,69 @@ export default function LeherLandingPage() {
       <section
         id="section-data"
         ref={(el) => { sectionRefs.current[2] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
+        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-16 sm:py-20 max-w-7xl mx-auto"
       >
-        <div className="space-y-4 max-w-2xl mb-12">
-          <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
+        <div className="space-y-3 max-w-xl mb-7">
+          <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             LIVE ENVIRONMENTAL CONDITIONS
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
             Live Maritime Environmental Conditions.
           </h2>
-          <p className="text-[#888888] leading-relaxed text-base font-light">
-            Integrated environmental information provides the conditions required for maritime risk assessment and operational awareness.
+          <p className="text-[#888888] leading-relaxed text-sm sm:text-base font-light">
+            Integrated environmental parameters provide real-time situational awareness across the Indian Ocean domain.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* All 6 Translucent Cards in 2 Columns — strictly left-aligned so the rotating globe on the right remains completely unobstructed */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 max-w-xl lg:max-w-[48%] xl:max-w-[50%]">
           {[
             { 
+              code: "SST",
               title: "Sea Surface Temperature", 
-              desc: "Monitors thermal gradients, temperature fronts, and anomalous heat layers impacting navigation routes."
+              desc: "Monitors thermal gradients & heat layers impacting navigation routes."
             },
             { 
+              code: "CUR",
               title: "Surface Currents", 
-              desc: "Tracks surface flow vectors, velocities, and directional drift critical for vessel course and stability."
+              desc: "Tracks surface flow vectors & drift critical for vessel course."
             },
             { 
+              code: "SAL",
               title: "Salinity", 
-              desc: "Assesses sea surface salinity distribution influencing water mass density and acoustic propagation."
+              desc: "Assesses water mass density distribution & acoustic propagation."
             },
             { 
+              code: "WND",
               title: "Wind Conditions", 
-              desc: "Measures 10m surface winds, gusts, and directional vectors driving sea state and surface drift."
+              desc: "Measures 10m surface winds & directional gusts driving sea state."
             },
             { 
+              code: "SEA",
               title: "Sea State", 
-              desc: "Evaluates wave dynamics, swell direction, and sea surface roughness to identify hazardous navigation waters."
+              desc: "Evaluates wave dynamics & swell direction for hazardous waters."
             },
             { 
+              code: "OBS",
               title: "Environmental Observations", 
-              desc: "In-situ monitoring networks and satellite feeds integrated for continuous risk ground truthing."
+              desc: "In-situ monitoring networks & satellite feeds for ground truthing."
             }
           ].map((item, idx) => (
             <CardCurtainReveal
               key={idx}
-              className="relative p-6 sm:p-7 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/25 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden h-[195px] flex flex-col justify-start cursor-pointer group"
+              className="relative p-4 sm:p-5 rounded-2xl bg-[#0a0d14]/40 hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 hover:border-cyan-400/50 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,240,255,0.15)] overflow-hidden h-[115px] sm:h-[120px] flex flex-col justify-start cursor-pointer group"
             >
-              <CardCurtainRevealTitle centerOffset={52} className="text-lg font-bold text-white tracking-tight">
-                {item.title}
+              <CardCurtainRevealTitle centerOffset={24} className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center justify-between">
+                <span>{item.title}</span>
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-white/[0.06] border border-white/10 text-cyan-300/80 shrink-0 group-hover:border-cyan-400/40 group-hover:text-cyan-300 transition-colors ml-2">
+                  {item.code}
+                </span>
               </CardCurtainRevealTitle>
-              <CardCurtainRevealDescription className="text-[#888888] text-sm leading-relaxed mt-2.5">
+              <CardCurtainRevealDescription className="text-[#a0a0aa] text-xs leading-relaxed mt-2 line-clamp-2">
                 <p>{item.desc}</p>
               </CardCurtainRevealDescription>
-              <CardCurtain className="bg-white/[0.03] pointer-events-none" />
+              <CardCurtain className="bg-gradient-to-br from-cyan-500/[0.08] via-transparent to-transparent pointer-events-none" />
             </CardCurtainReveal>
           ))}
         </div>
