@@ -353,41 +353,41 @@ export default function LeherLandingPage() {
     });
 
     // Section-aware globe positioning:
-    // Sections 0 to 4 (Hero through Capabilities): globe sticks strictly in place at top: 50%, left: 70%, scale: 1.2
-    // Section 5 (Model vs Reality): glides smoothly to center (top: 52%, left: 50%, scale: 1.2) and merges with Model vs Reality
-    // Section 6 (Workbench): scales down to 0 as operational workbench takes over
-    const sec4 = sectionRefs.current[4];
-    const sec5 = sectionRefs.current[5];
-    const sec6 = sectionRefs.current[6];
+    // Sections 0 to 3 (Hero through Capabilities): globe sticks strictly in place at top: 50%, left: 70%, scale: 1.2
+    // Section 4 (Location Assessment): glides smoothly to center (top: 52%, left: 50%, scale: 1.2)
+    // Section 5 (Workbench): scales down to 0 as operational workbench takes over
+    const secCap = sectionRefs.current[3];
+    const secModel = sectionRefs.current[4];
+    const secWorkbench = sectionRefs.current[5];
 
     let currentLeft = 70;
     let currentTop = 50;
     let currentScale = 1.2;
 
-    if (sec4 && sec5) {
-      const top4 = sec4.offsetTop;
-      const top5 = sec5.offsetTop;
-      const top6 = sec6 ? sec6.offsetTop : (top5 + 850);
+    if (secCap && secModel) {
+      const topCap = secCap.offsetTop;
+      const topModel = secModel.offsetTop;
+      const topWorkbench = secWorkbench ? secWorkbench.offsetTop : (topModel + 850);
 
-      if (scrollTop <= top4) {
-        // Stick in this place only across hero, spatio-temporal, data, profiles, and capabilities
+      if (scrollTop <= topCap) {
+        // Stick in place across hero, maritime surveillance, environmental conditions, and capabilities
         currentLeft = 70;
         currentTop = 50;
         currentScale = 1.2;
-      } else if (scrollTop < top5) {
-        // Smoothly transition and glide into center as Model vs Reality enters
-        const t = Math.min(Math.max((scrollTop - top4) / (top5 - top4), 0), 1);
+      } else if (scrollTop < topModel) {
+        // Smoothly transition and glide into center as Location Assessment enters
+        const t = Math.min(Math.max((scrollTop - topCap) / (topModel - topCap), 0), 1);
         currentLeft = 70 + (50 - 70) * t;
         currentTop = 50 + (52 - 50) * t;
         currentScale = 1.2;
-      } else if (scrollTop < top6) {
-        // Merged in center at Model vs Reality, transitioning to Workbench
-        const t = Math.min(Math.max((scrollTop - top5) / (top6 - top5), 0), 1);
+      } else if (scrollTop < topWorkbench) {
+        // Merged in center at Location Assessment, transitioning to Workbench
+        const t = Math.min(Math.max((scrollTop - topModel) / (topWorkbench - topModel), 0), 1);
         currentLeft = 50;
         currentTop = 52;
         currentScale = 1.2 * (1 - t);
       } else {
-        // In Section 6: hidden
+        // In Section 5 (Workbench): hidden
         currentLeft = 50;
         currentTop = 52;
         currentScale = 0;
@@ -878,7 +878,7 @@ export default function LeherLandingPage() {
         style={{
           transform: globeTransform,
           transition: "transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
-          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : 0.95,
+          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 5) ? 0 : 0.95,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100 pointer-events-auto">
@@ -1115,96 +1115,11 @@ export default function LeherLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 3: LOCATION RISK ASSESSMENT
-         ======================================================== */}
-      <section
-        ref={(el) => { sectionRefs.current[3] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 space-y-6">
-            <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-              LOCATION RISK ASSESSMENT
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-              Select a Location to Assess Risk.
-            </h2>
-            <p className="text-[#888888] leading-relaxed text-base font-light">
-              Click any location on the Indian Ocean map to view current environmental conditions and maritime risk status.
-            </p>
-
-            <div className="space-y-2.5 text-sm">
-              <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Latitude</span>
-                <span className="font-mono text-xs text-[#888888]">15.4000° N</span>
-              </div>
-              <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Longitude</span>
-                <span className="font-mono text-xs text-[#888888]">71.2000° E</span>
-              </div>
-              <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">SST</span>
-                <span className="font-mono text-xs text-[#888888]">28.2 °C</span>
-              </div>
-              <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Current Speed</span>
-                <span className="font-mono text-xs text-[#888888]">0.42 m/s</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-[#0a0f18]/45 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-6">
-            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white">Location Assessment</h3>
-                <span className="text-xs font-mono text-cyan-300/80">Arabian Sea Station (15.4°N, 71.2°E)</span>
-              </div>
-              <div className="font-mono text-xs text-white bg-black/40 px-3 py-1 rounded-lg border border-white/15">
-                DEPTH: {selectedDepth} m
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-[#888888] font-mono">
-                <span>Surface (0 m)</span>
-                <span>Mid-Depth (1,000 m)</span>
-                <span>Deep (2,000 m)</span>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="2000" 
-                step="10" 
-                value={selectedDepth} 
-                onChange={(e) => setSelectedDepth(Number(e.target.value))} 
-                className="w-full h-1.5 bg-[#222222] rounded appearance-none cursor-pointer accent-white"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
-                <div className="text-xs text-[#888888] font-mono mb-1">SST</div>
-                <div className="text-2xl font-bold text-white font-mono">{modelValues.temp} °C</div>
-              </div>
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
-                <div className="text-xs text-[#888888] font-mono mb-1">CURRENT SPEED</div>
-                <div className="text-2xl font-bold text-white font-mono">0.42 m/s</div>
-              </div>
-              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
-                <div className="text-xs text-[#888888] font-mono mb-1">RISK STATUS</div>
-                <div className="text-2xl font-bold text-emerald-400 font-mono">SAFE</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 4: CAPABILITIES (BELOW DATA PART)
+          SECTION 3: CAPABILITIES (BELOW DATA PART)
          ======================================================== */}
       <section 
         id="section-capabilities"
-        ref={(el) => { sectionRefs.current[4] = el; }}
+        ref={(el) => { sectionRefs.current[3] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-16">
@@ -1271,11 +1186,11 @@ export default function LeherLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 5: MODEL VS REALITY (THEN MODEL AND REALITY)
+          SECTION 4: MODEL VS REALITY (THEN MODEL AND REALITY)
          ======================================================== */}
       <section
         id="section-model"
-        ref={(el) => { sectionRefs.current[5] = el; }}
+        ref={(el) => { sectionRefs.current[4] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-12">
@@ -1345,11 +1260,11 @@ export default function LeherLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 6: PLATFORM PREVIEW WITH CENTER 3D EARTH WORKBENCH
+          SECTION 5: PLATFORM PREVIEW WITH CENTER 3D EARTH WORKBENCH
          ======================================================== */}
       <section 
         id="section-preview"
-        ref={(el) => { sectionRefs.current[6] = el; }}
+        ref={(el) => { sectionRefs.current[5] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-12 z-20 py-20 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-8">
