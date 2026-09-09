@@ -9,6 +9,8 @@ import {
   Menu
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
+import { ShinyButton } from "@/components/ui/shiny-button";
+import { SpinningBorderButton } from "@/components/ui/spinning-border-button";
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
@@ -733,12 +735,12 @@ export default function LeherLandingPage() {
 
           {/* Action CTA & Hamburger Menu */}
           <div className="flex items-center gap-3">
-            <button 
+            <ShinyButton 
               onClick={() => setIsPlatformOpen(true)}
-              className="hidden sm:inline-flex px-6 py-2.5 rounded-xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all shadow-md cursor-pointer"
+              className="hidden sm:inline-flex py-2 px-5 text-xs font-semibold"
             >
               Open Operations
-            </button>
+            </ShinyButton>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2.5 rounded-xl bg-[#141414] hover:bg-[#222222] border border-[#262626] text-white flex items-center gap-2 cursor-pointer transition-all"
@@ -800,18 +802,18 @@ export default function LeherLandingPage() {
             </div>
 
             <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button 
+              <ShinyButton 
                 onClick={() => { setIsPlatformOpen(true); setIsMobileMenuOpen(false); }} 
-                className="w-full py-3.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-lg text-center"
+                className="w-full py-3 text-xs font-bold"
               >
                 Open Operations Console
-              </button>
-              <button 
-                onClick={() => { setIsEarthFullscreen(true); setIsMobileMenuOpen(false); }} 
-                className="w-full py-3.5 rounded-xl bg-[#181818] border border-[#2e2e2e] text-white font-medium text-xs hover:bg-[#252525] transition-all cursor-pointer text-center flex items-center justify-center"
+              </ShinyButton>
+              <SpinningBorderButton 
+                onClick={() => { setIsEarthFullscreen(true); setIsMobileMenuOpen(false); }}
+                className="w-full"
               >
-                <span>View Operations Map</span>
-              </button>
+                View Operations Map
+              </SpinningBorderButton>
             </div>
           </div>
 
@@ -906,18 +908,17 @@ export default function LeherLandingPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <button 
+            <ShinyButton 
               onClick={() => scrollToSection('section-story')}
-              className="px-7 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-sm transition-all shadow-lg cursor-pointer"
+              className="py-3 px-7 text-sm font-semibold shadow-lg"
             >
               Open Operations
-            </button>
-            <button 
+            </ShinyButton>
+            <SpinningBorderButton 
               onClick={() => scrollToSection('section-preview')}
-              className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer flex items-center"
             >
-              <span>View Operations Map</span>
-            </button>
+              View Operations Map
+            </SpinningBorderButton>
           </div>
         </div>
       </section>
@@ -1419,12 +1420,12 @@ export default function LeherLandingPage() {
             Real-time environmental monitoring, hazard intelligence, and safer navigation planning across the Indian Ocean.
           </p>
           <div className="pt-2 flex justify-center">
-            <button 
+            <ShinyButton 
               onClick={() => setIsPlatformOpen(true)}
-              className="px-8 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-bold text-sm transition-all cursor-pointer shadow-lg"
+              className="py-3.5 px-8 text-sm font-semibold shadow-xl"
             >
               Open Operations Console
-            </button>
+            </ShinyButton>
           </div>
         </div>
       </section>
