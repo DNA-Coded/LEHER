@@ -173,7 +173,10 @@ export default function LeherLandingPage() {
     { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
     { label: "Equator / IO", lat: 0.0, lon: 80.5 },
     { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
-    { label: "South IO Basin", lat: -25.0, lon: 75.0 },
+    { label: "South IO", lat: -25.0, lon: 75.0 },
+    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
+    { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
+    { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
   ];
 
   // Listen for coordinates from Earth iframe inspection
@@ -485,49 +488,54 @@ export default function LeherLandingPage() {
           <span>Geographic Coordinates</span>
           <span className="text-cyan-400 font-semibold text-[9px]">{inspectedCoords.status}</span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl p-2.5 space-y-1 focus-within:border-cyan-400/80 transition-colors shadow-inner">
-            <label className="text-[10px] text-[#777777] block">LATITUDE (φ)</label>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                step="0.01"
-                min="-90"
-                max="90"
-                value={inputLat}
-                onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-                className="w-full bg-transparent text-white font-bold text-xs focus:outline-none"
-                placeholder="15.4"
-              />
-              <span className="text-[10px] text-cyan-400 font-bold">
-                {inputLat >= 0 ? "°N" : "°S"}
-              </span>
-            </div>
-            <div className="text-[9px] text-[#666666]">{Math.abs(inputLat).toFixed(2)}° Decimal</div>
+        {/* Latitude: Full 1 Line */}
+        <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl px-3 py-2 flex items-center justify-between gap-2 focus-within:border-cyan-400/80 transition-colors shadow-inner">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] text-[#777777] font-semibold uppercase tracking-wider">LATITUDE (φ)</span>
+            <span className="text-[9px] text-[#555555] font-mono">{Math.abs(inputLat).toFixed(2)}° Dec</span>
           </div>
-          <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl p-2.5 space-y-1 focus-within:border-cyan-400/80 transition-colors shadow-inner">
-            <label className="text-[10px] text-[#777777] block">LONGITUDE (λ)</label>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                step="0.01"
-                min="-180"
-                max="180"
-                value={inputLon}
-                onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-                className="w-full bg-transparent text-white font-bold text-xs focus:outline-none"
-                placeholder="71.2"
-              />
-              <span className="text-[10px] text-cyan-400 font-bold">
-                {inputLon >= 0 ? "°E" : "°W"}
-              </span>
-            </div>
-            <div className="text-[9px] text-[#666666]">{Math.abs(inputLon).toFixed(2)}° Decimal</div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <input
+              type="number"
+              step="0.01"
+              min="-90"
+              max="90"
+              value={inputLat}
+              onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
+              className="w-24 bg-[#181818] border border-[#333333] rounded-lg px-2.5 py-1 text-white font-bold text-xs text-right focus:outline-none focus:border-cyan-400 font-mono"
+              placeholder="15.4"
+            />
+            <span className="text-[10px] text-cyan-400 font-bold w-6 text-center">
+              {inputLat >= 0 ? "°N" : "°S"}
+            </span>
           </div>
         </div>
 
-        {/* Location Quick Preset Chips */}
-        <div className="flex flex-wrap gap-1 pt-0.5">
+        {/* Longitude: Full 1 Line */}
+        <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl px-3 py-2 flex items-center justify-between gap-2 focus-within:border-cyan-400/80 transition-colors shadow-inner">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] text-[#777777] font-semibold uppercase tracking-wider">LONGITUDE (λ)</span>
+            <span className="text-[9px] text-[#555555] font-mono">{Math.abs(inputLon).toFixed(2)}° Dec</span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <input
+              type="number"
+              step="0.01"
+              min="-180"
+              max="180"
+              value={inputLon}
+              onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
+              className="w-24 bg-[#181818] border border-[#333333] rounded-lg px-2.5 py-1 text-white font-bold text-xs text-right focus:outline-none focus:border-cyan-400 font-mono"
+              placeholder="71.2"
+            />
+            <span className="text-[10px] text-cyan-400 font-bold w-6 text-center">
+              {inputLon >= 0 ? "°E" : "°W"}
+            </span>
+          </div>
+        </div>
+
+        {/* Location Quick Preset Chips - Exactly 2 Balanced Lines (4 per line) */}
+        <div className="grid grid-cols-4 gap-1 pt-0.5">
           {LOCATION_PRESETS.map((loc) => {
             const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
             return (
@@ -538,8 +546,9 @@ export default function LeherLandingPage() {
                   setInputLat(loc.lat);
                   setInputLon(loc.lon);
                 }}
+                title={`${loc.label} (${loc.lat}°, ${loc.lon}°)`}
                 className={cn(
-                  "px-2 py-1 rounded-md text-[9px] border transition-all cursor-pointer",
+                  "px-1 py-1 rounded-md text-[9px] border transition-all cursor-pointer text-center truncate",
                   isSelected
                     ? "bg-cyan-950/70 border-cyan-400 text-cyan-300 font-bold shadow-[0_0_10px_rgba(56,189,248,0.2)]"
                     : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
