@@ -67,7 +67,7 @@
     ], function (Map, SceneView, TileLayer, GeoJSONLayer, Basemap, ExaggeratedElevationLayer, Graphic, Point, Mesh, watchUtils) {
 
       const R = 6358137; // approximate radius of the Earth in m
-      const offset = 300000; // offset from the ground used for the clouds
+      const offset = 0; // offset from the ground used for the clouds (set to 0 so clouds do not stick out in space)
 
       const basemap = new Basemap({
         baseLayers: [
