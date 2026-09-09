@@ -115,8 +115,12 @@ export function FlowFieldBackground({
       color: string;
       size: number;
 
-      constructor() {
-        this.x = Math.random() * width;
+      constructor(spawnRight?: boolean) {
+        if (spawnRight) {
+          this.x = width * 0.45 + Math.random() * width * 0.55;
+        } else {
+          this.x = Math.random() * width;
+        }
         this.y = Math.random() * height;
         this.vx = 0;
         this.vy = 0;
@@ -166,7 +170,11 @@ export function FlowFieldBackground({
       }
 
       reset() {
-        this.x = Math.random() * width;
+        if (Math.random() < 0.5) {
+          this.x = width * 0.45 + Math.random() * width * 0.55;
+        } else {
+          this.x = Math.random() * width;
+        }
         this.y = Math.random() * height;
         this.vx = 0;
         this.vy = 0;
@@ -203,9 +211,9 @@ export function FlowFieldBackground({
       ctx.fillRect(0, 0, width, height);
 
       particles = [];
-      const count = Math.min(particleCount, Math.floor((width * height) / 1800));
+      const count = Math.min(particleCount, Math.floor((width * height) / 1200));
       for (let i = 0; i < count; i++) {
-        particles.push(new Particle());
+        particles.push(new Particle(i % 2 === 0));
       }
     };
 

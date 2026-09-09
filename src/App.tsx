@@ -8,12 +8,12 @@ function App() {
       {/* High-tech maritime navigational grid, sonar arcs & contour pattern on the left */}
       <MaritimePattern opacity={0.65} />
 
-      {/* Dynamic light/dark blue flow field masked to the left, clear behind the globe */}
+      {/* Dynamic light/dark blue flow field across full screen including right side */}
       <FlowFieldBackground 
         className="fixed inset-0 w-full h-full pointer-events-none z-0"
-        mask="left"
-        opacity={0.55}
-        particleCount={650}
+        mask="none"
+        opacity={0.6}
+        particleCount={1100}
         speed={0.4}
       />
 
