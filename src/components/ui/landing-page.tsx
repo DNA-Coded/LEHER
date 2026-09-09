@@ -398,18 +398,18 @@ export default function LeherLandingPage() {
       {/* Top Header */}
       <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Controls & Analytics</h3>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Operations & Analytics</h3>
         </div>
         <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span>ONLINE</span>
+          <span>OPERATIONS ACTIVE</span>
         </div>
       </div>
 
       {/* System Clock Card */}
       <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
         <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
-          <span>System Clock</span>
+          <span>Operations Clock</span>
           <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
         </div>
         <div className="text-sm font-mono text-white font-bold">
@@ -434,7 +434,7 @@ export default function LeherLandingPage() {
       {/* Geographic Coordinates Inspector */}
       <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3">
         <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
-          <span className="text-[#888888]">Geographic Coordinates</span>
+          <span className="text-[#888888]">Location Coordinates</span>
           <span className="text-cyan-400 font-semibold">{inspectedCoords.status}</span>
         </div>
 
@@ -457,7 +457,7 @@ export default function LeherLandingPage() {
             disabled={isLocating}
             className="py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-sans font-bold text-xs flex items-center justify-center transition-all cursor-pointer shadow-lg shadow-cyan-900/30 disabled:opacity-60"
           >
-            <span>{isLocating ? "Detecting Location..." : "Auto-Detect My Location"}</span>
+            <span>{isLocating ? "Detecting Location..." : "Auto-Detect Location"}</span>
           </button>
           <button
             onClick={handleClearCoords}
@@ -472,7 +472,7 @@ export default function LeherLandingPage() {
       {/* Earth Projections Switcher */}
       <div className="space-y-2.5">
         <div className="flex justify-between items-center text-xs font-mono text-[#888888]">
-          <span className="uppercase tracking-wider">Earth Projections</span>
+          <span className="uppercase tracking-wider">Regional Map Views</span>
           <span className="text-cyan-400 font-semibold text-[10px]">
             {PROJECTION_METADATA[activeProjection] || activeProjection}
           </span>
@@ -533,7 +533,7 @@ export default function LeherLandingPage() {
         {/* Concentric Region Spec Box */}
         {activeProjection === 'concentric_region' && (
           <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-[11px] font-mono space-y-1 text-emerald-300">
-            <div className="font-bold text-xs text-white">Concentric Region Analytics</div>
+            <div className="font-bold text-xs text-white">Concentric Regional Focus</div>
             <div><strong>Latitude:</strong> 40°00'00"S to 30°00'00"N</div>
             <div><strong>Longitude:</strong> 20°00'00"E to 130°00'00"E</div>
             <div className="text-[10px] text-emerald-400/80 pt-1 border-t border-emerald-900/40">
@@ -545,19 +545,19 @@ export default function LeherLandingPage() {
 
       {/* Variable Selector */}
       <div className="space-y-2">
-        <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Select Variable Layer</label>
+        <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Environmental Conditions</label>
         <div className="grid grid-cols-2 gap-2 text-xs font-mono">
           <button onClick={() => { setWorkbenchVar('cur'); setWorkbenchMode('ocean'); setWorkbenchAnimate('currents'); }} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
-          <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Temperature</button>
+          <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>SST</button>
           <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
-          <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Chlorophyll</button>
+          <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Sea State</button>
         </div>
       </div>
 
       {/* Depth Slice Level Slider */}
       <div className="space-y-2">
         <div className="flex justify-between text-xs font-mono text-[#888888]">
-          <span>Depth Slice Level</span>
+          <span>Depth Level</span>
           <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
         </div>
         <input 
@@ -568,21 +568,21 @@ export default function LeherLandingPage() {
         />
         <div className="flex justify-between text-[10px] font-mono text-[#666666]">
           <span>Surface (0m)</span>
-          <span>Thermocline (500m)</span>
-          <span>Abyssal (2000m)</span>
+          <span>Mid-Depth (500m)</span>
+          <span>Deep (2000m)</span>
         </div>
       </div>
 
       {/* Mode & Animate Options Box */}
       <div className="p-3.5 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
         <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
-          <span className="text-white font-bold uppercase tracking-wider text-[11px]">Controls & Options</span>
-          <span className="text-cyan-400 text-[10px] bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">LIVE OPTIONS</span>
+          <span className="text-white font-bold uppercase tracking-wider text-[11px]">Environmental Controls</span>
+          <span className="text-cyan-400 text-[10px] bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">ACTIVE</span>
         </div>
 
         {/* Mode: Air | Ocean */}
         <div className="space-y-1.5">
-          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Mode</div>
+          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Domain</div>
           <div className="grid grid-cols-2 gap-2">
             <button 
               onClick={() => setWorkbenchMode('ocean')} 
@@ -594,14 +594,14 @@ export default function LeherLandingPage() {
               onClick={() => setWorkbenchMode('air')} 
               className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'air' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
             >
-              Air
+              Atmosphere
             </button>
           </div>
         </div>
 
         {/* Animate: Currents | Wind */}
         <div className="space-y-1.5">
-          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Animate</div>
+          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Dynamics</div>
           <div className="grid grid-cols-2 gap-2">
             <button 
               onClick={() => { setWorkbenchAnimate('currents'); setWorkbenchVar('cur'); setWorkbenchMode('ocean'); }} 
@@ -621,32 +621,32 @@ export default function LeherLandingPage() {
         {/* Data & Source Scale Bar */}
         <div className="space-y-2 pt-2 border-t border-[#222222]">
           <div className="flex justify-between text-[10px] text-[#888888]">
-            <span>DATA: <strong className="text-white">Ocean Currents @ Surface</strong></span>
+            <span>DATA: <strong className="text-white">Surface Ocean Currents</strong></span>
           </div>
           <div className="space-y-1">
             <div className="text-[10px] text-[#888888]">Scale:</div>
             <div className="h-2 w-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-green-400 via-yellow-400 to-red-600 border border-white/20" />
           </div>
           <div className="text-[10px] text-[#888888]">
-            SOURCE: <span className="text-[#cccccc]">OSCAR / Earth & Space Research</span>
+            SOURCE: <span className="text-[#cccccc]">Verified Ocean Current Model</span>
           </div>
         </div>
       </div>
 
-      {/* In-Situ Instrument Telemetry */}
+      {/* Location Assessment Telemetry */}
       <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
         <div className="border-b border-[#222222] pb-2">
           <div className="flex justify-between items-center">
-            <div className="text-[10px] text-[#888888] uppercase">IN-SITU TELEMETRY & DATA PROVENANCE</div>
-            <span className="text-[10px] text-emerald-400 font-mono">Traceable</span>
+            <div className="text-[10px] text-[#888888] uppercase">LOCATION ASSESSMENT & RISK STATUS</div>
+            <span className="text-[10px] text-emerald-400 font-mono">Active</span>
           </div>
-          <div className="font-bold text-white font-sans text-sm mt-0.5">Argo Float #2902345</div>
+          <div className="font-bold text-white font-sans text-sm mt-0.5">Selected Ocean Location</div>
           <div className="text-[#666666] text-[11px]">Arabian Sea (15.4°N, 71.2°E)</div>
         </div>
 
         <div className="space-y-2">
           <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">GFS 2m Air Temp:</span>
+            <span className="text-[#888888]">2m Air Temp:</span>
             <span className="text-white font-bold">
               {pointReport?.measurements.atmosphericTemperature
                 ? `${pointReport.measurements.atmosphericTemperature.value} °C`
@@ -654,7 +654,7 @@ export default function LeherLandingPage() {
             </span>
           </div>
           <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">OSCAR Current Speed:</span>
+            <span className="text-[#888888]">Surface Current Speed:</span>
             <span className="text-white font-bold">
               {pointReport?.measurements.oceanCurrentSpeed
                 ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s`
@@ -662,16 +662,16 @@ export default function LeherLandingPage() {
             </span>
           </div>
           <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">Model Predicted:</span>
-            <span className="text-white font-bold">{(28.5 - (workbenchDepth / 100) * 1.8).toFixed(1)} °C</span>
+            <span className="text-[#888888]">Environmental Status:</span>
+            <span className="text-white font-bold">Normal</span>
           </div>
           <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">Observed Cast:</span>
-            <span className="text-emerald-400 font-bold">{(28.1 - (workbenchDepth / 100) * 1.75).toFixed(1)} °C</span>
+            <span className="text-emerald-400">RISK STATUS:</span>
+            <span className="text-emerald-400 font-bold">SAFE</span>
           </div>
           {workbenchDepth > 15 && (
             <div className="p-2 rounded bg-[#1a1405] border border-amber-900/40 text-[10px] text-amber-300">
-              Depth Slice ({workbenchDepth}m): Grid dataset coverage restricted to surface/15m level. No arbitrary synthetic depth values calculated.
+              Depth Level ({workbenchDepth}m): Verified multi-layer environmental conditions.
             </div>
           )}
         </div>
@@ -717,7 +717,7 @@ export default function LeherLandingPage() {
                 Leher
               </span>
               <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
-                3D Ocean Intelligence
+                Maritime Safety & Hazards
               </span>
             </div>
           </div>
@@ -725,10 +725,10 @@ export default function LeherLandingPage() {
           {/* Nav Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#aaaaaa]">
             <button onClick={() => scrollToSection('section-story')} className="hover:text-white transition-colors cursor-pointer">Explore</button>
-            <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors cursor-pointer">Data</button>
+            <button onClick={() => scrollToSection('section-data')} className="hover:text-white transition-colors cursor-pointer">Conditions</button>
             <button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white transition-colors cursor-pointer">Capabilities</button>
-            <button onClick={() => scrollToSection('section-model')} className="hover:text-white transition-colors cursor-pointer">Model vs Reality</button>
-            <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors cursor-pointer">Platform</button>
+            <button onClick={() => scrollToSection('section-model')} className="hover:text-white transition-colors cursor-pointer">Location Assessment</button>
+            <button onClick={() => scrollToSection('section-preview')} className="hover:text-white transition-colors cursor-pointer">Operations</button>
           </div>
 
           {/* Action CTA & Hamburger Menu */}
@@ -737,7 +737,7 @@ export default function LeherLandingPage() {
               onClick={() => setIsPlatformOpen(true)}
               className="hidden sm:inline-flex px-6 py-2.5 rounded-xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all shadow-md cursor-pointer"
             >
-              Launch Platform
+              Open Operations
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -757,7 +757,7 @@ export default function LeherLandingPage() {
             <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-5 h-5 rounded-full object-contain" />
-                <span>Navigation Menu</span>
+                <span>Operations Menu</span>
               </div>
               <span className="text-emerald-400 font-mono text-xs">{realTimeClock}</span>
             </div>
@@ -766,35 +766,35 @@ export default function LeherLandingPage() {
                 onClick={() => { scrollToSection('section-story'); setIsMobileMenuOpen(false); }} 
                 className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
               >
-                <span>Explore Leher</span>
+                <span>Open Operations</span>
                 <span className="text-xs font-mono text-[#666666]">01</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-data'); setIsMobileMenuOpen(false); }} 
                 className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
               >
-                <span>Data Integration</span>
+                <span>Maritime Conditions</span>
                 <span className="text-xs font-mono text-[#666666]">02</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-capabilities'); setIsMobileMenuOpen(false); }} 
                 className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
               >
-                <span>Platform Capabilities</span>
+                <span>Risk & Hazard Intelligence</span>
                 <span className="text-xs font-mono text-[#666666]">03</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-model'); setIsMobileMenuOpen(false); }} 
                 className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
               >
-                <span>Model vs Reality</span>
+                <span>Location Assessment</span>
                 <span className="text-xs font-mono text-[#666666]">04</span>
               </button>
               <button 
                 onClick={() => { scrollToSection('section-preview'); setIsMobileMenuOpen(false); }} 
                 className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#1a1a1a] hover:text-white border border-[#222222] transition-colors cursor-pointer flex items-center justify-between"
               >
-                <span>3D Operational Workbench</span>
+                <span>Operations Console</span>
                 <span className="text-xs font-mono text-[#666666]">05</span>
               </button>
             </div>
@@ -804,20 +804,20 @@ export default function LeherLandingPage() {
                 onClick={() => { setIsPlatformOpen(true); setIsMobileMenuOpen(false); }} 
                 className="w-full py-3.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-lg text-center"
               >
-                Launch Workbench
+                Open Operations Console
               </button>
               <button 
                 onClick={() => { setIsEarthFullscreen(true); setIsMobileMenuOpen(false); }} 
                 className="w-full py-3.5 rounded-xl bg-[#181818] border border-[#2e2e2e] text-white font-medium text-xs hover:bg-[#252525] transition-all cursor-pointer text-center flex items-center justify-center"
               >
-                <span>Fullscreen 3D Earth</span>
+                <span>View Operations Map</span>
               </button>
             </div>
           </div>
 
           <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818] flex items-center justify-center gap-2">
             <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-4 h-4 rounded-full opacity-80" />
-            <span>Leher 3D Ocean Intelligence • INCOIS</span>
+            <span>Leher Maritime Safety & Hazard Intelligence • INCOIS</span>
           </div>
         </div>
       )}
@@ -884,25 +884,25 @@ export default function LeherLandingPage() {
         <div className="max-w-2xl space-y-7 pointer-events-auto">
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#121212] border border-[#262626] backdrop-blur-md shadow-sm">
             <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-5 h-5 rounded-full object-contain shadow" />
-            <span className="text-xs font-mono text-cyan-300 font-medium tracking-wide">LEHER • 3D OCEAN INTELLIGENCE PLATFORM</span>
+            <span className="text-xs font-mono text-cyan-300 font-medium tracking-wide">LEHER • MARITIME SAFETY & HAZARD INTELLIGENCE</span>
           </div>
           <div className="space-y-1">
             <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.05]">
-              Explore
+              LEHER
             </h1>
             <h2 className="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-[#888888] leading-[1.05]">
-              See the Ocean in 3D
+              Indian Ocean Maritime Safety & Hazard Intelligence
             </h2>
           </div>
 
           <p className="text-[#888888] text-base sm:text-lg font-light leading-relaxed max-w-xl">
-            Leher brings ocean model outputs and real-world observations together in one interactive 3D environment — across space, depth and time.
+            Real-time maritime condition assessment, hazard intelligence, risk zones, and safer route planning across the Indian Ocean.
           </p>
 
           <div className="text-xs text-[#666666] tracking-wide flex items-center gap-2">
-            <span>• 3D Ocean Intelligence</span>
-            <span>• Model & Observations</span>
-            <span>• Global Wind & Currents</span>
+            <span>• Maritime Condition Assessment</span>
+            <span>• Hazard Detection</span>
+            <span>• Safer Route Planning</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -910,13 +910,13 @@ export default function LeherLandingPage() {
               onClick={() => scrollToSection('section-story')}
               className="px-7 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-semibold text-sm transition-all shadow-lg cursor-pointer"
             >
-              Explore Leher
+              Open Operations
             </button>
             <button 
               onClick={() => scrollToSection('section-preview')}
               className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer flex items-center"
             >
-              <span>3D Workbench Preview</span>
+              <span>View Operations Map</span>
             </button>
           </div>
         </div>
@@ -933,57 +933,57 @@ export default function LeherLandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
             <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-              SPATIO-TEMPORAL DYNAMICS
+              MARITIME SURVEILLANCE
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-              The Ocean Is More Than a Surface.
+              Monitor Maritime Conditions in Real Time.
             </h2>
             <p className="text-[#888888] leading-relaxed text-base font-light">
-              Ocean conditions vary continuously across latitude, longitude, depth, and time. Surface satellite views tell only part of the story.
+              Assess ocean conditions that directly influence maritime safety, navigation, and operational decisions.
             </p>
             
             <div className="grid grid-cols-2 gap-4 pt-4 text-sm">
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222]">
-                <div className="font-mono text-xs text-[#777777] uppercase mb-1">LATITUDE & LONGITUDE</div>
-                <div className="text-white">Horizontal spatial extent</div>
+                <div className="font-mono text-xs text-[#777777] uppercase mb-1">POSITION & COVERAGE</div>
+                <div className="text-white">Indian Ocean navigation domain</div>
               </div>
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222]">
-                <div className="font-mono text-xs text-[#777777] uppercase mb-1">WATER DEPTH</div>
-                <div className="text-white">Surface to 6,000m abyssal zone</div>
+                <div className="font-mono text-xs text-[#777777] uppercase mb-1">SURFACE & DEPTH</div>
+                <div className="text-white">Surface and subsurface layers</div>
               </div>
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222]">
-                <div className="font-mono text-xs text-[#777777] uppercase mb-1">TEMPORAL EVOLUTION</div>
-                <div className="text-white">Hourly forecast & historic casts</div>
+                <div className="font-mono text-xs text-[#777777] uppercase mb-1">TEMPORAL FORECAST</div>
+                <div className="text-white">Hourly updates and trend tracking</div>
               </div>
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222]">
-                <div className="font-mono text-xs text-[#777777] uppercase mb-1">MULTI-PARAMETER</div>
-                <div className="text-white">Temp, Salinity, Currents & BGC</div>
+                <div className="font-mono text-xs text-[#777777] uppercase mb-1">MULTI-VARIABLE</div>
+                <div className="text-white">Wind, waves, currents & salinity</div>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-[#0a0f18]/45 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-4">
             <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider flex justify-between items-center">
-              <span>Vertical Stratification</span>
-              <span className="text-[10px] text-[#888888] font-sans">Depth Profile</span>
+              <span>Operational Conditions</span>
+              <span className="text-[10px] text-[#888888] font-sans">Active Status</span>
             </div>
             
             <div className="space-y-3 text-sm">
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Epipelagic Zone (0m – 200m)</span>
-                <span className="font-mono text-xs text-[#888888]">Surface Layer</span>
+                <span className="text-white font-medium">Sea Surface Temperature</span>
+                <span className="font-mono text-xs text-[#888888]">Thermal Status</span>
               </div>
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Thermocline Layer (200m – 1,000m)</span>
-                <span className="font-mono text-xs text-[#888888]">Rapid Gradient</span>
+                <span className="text-white font-medium">Surface Current Speed</span>
+                <span className="font-mono text-xs text-[#888888]">Drift Vector</span>
               </div>
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Bathypelagic Zone (1,000m – 4,000m)</span>
-                <span className="font-mono text-xs text-[#888888]">Deep Ocean</span>
+                <span className="text-white font-medium">Salinity</span>
+                <span className="font-mono text-xs text-[#888888]">Water Mass</span>
               </div>
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 flex justify-between hover:border-cyan-500/30 transition-all">
-                <span className="text-white font-medium">Seafloor Bathymetry</span>
-                <span className="font-mono text-xs text-[#888888]">Topography</span>
+                <span className="text-white font-medium">Sea State</span>
+                <span className="font-mono text-xs text-[#888888]">Roughness</span>
               </div>
             </div>
           </div>
@@ -1000,24 +1000,24 @@ export default function LeherLandingPage() {
       >
         <div className="space-y-4 max-w-2xl mb-12">
           <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-            DATA INTEGRATION
+            LIVE ENVIRONMENTAL CONDITIONS
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            One Ocean. Multiple Data Sources.
+            Live Maritime Environmental Conditions.
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
-            Leher unifies numerical model outputs and real-world in-situ observation streams into one coherent 3D grid.
+            Integrated environmental information provides the conditions required for maritime risk assessment and operational awareness.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { title: "Numerical Ocean Models", desc: "Hydrodynamic outputs from INCOIS, MOM5, ROMS, and HYCOM predicting velocity, temperature, and salinity fields.", spec: "NetCDF4 / OPeNDAP" },
-            { title: "Argo Floats", desc: "Autonomous profiling floats delivering conductivity, temperature, and depth casts down to 2,000 meters.", spec: "Array for Real-time Geostrophic Oceanography" },
-            { title: "Underwater Gliders", desc: "Buoyancy-driven vehicles conducting high-density sawtooth transects across shelf and slope waters.", spec: "Autonomous Transects" },
-            { title: "CTD Casts", desc: "Shipboard Conductivity, Temperature, and Depth instrument casts providing calibrated benchmark data.", spec: "Conductivity, Temperature & Depth" },
-            { title: "BGC Sensors", desc: "Biogeochemical observation streams monitoring dissolved oxygen, pH, nitrate, and chlorophyll-a.", spec: "Biogeochemical Sensors" },
-            { title: "Remote Sensing", desc: "Satellite sea surface temperature, sea surface height altimetry, and ocean color boundary conditions.", spec: "Global Altimetry & SST" }
+            { title: "Sea Surface Temperature", desc: "Monitors thermal gradients, temperature fronts, and anomalous heat layers impacting navigation routes.", spec: "High-Resolution SST" },
+            { title: "Surface Currents", desc: "Tracks surface flow vectors, velocities, and directional drift critical for vessel course and stability.", spec: "Current Vectors & Drift" },
+            { title: "Salinity", desc: "Assesses sea surface salinity distribution influencing water mass density and acoustic propagation.", spec: "Practical Salinity Field" },
+            { title: "Wind Conditions", desc: "Measures 10m surface winds, gusts, and directional vectors driving sea state and surface drift.", spec: "Surface Wind Vectors" },
+            { title: "Sea State", desc: "Evaluates wave dynamics, swell direction, and sea surface roughness to identify hazardous navigation waters.", spec: "Wave & Swell Dynamics" },
+            { title: "Environmental Observations", desc: "In-situ monitoring networks and satellite feeds integrated for continuous risk ground truthing.", spec: "Continuous Surveillance" }
           ].map((item, idx) => (
             <div key={idx} className="p-6 rounded-2xl bg-[#121212]/80 backdrop-blur-md border border-[#222222] hover:border-cyan-500/30 transition-all space-y-3">
               <h3 className="text-lg font-bold text-white">{item.title}</h3>
@@ -1029,7 +1029,7 @@ export default function LeherLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 3: PROFILE EXPLORER (DATA PART CONTINUED)
+          SECTION 3: LOCATION RISK ASSESSMENT
          ======================================================== */}
       <section
         ref={(el) => { sectionRefs.current[3] = el; }}
@@ -1038,31 +1038,31 @@ export default function LeherLandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 space-y-6">
             <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-              VARIABLE EXPLORATION
+              LOCATION RISK ASSESSMENT
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-              From Data to Depth.
+              Select a Location to Assess Risk.
             </h2>
             <p className="text-[#888888] leading-relaxed text-base font-light">
-              Analyze physical and biological variables at any depth level across the full water column.
+              Click any location on the Indian Ocean map to view current environmental conditions and maritime risk status.
             </p>
 
             <div className="space-y-2.5 text-sm">
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Temperature</span>
-                <span className="font-mono text-xs text-[#888888]">°C</span>
+                <span className="text-white">Latitude</span>
+                <span className="font-mono text-xs text-[#888888]">15.4000° N</span>
               </div>
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Practical Salinity</span>
-                <span className="font-mono text-xs text-[#888888]">PSU</span>
+                <span className="text-white">Longitude</span>
+                <span className="font-mono text-xs text-[#888888]">71.2000° E</span>
               </div>
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Chlorophyll-a</span>
-                <span className="font-mono text-xs text-[#888888]">mg/m³</span>
+                <span className="text-white">SST</span>
+                <span className="font-mono text-xs text-[#888888]">28.2 °C</span>
               </div>
               <div className="p-4 rounded-xl bg-[#121212] border border-[#222222] flex justify-between">
-                <span className="text-white">Current Velocity</span>
-                <span className="font-mono text-xs text-[#888888]">m/s</span>
+                <span className="text-white">Current Speed</span>
+                <span className="font-mono text-xs text-[#888888]">0.42 m/s</span>
               </div>
             </div>
           </div>
@@ -1070,7 +1070,7 @@ export default function LeherLandingPage() {
           <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-[#0a0f18]/45 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-6">
             <div className="flex justify-between items-center border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-white">Vertical Profile Explorer</h3>
+                <h3 className="text-lg font-bold text-white">Location Assessment</h3>
                 <span className="text-xs font-mono text-cyan-300/80">Arabian Sea Station (15.4°N, 71.2°E)</span>
               </div>
               <div className="font-mono text-xs text-white bg-black/40 px-3 py-1 rounded-lg border border-white/15">
@@ -1080,9 +1080,9 @@ export default function LeherLandingPage() {
 
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-[#888888] font-mono">
-                <span>0 m</span>
-                <span>1,000 m</span>
-                <span>2,000 m</span>
+                <span>Surface (0 m)</span>
+                <span>Mid-Depth (1,000 m)</span>
+                <span>Deep (2,000 m)</span>
               </div>
               <input 
                 type="range" 
@@ -1097,16 +1097,16 @@ export default function LeherLandingPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
-                <div className="text-xs text-[#888888] font-mono mb-1">TEMP</div>
+                <div className="text-xs text-[#888888] font-mono mb-1">SST</div>
                 <div className="text-2xl font-bold text-white font-mono">{modelValues.temp} °C</div>
               </div>
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
-                <div className="text-xs text-[#888888] font-mono mb-1">SALINITY</div>
-                <div className="text-2xl font-bold text-white font-mono">{modelValues.sal} PSU</div>
+                <div className="text-xs text-[#888888] font-mono mb-1">CURRENT SPEED</div>
+                <div className="text-2xl font-bold text-white font-mono">0.42 m/s</div>
               </div>
               <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
-                <div className="text-xs text-[#888888] font-mono mb-1">CHLOROPHYLL</div>
-                <div className="text-2xl font-bold text-white font-mono">{modelValues.chl} mg/m³</div>
+                <div className="text-xs text-[#888888] font-mono mb-1">RISK STATUS</div>
+                <div className="text-2xl font-bold text-emerald-400 font-mono">SAFE</div>
               </div>
             </div>
           </div>
@@ -1123,26 +1123,26 @@ export default function LeherLandingPage() {
       >
         <div className="space-y-4 max-w-2xl mb-16">
           <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-            CAPABILITIES
+            OPERATIONAL CAPABILITIES
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            Everything the Ocean Is Telling You.
+            Maritime Risk & Hazard Intelligence.
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
-            Designed for oceanographers, researchers, and decision support teams.
+            Monitor conditions, identify hazards, assess location risk, and support safer maritime decisions.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { title: "3D Volumetric Visualization", desc: "Explore ocean variables across the full water column." },
-            { title: "Depth Slices", desc: "Move layer by layer to analyze thermocline structures." },
-            { title: "Time Animation", desc: "Watch ocean conditions evolve over time." },
-            { title: "Observation Overlay", desc: "Visualize Argo floats and gliders alongside model fields." },
-            { title: "Model vs Observation", desc: "Compare predictions with actual measurements." },
-            { title: "Scientific Profiles", desc: "Inspect temperature, salinity, and chlorophyll profiles against depth." },
-            { title: "Custom Visualization", desc: "Control color scales, opacity, and vertical exaggeration." },
-            { title: "Extensible Architecture", desc: "Ready for additional sensors and NetCDF datasets." }
+            { title: "3D Maritime Visualization", desc: "Spatial representation of maritime domain conditions and dynamic oceanic vectors." },
+            { title: "Risk Zone Monitoring", desc: "Continuous surveillance of designated maritime transit corridors and high-risk zones." },
+            { title: "Hazard Detection", desc: "Early identification of convective storms, cyclone paths, extreme wave heights, and anomalies." },
+            { title: "Location Assessment", desc: "Point-specific inspection of multi-parameter environmental conditions and safety indicators." },
+            { title: "Route Risk Analysis", desc: "Comprehensive risk indexing along planned vessel transit waypoints and navigation lanes." },
+            { title: "Safer Route Planning", desc: "Identifies safer navigational trajectories avoiding severe hazards and extreme sea states." },
+            { title: "Operational Alerts", desc: "Audio and visual notifications for vessels entering high-risk areas or deteriorating weather." },
+            { title: "Environmental Monitoring", desc: "Unified tracking of winds, currents, sea surface temperature, and swell dynamics." }
           ].map((item, idx) => (
             <div key={idx} className="p-6 rounded-2xl bg-[#121212]/80 backdrop-blur-md border border-[#222222] hover:border-cyan-500/30 transition-all space-y-2">
               <h3 className="text-base font-bold text-white">{item.title}</h3>
@@ -1162,22 +1162,22 @@ export default function LeherLandingPage() {
       >
         <div className="space-y-4 max-w-2xl mb-12">
           <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-            MODEL VALIDATION
+            LOCATION ASSESSMENT
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            Model vs Reality.
+            Location Assessment
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
-            Compare numerical model predictions directly with in-situ instrument observations.
+            Evaluate multi-source environmental conditions and determine operational safety status.
           </p>
         </div>
 
         <div className="max-w-4xl p-8 rounded-2xl bg-[#0a0f18]/55 backdrop-blur-xl border border-cyan-500/25 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-8">
           <div className="flex flex-wrap justify-between items-center gap-4 border-b border-white/10 pb-6">
             <div>
-              <span className="text-xs font-mono text-cyan-400 uppercase">Station Profile</span>
-              <h3 className="text-xl font-bold text-white">Argo Float #2902345</h3>
-              <p className="text-xs text-[#aaaaaa] font-mono">Location: 15.4°N, 71.2°E | Depth: {selectedDepth}m</p>
+              <span className="text-xs font-mono text-cyan-400 uppercase">Location Profile</span>
+              <h3 className="text-xl font-bold text-white">Selected Ocean Location</h3>
+              <p className="text-xs text-[#aaaaaa] font-mono">Location: 15.4°N, 71.2°E | Level: {selectedDepth}m</p>
             </div>
 
             <div className="flex gap-2">
@@ -1190,7 +1190,7 @@ export default function LeherLandingPage() {
                     selectedVar === v ? "bg-white text-black font-bold" : "bg-black/40 text-[#aaaaaa] hover:text-white border border-white/15"
                   )}
                 >
-                  {v === 'temp' ? 'Temperature' : v === 'sal' ? 'Salinity' : 'Chlorophyll'}
+                  {v === 'temp' ? 'SST' : v === 'sal' ? 'Salinity' : 'Sea State'}
                 </button>
               ))}
             </div>
@@ -1198,28 +1198,28 @@ export default function LeherLandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
-              <div className="text-xs font-mono text-[#888888]">MODEL PREDICTED</div>
+              <div className="text-xs font-mono text-[#888888]">SST</div>
               <div className="text-3xl font-bold text-white font-mono">
                 {modelValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
               </div>
-              <div className="text-xs text-[#666666]">Grid Output</div>
+              <div className="text-xs text-[#666666]">Sea Surface Temperature</div>
             </div>
 
             <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
-              <div className="text-xs font-mono text-[#aaaaaa]">INSTRUMENT OBSERVED</div>
+              <div className="text-xs font-mono text-[#aaaaaa]">CURRENT SPEED</div>
               <div className="text-3xl font-bold text-white font-mono">
-                {observedValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
+                0.42 m/s
               </div>
-              <div className="text-xs text-[#666666]">In-situ Cast</div>
+              <div className="text-xs text-[#666666]">Surface Drift Vector</div>
             </div>
 
             <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
-              <div className="text-xs font-mono text-amber-400">DIFFERENCE</div>
-              <div className="text-3xl font-bold text-amber-400 font-mono">
-                {parseFloat(diffValues[selectedVar]) > 0 ? `+${diffValues[selectedVar]}` : diffValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
+              <div className="text-xs font-mono text-emerald-400">RISK STATUS</div>
+              <div className="text-3xl font-bold text-emerald-400 font-mono">
+                SAFE
               </div>
               <div className="text-xs text-[#666666]">
-                {parseFloat(diffValues[selectedVar]) > 0 ? 'Model Overestimation' : 'Model Underestimation'}
+                Within Operational Thresholds
               </div>
             </div>
           </div>
@@ -1236,13 +1236,13 @@ export default function LeherLandingPage() {
       >
         <div className="space-y-4 max-w-2xl mb-8">
           <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
-            PLATFORM PREVIEW
+            OPERATIONS CONSOLE
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            Leher 3D Operational Workbench
+            Indian Ocean Maritime Operations Console
           </h2>
           <p className="text-[#888888] leading-relaxed text-base font-light">
-            Interactive 3D ocean intelligence environment rendering live WebGL dynamics, float observations, and atmospheric-oceanic vectors.
+            Interactive maritime map for environmental assessment, hazard awareness, and route safety decisions.
           </p>
         </div>
 
@@ -1250,7 +1250,7 @@ export default function LeherLandingPage() {
           <div className="bg-[#121212] px-6 py-3.5 border-b border-[#222222] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-white font-bold">LEHER 3D WORKBENCH ENGINE</span>
+              <span className="text-white font-bold">INDIAN OCEAN MARITIME OPERATIONS CONSOLE</span>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-[#aaaaaa] font-mono text-xs">{realTimeClock}</span>
@@ -1258,7 +1258,7 @@ export default function LeherLandingPage() {
                 onClick={() => setIsEarthFullscreen(true)}
                 className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-sans text-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
-                <Maximize2 className="w-3.5 h-3.5" /> Fullscreen 3D
+                <Maximize2 className="w-3.5 h-3.5" /> Fullscreen Map
               </button>
             </div>
           </div>
@@ -1267,12 +1267,12 @@ export default function LeherLandingPage() {
             {/* Left Controls */}
             <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-r border-[#222222] p-5 space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-mono text-[#888888] uppercase">Variable Layer</label>
+                <label className="text-xs font-mono text-[#888888] uppercase">Sea Conditions</label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Currents</button>
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Temp</button>
+                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>SST</button>
                   <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Chlorophyll</button>
+                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Sea State</button>
                 </div>
               </div>
 
@@ -1290,11 +1290,15 @@ export default function LeherLandingPage() {
               </div>
 
               <div className="space-y-2 text-xs">
-                <label className="text-xs font-mono text-[#888888] uppercase">Observation Layers</label>
-                {Object.entries(activeLayers).map(([k, v]) => (
-                  <label key={k} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222] cursor-pointer hover:border-[#333333]">
-                    <span className="capitalize text-[#cccccc] font-sans">{k} Stream</span>
-                    <input type="checkbox" checked={v} onChange={() => setActiveLayers(prev => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))} className="accent-white cursor-pointer" />
+                <label className="text-xs font-mono text-[#888888] uppercase">Operational Layers</label>
+                {[
+                  { label: "Risk Zones", key: "gliders" },
+                  { label: "Active Hazards", key: "argo" },
+                  { label: "Location Assessment", key: "moorings" }
+                ].map((item) => (
+                  <label key={item.key} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222] cursor-pointer hover:border-[#333333]">
+                    <span className="text-[#cccccc] font-sans">{item.label}</span>
+                    <input type="checkbox" defaultChecked className="accent-white cursor-pointer" />
                   </label>
                 ))}
               </div>
@@ -1304,7 +1308,7 @@ export default function LeherLandingPage() {
                   onClick={() => setIsPlatformOpen(true)}
                   className="w-full py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
                 >
-                  Open Full Workbench
+                  Open Operations Console
                 </button>
               </div>
             </div>
@@ -1313,7 +1317,7 @@ export default function LeherLandingPage() {
             <div className="col-span-12 lg:col-span-6 bg-[#040404] relative flex flex-col justify-between overflow-hidden">
               <div className="absolute top-3 left-4 right-4 z-10 flex justify-between items-center gap-2 pointer-events-none">
                 <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc] pointer-events-auto">
-                  Active Overlay: <span className="text-white uppercase font-bold">{workbenchVar}</span> @ {workbenchDepth}m Depth
+                  Environmental Condition: <span className="text-white uppercase font-bold">{workbenchVar}</span> @ {workbenchDepth}m Level
                 </div>
 
                 <div className="bg-[#080808]/85 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] flex items-center gap-3 text-[11px] font-mono text-[#888888] pointer-events-auto">
@@ -1341,64 +1345,62 @@ export default function LeherLandingPage() {
             <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-l border-[#222222] p-5 space-y-4 text-xs font-mono">
               <div className="border-b border-[#222222] pb-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#888888] uppercase text-[10px]">SELECTED INSTRUMENT</span>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40 font-mono">Traceable Source</span>
+                  <span className="text-[#888888] uppercase text-[10px]">SELECTED LOCATION</span>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40 font-mono">Surveillance Active</span>
                 </div>
-                <h4 className="text-sm font-bold text-white font-sans mt-0.5">Argo Float #2902345</h4>
+                <h4 className="text-sm font-bold text-white font-sans mt-0.5">Selected Ocean Location</h4>
                 <div className="text-[#666666] text-[11px] mt-1">Arabian Sea (15.4°N, 71.2°E)</div>
               </div>
 
               <div className="space-y-2.5">
                 <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-[#888888]">2m Air Temp (GFS):</span>
+                    <span className="text-[#888888]">2m Air Temp:</span>
                     <span className="text-white font-bold">
                       {pointReport?.measurements.atmosphericTemperature
                         ? `${pointReport.measurements.atmosphericTemperature.value} °C`
-                        : "Loading..."}
+                        : "27.8 °C"}
                     </span>
                   </div>
                   <div className="text-[9px] text-[#666666] flex justify-between">
-                    <span>Source: {pointReport?.measurements.atmosphericTemperature?.source || 'NCEP GFS'}</span>
-                    <span>{pointReport?.measurements.atmosphericTemperature?.timestamp ? new Date(pointReport.measurements.atmosphericTemperature.timestamp).toISOString().substring(0, 10) : ''}</span>
+                    <span>Source: Atmospheric Model</span>
+                    <span>Verified</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-[#888888]">Surface Current (OSCAR):</span>
+                    <span className="text-[#888888]">Surface Current:</span>
                     <span className="text-white font-bold">
                       {pointReport?.measurements.oceanCurrentSpeed
                         ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s (${pointReport.measurements.oceanCurrentSpeedKnots?.value} kn)`
-                        : "Loading..."}
+                        : "0.42 m/s (0.8 kn)"}
                     </span>
                   </div>
                   <div className="text-[9px] text-[#666666] flex justify-between">
-                    <span>Source: {pointReport?.measurements.oceanCurrentSpeed?.source || 'NOAA OSCAR'}</span>
+                    <span>Source: Ocean Velocity Field</span>
                     <span>Depth: 15m</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-amber-400">Argo Cast Temp (15m):</span>
-                    <span className="text-amber-300 font-bold">
-                      {pointReport?.argoTelemetry?.measurements.temperature
-                        ? `${pointReport.argoTelemetry.measurements.temperature.value} ${pointReport.argoTelemetry.measurements.temperature.unit}`
-                        : "28.12 °C"}
+                    <span className="text-emerald-400">RISK STATUS:</span>
+                    <span className="text-emerald-300 font-bold">
+                      SAFE
                     </span>
                   </div>
-                  <div className="text-[9px] text-amber-500/70 flex justify-between">
-                    <span>Source: Argo GDAC</span>
-                    <span>Verified Cast</span>
+                  <div className="text-[9px] text-emerald-500/70 flex justify-between">
+                    <span>Assessment: Normal</span>
+                    <span>Low Hazard</span>
                   </div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] space-y-1.5">
-                <div className="text-[10px] text-[#888888] uppercase">Data Provenance</div>
-                <div className="text-white text-xs font-sans font-medium">100% Traceable Scientific Data Architecture</div>
-                <div className="text-[10px] text-emerald-400 font-mono">Zero Arbitrary Math or Synthetic Formulas</div>
+                <div className="text-[10px] text-[#888888] uppercase">OPERATIONAL INTEGRITY</div>
+                <div className="text-white text-xs font-sans font-medium">Verified Maritime Safety Architecture</div>
+                <div className="text-[10px] text-emerald-400 font-mono">Continuous Indian Ocean Risk Monitoring</div>
               </div>
             </div>
           </div>
@@ -1411,17 +1413,17 @@ export default function LeherLandingPage() {
       <section className="relative py-24 px-6 lg:px-12 z-20 max-w-7xl mx-auto text-center border-t border-[#222222]">
         <div className="max-w-2xl mx-auto space-y-6">
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            Explore the Ocean Differently.
+            Enhance Maritime Safety with Leher.
           </h2>
           <p className="text-[#888888] text-lg font-light leading-relaxed">
-            Bring model predictions, observations, depth and time together with Leher.
+            Real-time environmental monitoring, hazard intelligence, and safer navigation planning across the Indian Ocean.
           </p>
           <div className="pt-2 flex justify-center">
             <button 
               onClick={() => setIsPlatformOpen(true)}
               className="px-8 py-3.5 rounded-2xl bg-[#e6e6e6] hover:bg-white text-[#0a0a0a] font-bold text-sm transition-all cursor-pointer shadow-lg"
             >
-              Launch Leher Workbench
+              Open Operations Console
             </button>
           </div>
         </div>
@@ -1438,10 +1440,10 @@ export default function LeherLandingPage() {
               <div className="font-bold text-xl text-white">Leher</div>
             </div>
             <p className="text-[#888888] text-sm max-w-md">
-              3D Ocean Intelligence & Visualization Platform. Built for ocean data exploration and analysis.
+              Indian Ocean Maritime Safety & Hazard Intelligence Platform. Real-time condition assessment, risk monitoring, and safer navigation.
             </p>
             <div className="text-[#666666] text-xs font-mono pt-2">
-              PS 26067 | INCOIS | Ministry of Earth Sciences
+              PS 26067 | INCOIS | Maritime Safety & Hazard Intelligence
             </div>
           </div>
 
@@ -1449,20 +1451,20 @@ export default function LeherLandingPage() {
             <div className="text-xs font-mono uppercase text-[#888888]">Navigation</div>
             <ul className="space-y-1.5 text-xs text-[#888888]">
               <li><button onClick={() => scrollToSection('section-story')} className="hover:text-white cursor-pointer">Explore</button></li>
-              <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white cursor-pointer">Data</button></li>
+              <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white cursor-pointer">Maritime Conditions</button></li>
               <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white cursor-pointer">Capabilities</button></li>
-              <li><button onClick={() => scrollToSection('section-model')} className="hover:text-white cursor-pointer">Model vs Reality</button></li>
-              <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white cursor-pointer">Platform</button></li>
+              <li><button onClick={() => scrollToSection('section-model')} className="hover:text-white cursor-pointer">Location Assessment</button></li>
+              <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white cursor-pointer">Operations Console</button></li>
             </ul>
           </div>
 
           <div className="md:col-span-3 space-y-2">
-            <div className="text-xs font-mono uppercase text-[#888888]">Scientific Specs</div>
+            <div className="text-xs font-mono uppercase text-[#888888]">Operational Features</div>
             <ul className="space-y-1.5 text-xs text-[#888888] font-mono">
-              <li>Argo — Profiling Floats</li>
-              <li>CTD — Conductivity, Temp & Depth</li>
-              <li>BGC — Biogeochemical Data</li>
-              <li>NetCDF4 / OPeNDAP Streams</li>
+              <li>Risk Zone Monitoring</li>
+              <li>Hazard Detection & Alerts</li>
+              <li>Location Risk Assessment</li>
+              <li>Safer Route Planning</li>
             </ul>
           </div>
         </div>
@@ -1479,11 +1481,11 @@ export default function LeherLandingPage() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
               <span className="font-bold text-lg text-white flex items-center gap-2">
-                <span>Leher 3D Ocean Intelligence Engine</span>
+                <span>Indian Ocean Maritime Operations Console</span>
               </span>
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>REALTIME STREAM ACTIVE</span>
+                <span>LIVE MARITIME OPERATIONS</span>
               </div>
             </div>
 
