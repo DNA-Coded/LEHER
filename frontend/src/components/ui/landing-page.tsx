@@ -86,6 +86,7 @@ export default function LeherLandingPage() {
   const [globeTransform, setGlobeTransform] = useState("");
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGlobePaused, setIsGlobePaused] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
@@ -727,58 +728,41 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* 10 Standardized Copernicus Marine Variables Table */}
+      {/* Ocean Parameters Table (Parameter and Value/Units only) */}
       <div className="rounded-xl border border-[#222222] bg-[#090909] overflow-hidden shadow-inner">
-        <div className="bg-[#121212] px-3 py-2 border-b border-[#222222] grid grid-cols-12 text-[10px] text-[#888888] uppercase tracking-wider font-semibold">
-          <span className="col-span-5">Variable & Parameter</span>
-          <span className="col-span-4 text-right">Value (Units)</span>
-          <span className="col-span-3 text-right">Description</span>
+        <div className="bg-[#121212] px-3.5 py-2.5 border-b border-[#222222] flex justify-between items-center text-[10px] text-[#888888] uppercase tracking-wider font-semibold">
+          <span>Ocean Parameter</span>
+          <span className="text-right">Value (Units)</span>
         </div>
-        <div className="divide-y divide-[#181818] max-h-[380px] overflow-y-auto">
+        <div className="divide-y divide-[#181818] max-h-[360px] overflow-y-auto">
           {Object.values(predictionResult.variables).map((v) => (
             <div 
               key={v.variable} 
-              className="px-3 py-2 grid grid-cols-12 items-center hover:bg-white/[0.03] transition-colors gap-2 text-[11px]"
+              className="px-3.5 py-2.5 flex justify-between items-center hover:bg-white/[0.03] transition-colors gap-2 text-xs"
             >
-              {/* Variable Symbol Badge + Common Name + Standard Name */}
-              <div className="col-span-5 flex items-center gap-2 min-w-0">
-                <span className={cn(
-                  "px-1.5 py-0.5 rounded text-[10px] font-bold border tracking-tight font-mono shrink-0",
-                  v.variable === 'uo' || v.variable === 'vo'
-                    ? "bg-amber-950/50 border-amber-800/50 text-amber-300"
-                    : v.variable === 'thetao' || v.variable === 'bottomT'
-                    ? "bg-cyan-950/50 border-cyan-800/50 text-cyan-300"
-                    : v.variable === 'so'
-                    ? "bg-emerald-950/50 border-emerald-800/50 text-emerald-300"
-                    : v.variable === 'chl'
-                    ? "bg-green-950/50 border-green-800/50 text-green-300"
-                    : "bg-[#181a1f] border-white/10 text-[#cccccc]"
-                )}>
-                  {v.variable}
-                </span>
-                <div className="min-w-0 flex flex-col">
-                  <span className="text-[11px] font-bold text-white leading-tight truncate">
-                    {v.commonName || v.variable}
-                  </span>
-                  <span className="text-[9px] text-[#666666] font-mono truncate" title={v.standardName}>
-                    {v.standardName}
-                  </span>
-                </div>
-              </div>
-
-              {/* Value & Units */}
-              <div className="col-span-4 text-right font-bold text-white text-xs font-mono truncate" title={v.formattedValue}>
+              <span className="font-medium text-white">
+                {v.commonName}
+              </span>
+              <span className="font-bold text-white text-xs font-mono">
                 {v.formattedValue}
-              </div>
-
-              {/* Description */}
-              <div className="col-span-3 text-right text-[9px] text-[#888888] font-sans truncate" title={v.description}>
-                {v.description}
-              </div>
+              </span>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Button: View In Detail (Opens Full Individual Dossier) */}
+      <button
+        type="button"
+        onClick={() => setIsDetailModalOpen(true)}
+        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-950/60 via-[#161616] to-[#121212] hover:from-cyan-900/60 hover:to-[#1a1a1a] border border-cyan-800/40 hover:border-cyan-400 text-cyan-300 font-mono text-xs flex items-center justify-between transition-all cursor-pointer shadow-lg shadow-cyan-950/20 group"
+      >
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:rotate-12 transition-transform" />
+          <span className="font-bold tracking-wide">VIEW DETAILED PARAMETER ANALYSIS</span>
+        </div>
+        <ArrowUpRight className="w-4 h-4 text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+      </button>
 
       {/* Advisory Note */}
       <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] text-[10px] space-y-1">
@@ -1539,6 +1523,169 @@ export default function LeherLandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* ========================================================
+          COMPREHENSIVE OCEANOGRAPHIC PARAMETER DOSSIER MODAL
+          (DETAILED BREAKDOWN DESCRIBING EVERY PARAMETER INDIVIDUALLY)
+         ======================================================== */}
+      {isDetailModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-xl flex flex-col overflow-hidden animate-in fade-in duration-200">
+          {/* Header Bar */}
+          <div className="h-16 bg-[#090909] border-b border-[#222222] px-6 flex justify-between items-center z-20 shrink-0">
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-7 h-7 object-contain" />
+              <div>
+                <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                  <span>Copernicus Marine Oceanographic Dossier</span>
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
+                    10 PARAMETERS
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#888888] font-mono">
+                  {predictionResult.location.regionName} ({predictionResult.location.lat >= 0 ? `${predictionResult.location.lat}°N` : `${Math.abs(predictionResult.location.lat)}°S`}, {predictionResult.location.lon >= 0 ? `${predictionResult.location.lon}°E` : `${Math.abs(predictionResult.location.lon)}°W`}) @ {predictionResult.location.depth}m Depth
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-3.5 py-1.5 rounded-xl bg-[#181818] hover:bg-[#252525] text-white text-xs font-mono flex items-center gap-1.5 border border-[#333333] transition-all cursor-pointer shadow"
+                title="Close Dossier"
+              >
+                <X className="w-4 h-4" />
+                <span>Close Dossier</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Dossier Content Area */}
+          <div className="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full space-y-6">
+            {/* Top Overview Banner */}
+            <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-[#222222] flex flex-wrap justify-between items-center gap-4 shadow-xl">
+              <div>
+                <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider font-bold">
+                  LOCAL MARITIME TARGET STATE
+                </div>
+                <h3 className="text-xl font-bold text-white mt-0.5">
+                  {predictionResult.location.regionName} Comprehensive Marine Profile
+                </h3>
+                <p className="text-xs text-[#888888] max-w-2xl mt-1">
+                  Standardized ocean physical, dynamic, biogeochemical, and cryospheric parameters derived from CMEMS ocean physics numerical models at coordinates ({predictionResult.location.lat}°, {predictionResult.location.lon}°) depth level {predictionResult.location.depth}m.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-[#141414] border border-[#252525] text-center min-w-[120px]">
+                  <div className="text-[9px] text-[#777777] font-mono uppercase">Current Speed</div>
+                  <div className="text-sm font-bold text-white mt-0.5 font-mono">{predictionResult.summary.currentSpeedMs} m s⁻¹</div>
+                  <div className="text-[10px] text-cyan-400 font-mono">{predictionResult.summary.currentSpeedKnots} kts</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[#141414] border border-[#252525] text-center min-w-[120px]">
+                  <div className="text-[9px] text-[#777777] font-mono uppercase">Flow Direction</div>
+                  <div className="text-sm font-bold text-white mt-0.5 font-mono">{predictionResult.summary.currentDirectionCompass}</div>
+                  <div className="text-[10px] text-[#888888] font-mono">{predictionResult.summary.currentDirectionDeg}° Bearing</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[#141414] border border-[#252525] text-center min-w-[120px]">
+                  <div className="text-[9px] text-[#777777] font-mono uppercase">Safety Advisory</div>
+                  <div className={cn(
+                    "text-sm font-bold mt-0.5 font-mono",
+                    predictionResult.summary.riskStatus === 'SAFE' ? "text-emerald-400" : predictionResult.summary.riskStatus === 'ADVISORY' ? "text-amber-400" : "text-red-400"
+                  )}>
+                    {predictionResult.summary.riskStatus}
+                  </div>
+                  <div className="text-[9px] text-[#888888] font-mono">Operational Tier</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Individual Parameter Cards (Grid of 10) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.values(predictionResult.variables).map((v) => (
+                <div 
+                  key={v.variable}
+                  className="rounded-2xl bg-[#0e0e0e] border border-[#222222] p-5 space-y-4 hover:border-cyan-500/40 transition-all shadow-lg"
+                >
+                  {/* Card Header */}
+                  <div className="flex justify-between items-start border-b border-[#1f1f1f] pb-3 gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-white">
+                          {v.commonName}
+                        </span>
+                        <span className={cn(
+                          "px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider font-mono",
+                          v.category === 'physical' ? "bg-cyan-950/60 border-cyan-800/60 text-cyan-300"
+                          : v.category === 'dynamic' ? "bg-amber-950/60 border-amber-800/60 text-amber-300"
+                          : v.category === 'biogeochemical' ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-300"
+                          : "bg-purple-950/60 border-purple-800/60 text-purple-300"
+                        )}>
+                          {v.category}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-[#666666] font-mono mt-0.5">
+                        Code: <strong className="text-[#aaaaaa]">{v.variable}</strong> • NetCDF Standard: <span className="text-cyan-400/80">{v.standardName}</span>
+                      </div>
+                    </div>
+
+                    {/* Measured Value & Units Badge */}
+                    <div className="text-right shrink-0 bg-[#161616] border border-[#262626] px-3 py-1.5 rounded-xl">
+                      <div className="text-[9px] text-[#777777] uppercase font-mono">MEASURED VALUE</div>
+                      <div className="text-sm sm:text-base font-extrabold text-white font-mono">
+                        {v.formattedValue}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Descriptions Section */}
+                  <div className="space-y-2.5 text-xs">
+                    {/* Scientific Definition */}
+                    <div className="p-3 rounded-xl bg-[#141414] border border-[#1e1e1e] space-y-1">
+                      <div className="text-[10px] uppercase font-mono tracking-wider text-cyan-400 font-semibold flex items-center gap-1.5">
+                        <span>Physical Definition &amp; Measurement</span>
+                      </div>
+                      <p className="text-[#cccccc] font-sans text-xs leading-relaxed">
+                        {v.longDescription}
+                      </p>
+                    </div>
+
+                    {/* Operational Impact */}
+                    <div className="p-3 rounded-xl bg-[#141414] border border-[#1e1e1e] space-y-1">
+                      <div className="text-[10px] uppercase font-mono tracking-wider text-amber-400 font-semibold flex items-center gap-1.5">
+                        <span>Maritime &amp; Operational Impact</span>
+                      </div>
+                      <p className="text-[#bbbbbb] font-sans text-xs leading-relaxed">
+                        {v.operationalImpact}
+                      </p>
+                    </div>
+
+                    {/* Depth & Basin Context */}
+                    <div className="p-3 rounded-xl bg-[#141414] border border-[#1e1e1e] space-y-1">
+                      <div className="text-[10px] uppercase font-mono tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <span>Depth ({predictionResult.location.depth}m) &amp; Regional State</span>
+                      </div>
+                      <p className="text-[#aaaaaa] font-sans text-xs leading-relaxed">
+                        {v.depthInterpretation}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom Close Button */}
+            <div className="flex justify-center pt-4 pb-8">
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs flex items-center gap-2 border border-white/20 transition-all cursor-pointer shadow-lg"
+              >
+                <X className="w-4 h-4" />
+                <span>Close Parameter Dossier</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================
           FULLSCREEN 3D EARTH WORKBENCH MODAL
