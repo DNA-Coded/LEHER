@@ -482,7 +482,36 @@ export default function LeherLandingPage() {
    */
   const renderOperationInputs = () => (
     <div className="space-y-4 font-mono text-xs">
-      {/* 1. Latitude & Longitude Inputs */}
+      {/* 1. Globe Shape Dropdown (Concentric Bounded 1st) */}
+      <div className="space-y-1.5 p-3 rounded-xl bg-[#121212] border border-[#222222]">
+        <label className="text-[10px] uppercase tracking-wider text-[#888888] flex items-center justify-between">
+          <span>Globe Shape / Projection</span>
+          <span className="text-[9px] text-cyan-400 font-bold">
+            {PROJECTION_METADATA[activeProjection] || activeProjection}
+          </span>
+        </label>
+        <div className="relative">
+          <select
+            value={activeProjection}
+            onChange={(e) => handleSelectProjection(e.target.value)}
+            className="w-full bg-[#141414] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#333333] hover:border-cyan-500/60 focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-9 shadow-inner"
+          >
+            {PROJECTION_LIST.map((p) => (
+              <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono py-1">
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#888888]">
+            <ChevronDown className="w-4 h-4" />
+          </div>
+        </div>
+        <div className="text-[9px] text-[#666666] font-mono leading-tight">
+          First option represents the latitudinally &amp; longitudinally bounded Indian Ocean domain (40°S–30°N, 20°–130°E).
+        </div>
+      </div>
+
+      {/* 2. Latitude & Longitude Inputs */}
       <div className="space-y-2">
         <div className="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#888888]">
           <span>Geographic Coordinates</span>
@@ -561,7 +590,7 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* 2. Locate Yourself (Auto-Detect Location) */}
+      {/* 3. Locate Yourself (Auto-Detect Location) */}
       <div className="space-y-1">
         <button
           type="button"
@@ -577,7 +606,7 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* 3. Depth Measurement Slider */}
+      {/* 4. Depth Measurement Slider */}
       <div className="space-y-2 p-3 rounded-xl bg-[#121212] border border-[#222222]">
         <div className="flex justify-between items-center text-[10px] text-[#888888]">
           <span className="uppercase tracking-wider">Depth Measurement</span>
@@ -615,35 +644,6 @@ export default function LeherLandingPage() {
           <span>Surface (0m)</span>
           <span>Thermocline (150m)</span>
           <span>Abyssal (2000m)</span>
-        </div>
-      </div>
-
-      {/* 4. Globe Shape Dropdown (Concentric Bounded 1st) */}
-      <div className="space-y-1.5">
-        <label className="text-[10px] uppercase tracking-wider text-[#888888] flex items-center justify-between">
-          <span>Globe Shape / Projection</span>
-          <span className="text-[9px] text-cyan-400 font-bold">
-            {PROJECTION_METADATA[activeProjection] || activeProjection}
-          </span>
-        </label>
-        <div className="relative">
-          <select
-            value={activeProjection}
-            onChange={(e) => handleSelectProjection(e.target.value)}
-            className="w-full bg-[#141414] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#333333] hover:border-cyan-500/60 focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-9 shadow-inner"
-          >
-            {PROJECTION_LIST.map((p) => (
-              <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono py-1">
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#888888]">
-            <ChevronDown className="w-4 h-4" />
-          </div>
-        </div>
-        <div className="text-[9px] text-[#666666] font-mono leading-tight">
-          First option represents the latitudinally &amp; longitudinally bounded Indian Ocean domain (40°S–30°N, 20°–130°E).
         </div>
       </div>
 
