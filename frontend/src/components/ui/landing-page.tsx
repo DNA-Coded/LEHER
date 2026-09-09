@@ -903,15 +903,6 @@ export default function LeherLandingPage() {
             </h2>
           </div>
 
-          <p className="text-[#888888] text-base sm:text-lg font-light leading-relaxed max-w-xl">
-            Real-time maritime condition assessment, hazard intelligence, risk zones, and safer route planning across the Indian Ocean.
-          </p>
-
-          <div className="text-xs text-[#666666] tracking-wide flex items-center gap-2">
-            <span>• Maritime Condition Assessment</span>
-            <span>• Hazard Detection</span>
-            <span>• Safer Route Planning</span>
-          </div>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <ShinyButton 
