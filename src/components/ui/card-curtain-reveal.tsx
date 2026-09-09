@@ -8,15 +8,20 @@ import { cn } from "@/lib/utils"
 const curtainVariants: Variants = {
   visible: {
     clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+    opacity: 1,
+    y: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.35,
+      delay: 0.1,
       ease: [0.25, 1, 0.5, 1],
     },
   },
   hidden: {
     clipPath: "polygon(50% 0, 50% 0, 50% 100%, 50% 100%)",
+    opacity: 0,
+    y: 8,
     transition: {
-      duration: 0.3,
+      duration: 0.2,
       ease: [0.25, 1, 0.5, 1],
     },
   },
@@ -93,18 +98,25 @@ const CardCurtainRevealBody = React.forwardRef<
 })
 CardCurtainRevealBody.displayName = "CardCurtainRevealBody"
 
+export interface CardCurtainRevealTitleProps extends HTMLMotionProps<"h2"> {
+  centerOffset?: number;
+}
+
 const CardCurtainRevealTitle = React.forwardRef<
   HTMLHeadingElement,
-  HTMLMotionProps<"h2">
->(({ className, ...props }, ref) => {
+  CardCurtainRevealTitleProps
+>(({ className, centerOffset = 48, ...props }, ref) => {
   const { isMouseIn } = useCardCurtainRevealContext()
 
   return (
     <motion.h2
       ref={ref}
-      className={className}
-      animate={isMouseIn ? { y: 0 } : { y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      className={cn("will-change-transform", className)}
+      animate={isMouseIn ? { y: 0 } : { y: centerOffset }}
+      transition={{ 
+        duration: 0.35, 
+        ease: [0.25, 1, 0.5, 1] 
+      }}
       {...props}
     />
   )
@@ -123,6 +135,7 @@ const CardCurtain = React.forwardRef<HTMLDivElement, HTMLMotionProps<"div">>(
           className
         )}
         variants={curtainVariants}
+        initial="hidden"
         animate={isMouseIn ? "visible" : "hidden"}
         {...props}
       />
@@ -131,9 +144,13 @@ const CardCurtain = React.forwardRef<HTMLDivElement, HTMLMotionProps<"div">>(
 )
 CardCurtain.displayName = "CardCurtain"
 
+export interface CardCurtainRevealDescriptionProps extends HTMLMotionProps<"div"> {
+  alwaysVisible?: boolean;
+}
+
 const CardCurtainRevealDescription = React.forwardRef<
   HTMLDivElement,
-  HTMLMotionProps<"div"> & { alwaysVisible?: boolean }
+  CardCurtainRevealDescriptionProps
 >(({ className, alwaysVisible = false, ...props }, ref) => {
   const { isMouseIn } = useCardCurtainRevealContext()
 
@@ -150,8 +167,9 @@ const CardCurtainRevealDescription = React.forwardRef<
   return (
     <motion.div
       ref={ref}
-      className={className}
+      className={cn("will-change-transform", className)}
       variants={curtainVariants}
+      initial="hidden"
       animate={isMouseIn ? "visible" : "hidden"}
       {...props}
     />

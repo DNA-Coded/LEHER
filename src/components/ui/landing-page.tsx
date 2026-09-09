@@ -1008,12 +1008,12 @@ export default function LeherLandingPage() {
           ].map((item, idx) => (
             <CardCurtainReveal
               key={idx}
-              className="relative p-6 sm:p-7 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden space-y-3"
+              className="relative p-6 sm:p-7 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/25 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden h-[195px] flex flex-col justify-start cursor-pointer group"
             >
-              <CardCurtainRevealTitle className="text-lg font-bold text-white tracking-tight">
+              <CardCurtainRevealTitle centerOffset={52} className="text-lg font-bold text-white tracking-tight">
                 {item.title}
               </CardCurtainRevealTitle>
-              <CardCurtainRevealDescription alwaysVisible className="text-[#888888] text-sm leading-relaxed">
+              <CardCurtainRevealDescription className="text-[#888888] text-sm leading-relaxed mt-2.5">
                 <p>{item.desc}</p>
               </CardCurtainRevealDescription>
               <CardCurtain className="bg-white/[0.03] pointer-events-none" />
@@ -1164,12 +1164,12 @@ export default function LeherLandingPage() {
           ].map((item, idx) => (
             <CardCurtainReveal
               key={idx}
-              className="relative p-6 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden space-y-2.5"
+              className="relative p-6 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/25 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden h-[195px] flex flex-col justify-start cursor-pointer group"
             >
-              <CardCurtainRevealTitle className="text-base font-bold text-white tracking-tight">
+              <CardCurtainRevealTitle centerOffset={52} className="text-base font-bold text-white tracking-tight">
                 {item.title}
               </CardCurtainRevealTitle>
-              <CardCurtainRevealDescription alwaysVisible className="text-[#888888] text-sm leading-relaxed">
+              <CardCurtainRevealDescription className="text-[#888888] text-sm leading-relaxed mt-2.5">
                 <p>{item.desc}</p>
               </CardCurtainRevealDescription>
               <CardCurtain className="bg-white/[0.03] pointer-events-none" />
