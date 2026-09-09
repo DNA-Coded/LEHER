@@ -212,7 +212,7 @@ export default function LeherLandingPage() {
     return () => window.removeEventListener("message", handleEarthMessage);
   }, []);
 
-  const sendToEarthIframe = useCallback((data: { action: string; projection?: string }) => {
+  const sendToEarthIframe = useCallback((data: { action: string; projection?: string; latitude?: number; longitude?: number }) => {
     const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[title*="Earth"]');
     iframes.forEach((iframe) => {
       try {
@@ -222,6 +222,22 @@ export default function LeherLandingPage() {
       }
     });
   }, []);
+
+  // Sync coordinates with Earth iframe whenever inputLat or inputLon changes
+  useEffect(() => {
+    if (
+      typeof inputLat === "number" &&
+      typeof inputLon === "number" &&
+      !isNaN(inputLat) &&
+      !isNaN(inputLon)
+    ) {
+      sendToEarthIframe({
+        action: "setLocation",
+        latitude: inputLat,
+        longitude: inputLon,
+      });
+    }
+  }, [inputLat, inputLon, sendToEarthIframe]);
 
   const handlePredict = useCallback(() => {
     setIsPredicting(true);
@@ -275,7 +291,7 @@ export default function LeherLandingPage() {
       decLon: "71.2000° E",
       status: "Reset to Default",
     });
-    sendToEarthIframe({ action: "clearLocation" });
+    sendToEarthIframe({ action: "setLocation", latitude: 15.4, longitude: 71.2 });
   }, [sendToEarthIframe]);
 
   const handleSelectProjection = useCallback((projKey: string) => {
@@ -1347,6 +1363,13 @@ export default function LeherLandingPage() {
                   title="Leher Workbench 3D Earth"
                   className="w-full h-full border-0 absolute inset-0"
                   loading="lazy"
+                  onLoad={() => {
+                    sendToEarthIframe({
+                      action: "setLocation",
+                      latitude: inputLat,
+                      longitude: inputLon,
+                    });
+                  }}
                 />
               </div>
 
@@ -1656,6 +1679,13 @@ export default function LeherLandingPage() {
                 src={getEarthIframeUrl(workbenchVar)}
                 title="Leher Global 3D Earth Fullscreen"
                 className="w-full h-full border-0 absolute inset-0"
+                onLoad={() => {
+                  sendToEarthIframe({
+                    action: "setLocation",
+                    latitude: inputLat,
+                    longitude: inputLon,
+                  });
+                }}
               />
             </div>
 
@@ -1719,6 +1749,13 @@ export default function LeherLandingPage() {
                 src={getEarthIframeUrl(workbenchVar)}
                 title="Leher Full Workbench 3D Earth"
                 className="w-full h-full border-0 absolute inset-0"
+                onLoad={() => {
+                  sendToEarthIframe({
+                    action: "setLocation",
+                    latitude: inputLat,
+                    longitude: inputLon,
+                  });
+                }}
               />
             </div>
 

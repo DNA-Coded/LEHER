@@ -105,7 +105,11 @@
                 op.manipulator.end();
                 if (op.type === "click") {
                     var invertCoord = globe.projection.invert(op.startMouse);
-                    dispatch.trigger("click", op.startMouse, invertCoord || []);
+                    if (invertCoord && _.isFinite(invertCoord[0]) && _.isFinite(invertCoord[1])) {
+                        // Normalize longitude to [-180, 180]
+                        invertCoord[0] = ((invertCoord[0] + 180) % 360 + 360) % 360 - 180;
+                        dispatch.trigger("click", op.startMouse, invertCoord);
+                    }
                 }
                 else if (op.type !== "spurious") {
                     signalEnd();
@@ -213,18 +217,8 @@
 
         d3.selectAll("path").attr("d", path);
 
-        function drawLocationMark(point, coord) {
-            if (coord && _.isFinite(coord[0]) && _.isFinite(coord[1])) {
-                var mark = d3.select(".location-mark");
-                if (!mark.node()) {
-                    mark = d3.select("#foreground").append("path").attr("class", "location-mark");
-                }
-                mark.datum({type: "Point", coordinates: coord}).attr("d", path);
-            }
-        }
-
-        if (activeLocation && activeLocation.point && activeLocation.coord) {
-            drawLocationMark(activeLocation.point, activeLocation.coord);
+        if (activeLocation && activeLocation.coord) {
+            updateLocationMarker(activeLocation.coord, true);
         }
 
         var REDRAW_WAIT = 5;
@@ -253,8 +247,7 @@
                     rendererAgent.trigger("render");
                 },
                 click: function(point, coord) {
-                    drawLocationMark(point, coord);
-                    showLocationDetails(point, coord);
+                    updateLocationMarker(coord, false);
                 }
             });
 
@@ -280,9 +273,33 @@
     }
 
     /**
+     * Updates or draws the location marker pin and syncs HUD details.
+     */
+    function updateLocationMarker(coord, suppressBroadcast) {
+        if (!coord || !_.isFinite(coord[0]) || !_.isFinite(coord[1])) return;
+        var globe = globeAgent.value();
+        if (!globe || !globe.projection) return;
+
+        // Ensure longitude is normalized to [-180, 180]
+        coord[0] = ((coord[0] + 180) % 360 + 360) % 360 - 180;
+
+        var pt = globe.projection(coord);
+        activeLocation = {point: pt, coord: coord};
+
+        var path = d3.geo.path().projection(globe.projection).pointRadius(7);
+        var mark = d3.select(".location-mark");
+        if (!mark.node()) {
+            mark = d3.select("#foreground").append("path").attr("class", "location-mark");
+        }
+        mark.datum({type: "Point", coordinates: coord}).attr("d", path);
+
+        showLocationDetails(pt, coord, suppressBroadcast);
+    }
+
+    /**
      * Displays coordinates in the HUD panel.
      */
-    function showLocationDetails(point, coord) {
+    function showLocationDetails(point, coord, suppressBroadcast) {
         point = point || [];
         coord = coord || [];
         var λ = coord[0], φ = coord[1];
@@ -300,22 +317,24 @@
         d3.select("#display-lon").text(lonDMS);
         d3.select("#location-close").style("display", "inline-flex");
 
-        // Broadcast to parent / embedder / Controls & Analytics page
-        try {
-            var msg = {
-                type: "earth:location",
-                latitude: φ,
-                longitude: λ,
-                latDMS: latDMS,
-                lonDMS: lonDMS,
-                coord: coord,
-                point: point
-            };
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage(msg, "*");
-            }
-            window.postMessage(msg, "*");
-        } catch (e) {}
+        if (!suppressBroadcast) {
+            // Broadcast to parent / embedder / Controls & Analytics page
+            try {
+                var msg = {
+                    type: "earth:location",
+                    latitude: φ,
+                    longitude: λ,
+                    latDMS: latDMS,
+                    lonDMS: lonDMS,
+                    coord: coord,
+                    point: point
+                };
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage(msg, "*");
+                }
+                window.postMessage(msg, "*");
+            } catch (e) {}
+        }
     }
 
     function clearLocationDetails(clearEverything) {
@@ -350,24 +369,15 @@
             var coord = [pos.coords.longitude, pos.coords.latitude];
             var globe = globeAgent.value();
             if (globe) {
-                if (autoCenter) {
+                if (autoCenter && typeof globe.locate === "function") {
                     var rotate = globe.locate(coord);
                     if (rotate) {
                         globe.projection.rotate(rotate);
                         configuration.save({orientation: globe.orientation()});
                     }
                 }
-                var pt = globe.projection(coord);
                 d3.select("#coords-title").text("Your Location");
-                showLocationDetails(pt, coord);
-                if (activeLocation.point && activeLocation.coord) {
-                    var path = d3.geo.path().projection(globe.projection).pointRadius(7);
-                    var mark = d3.select(".location-mark");
-                    if (!mark.node()) {
-                        mark = d3.select("#foreground").append("path").attr("class", "location-mark");
-                    }
-                    mark.datum({type: "Point", coordinates: coord}).attr("d", path);
-                }
+                updateLocationMarker(coord, false);
             }
         }, function(err) {
             report.status("");
@@ -480,14 +490,15 @@
             }
         });
 
-        // Auto-fetch user location on load
+        // Initial coordinate marker setup
         var initialLocateDone = false;
         rendererAgent.on("render", function() {
             if (!initialLocateDone) {
                 initialLocateDone = true;
-                setTimeout(function() {
-                    fetchUserLocation(true);
-                }, 600);
+                if (!activeLocation || !activeLocation.coord) {
+                    // Default marker at central Indian Ocean (15.4°N, 71.2°E) if none set
+                    updateLocationMarker([71.2, 15.4], true);
+                }
             }
         });
 
@@ -505,6 +516,8 @@
                 fetchUserLocation(true);
             } else if (e.data.action === "clearLocation") {
                 clearLocationDetails(true);
+            } else if (e.data.action === "setLocation" && typeof e.data.latitude === "number" && typeof e.data.longitude === "number") {
+                updateLocationMarker([e.data.longitude, e.data.latitude], true);
             }
         });
 
@@ -513,6 +526,7 @@
             setProjection: setProjection,
             fetchUserLocation: fetchUserLocation,
             clearLocationDetails: clearLocationDetails,
+            setLocation: function(lat, lon) { updateLocationMarker([lon, lat], false); },
             getActiveLocation: function() { return activeLocation; }
         };
     }

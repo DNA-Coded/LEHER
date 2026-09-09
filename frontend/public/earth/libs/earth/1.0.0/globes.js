@@ -184,7 +184,7 @@ var globes = function() {
                 return d3.geo.conicEquidistant()
                     .center([0, -5])
                     .rotate([-75, 0])
-                    .parallels([-30, 20])
+                    .parallels([0, 25])
                     .precision(0.1);
             },
             bounds: function(view) {
@@ -202,10 +202,15 @@ var globes = function() {
             },
             orientation: function(o, view) {
                 var projection = this.projection;
+                view = view || µ.view();
                 var defaultProjection = this.newProjection(view);
                 projection.rotate(defaultProjection.rotate());
                 projection.scale(this.fit(view));
                 projection.translate(this.center(view));
+                if (!µ.isValue(o)) {
+                    var rotate = projection.rotate();
+                    return [(-rotate[0]).toFixed(2), (-rotate[1]).toFixed(2), Math.round(projection.scale())].join(",");
+                }
                 return this;
             },
             manipulator: function() {
