@@ -46,6 +46,37 @@
 
 ---
 
+## 📁 REPOSITORY STRUCTURE & QUICK START
+
+The web application is located inside the `frontend/` directory:
+
+```bash
+# 1. Navigate to the frontend directory
+cd frontend
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the local development server
+npm run dev
+```
+
+Open `http://localhost:5173` in your browser.
+
+```
+LEHER/
+├── frontend/             # Complete React 19 + Vite 3D Ocean Intelligence application
+│   ├── public/          # Public static assets, earth iframe, and data
+│   ├── src/             # Application source code (components, UI, state)
+│   ├── index.html       # Vite entry point
+│   ├── package.json     # Node dependencies & build scripts
+│   └── vite.config.ts   # Vite configuration
+├── README.md            # Platform documentation
+└── .gitignore           # Git ignore rules
+```
+
+---
+
 ## 2. PROJECT OVERVIEW
 
 ### What is Leher?
