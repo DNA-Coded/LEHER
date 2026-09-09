@@ -6,9 +6,21 @@ import {
   Play, 
   Pause, 
   Maximize2,
-  Menu
+  Menu,
+  Locate,
+  Compass,
+  Sparkles,
+  Layers,
+  ChevronDown,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  RefreshCw,
+  Sliders,
+  ArrowUpRight
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
+import { predictOceanState, type OceanPredictionResult } from "@/lib/api/oceanPredictionService";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { SpinningBorderButton } from "@/components/ui/spinning-border-button";
 import { MenuHoverLink } from "@/components/ui/menu-hover-effects";
@@ -31,8 +43,8 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
 };
 
 export const PROJECTION_METADATA: Record<string, string> = {
+  concentric_region: "Concentric Bounded (40°S–30°N, 20°–130°E)",
   orthographic: "3D Globe (Orthographic)",
-  concentric_region: "Concentric Focus (40°S–30°N, 20°–130°E)",
   equirectangular: "Flat Map (Plate Carrée)",
   winkel3: "Winkel Tripel (Compromise)",
   waterman: "Waterman Butterfly (Polyhedron)",
@@ -43,6 +55,7 @@ export const PROJECTION_METADATA: Record<string, string> = {
 };
 
 export const PROJECTION_LIST = [
+  { key: 'concentric_region', name: 'Concentric Bounded (40°S–30°N, 20°–130°E)', desc: 'Latitudinally & Longitudinally Bounded Focus', badge: 'BOUNDED' },
   { key: 'orthographic', name: '3D Globe', desc: 'Spherical Orthographic', badge: '3D' },
   { key: 'equirectangular', name: 'Flat Map', desc: 'Plate Carrée Cylindrical', badge: 'FLAT' },
   { key: 'winkel3', name: 'Winkel Tripel', desc: 'Compromise World Map', badge: 'GLOBAL' },
@@ -133,8 +146,14 @@ export default function LeherLandingPage() {
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(150);
   const [workbenchMode, setWorkbenchMode] = useState<'ocean' | 'air'>('ocean');
   const [workbenchAnimate, setWorkbenchAnimate] = useState<'currents' | 'wind'>('currents');
-  const [activeProjection, setActiveProjection] = useState<string>('orthographic');
+  const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
   const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [inputLat, setInputLat] = useState<number>(15.4);
+  const [inputLon, setInputLon] = useState<number>(71.2);
+  const [isPredicting, setIsPredicting] = useState<boolean>(false);
+  const [predictionResult, setPredictionResult] = useState<OceanPredictionResult>(() => 
+    predictOceanState(15.4, 71.2, 150)
+  );
   const [inspectedCoords, setInspectedCoords] = useState<{
     valLat: string;
     valLon: string;
@@ -142,12 +161,20 @@ export default function LeherLandingPage() {
     decLon: string;
     status: string;
   }>({
-    valLat: "--° --' --\"",
-    valLon: "--° --' --\"",
-    decLat: "--.----°",
-    decLon: "--.----°",
-    status: "Click Globe To Inspect",
+    valLat: "15° 24' 00\"N",
+    valLon: "71° 12' 00\"E",
+    decLat: "15.4000° N",
+    decLon: "71.2000° E",
+    status: "Arabian Sea Active",
   });
+
+  const LOCATION_PRESETS = [
+    { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
+    { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
+    { label: "Equator / IO", lat: 0.0, lon: 80.5 },
+    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
+    { label: "South IO Basin", lat: -25.0, lon: 75.0 },
+  ];
 
   // Listen for coordinates from Earth iframe inspection
   useEffect(() => {
@@ -156,12 +183,16 @@ export default function LeherLandingPage() {
       if (e.data.type === "earth:location") {
         const lat = typeof e.data.latitude === "number" ? e.data.latitude : 0;
         const lon = typeof e.data.longitude === "number" ? e.data.longitude : 0;
+        const roundedLat = parseFloat(lat.toFixed(4));
+        const roundedLon = parseFloat(lon.toFixed(4));
+        setInputLat(roundedLat);
+        setInputLon(roundedLon);
         setInspectedCoords({
           valLat: e.data.latDMS || `${Math.abs(lat).toFixed(2)}°`,
           valLon: e.data.lonDMS || `${Math.abs(lon).toFixed(2)}°`,
           decLat: lat >= 0 ? `${lat.toFixed(4)}° N` : `${Math.abs(lat).toFixed(4)}° S`,
           decLon: lon >= 0 ? `${lon.toFixed(4)}° E` : `${Math.abs(lon).toFixed(4)}° W`,
-          status: "Point Inspected",
+          status: "Point Selected",
         });
       } else if (e.data.type === "earth:clear") {
         setInspectedCoords({
@@ -188,22 +219,57 @@ export default function LeherLandingPage() {
     });
   }, []);
 
+  const handlePredict = useCallback(() => {
+    setIsPredicting(true);
+    setTimeout(() => {
+      const res = predictOceanState(Number(inputLat), Number(inputLon), Number(workbenchDepth));
+      setPredictionResult(res);
+      setIsPredicting(false);
+    }, 300);
+  }, [inputLat, inputLon, workbenchDepth]);
+
   const handleLocateMe = useCallback(() => {
     setIsLocating(true);
-    setInspectedCoords((prev) => ({ ...prev, status: "Detecting GPS..." }));
-    sendToEarthIframe({ action: "locateMe" });
-    setTimeout(() => {
+    setInspectedCoords((prev) => ({ ...prev, status: "Detecting GPS Position..." }));
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = parseFloat(pos.coords.latitude.toFixed(4));
+          const lon = parseFloat(pos.coords.longitude.toFixed(4));
+          setInputLat(lat);
+          setInputLon(lon);
+          setInspectedCoords({
+            valLat: `${Math.abs(lat).toFixed(2)}°`,
+            valLon: `${Math.abs(lon).toFixed(2)}°`,
+            decLat: lat >= 0 ? `${lat}° N` : `${Math.abs(lat)}° S`,
+            decLon: lon >= 0 ? `${lon}° E` : `${Math.abs(lon)}° W`,
+            status: "GPS Located",
+          });
+          sendToEarthIframe({ action: "locateMe" });
+          setIsLocating(false);
+        },
+        (err) => {
+          console.warn("Geolocation fallback:", err);
+          sendToEarthIframe({ action: "locateMe" });
+          setIsLocating(false);
+        },
+        { timeout: 6000 }
+      );
+    } else {
+      sendToEarthIframe({ action: "locateMe" });
       setIsLocating(false);
-    }, 3500);
+    }
   }, [sendToEarthIframe]);
 
   const handleClearCoords = useCallback(() => {
+    setInputLat(15.4);
+    setInputLon(71.2);
     setInspectedCoords({
-      valLat: "--° --' --\"",
-      valLon: "--° --' --\"",
-      decLat: "--.----°",
-      decLon: "--.----°",
-      status: "Click Globe To Inspect",
+      valLat: "15° 24' 00\"N",
+      valLon: "71° 12' 00\"E",
+      decLat: "15.4000° N",
+      decLon: "71.2000° E",
+      status: "Reset to Default",
     });
     sendToEarthIframe({ action: "clearLocation" });
   }, [sendToEarthIframe]);
@@ -383,7 +449,7 @@ export default function LeherLandingPage() {
     mode: 'ocean' | 'air' = workbenchMode,
     proj: string = activeProjection
   ) => {
-    const projName = proj || 'orthographic';
+    const projName = proj || 'concentric_region';
 
     if (mode === 'air') {
       let ovStr = 'none';
@@ -402,8 +468,316 @@ export default function LeherLandingPage() {
     }
   };
 
+  /**
+   * Reframed Input Controls Panel
+   * Order:
+   * 1. Latitude & Longitude inputs
+   * 2. Locate Yourself (Auto-Detect Location)
+   * 3. Depth Measurement Slider
+   * 4. Globe Shape Dropdown (Concentric Bounded 1st)
+   * 5. Predict Button
+   */
+  const renderOperationInputs = () => (
+    <div className="space-y-4 font-mono text-xs">
+      {/* 1. Latitude & Longitude Inputs */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#888888]">
+          <span>Geographic Coordinates</span>
+          <span className="text-cyan-400 font-semibold text-[9px]">{inspectedCoords.status}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl p-2.5 space-y-1 focus-within:border-cyan-400/80 transition-colors shadow-inner">
+            <label className="text-[10px] text-[#777777] block">LATITUDE (φ)</label>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                step="0.01"
+                min="-90"
+                max="90"
+                value={inputLat}
+                onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
+                className="w-full bg-transparent text-white font-bold text-xs focus:outline-none"
+                placeholder="15.4"
+              />
+              <span className="text-[10px] text-cyan-400 font-bold">
+                {inputLat >= 0 ? "°N" : "°S"}
+              </span>
+            </div>
+            <div className="text-[9px] text-[#666666]">{Math.abs(inputLat).toFixed(2)}° Decimal</div>
+          </div>
+          <div className="bg-[#121212] border border-[#2a2a2a] rounded-xl p-2.5 space-y-1 focus-within:border-cyan-400/80 transition-colors shadow-inner">
+            <label className="text-[10px] text-[#777777] block">LONGITUDE (λ)</label>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                step="0.01"
+                min="-180"
+                max="180"
+                value={inputLon}
+                onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
+                className="w-full bg-transparent text-white font-bold text-xs focus:outline-none"
+                placeholder="71.2"
+              />
+              <span className="text-[10px] text-cyan-400 font-bold">
+                {inputLon >= 0 ? "°E" : "°W"}
+              </span>
+            </div>
+            <div className="text-[9px] text-[#666666]">{Math.abs(inputLon).toFixed(2)}° Decimal</div>
+          </div>
+        </div>
+
+        {/* Location Quick Preset Chips */}
+        <div className="flex flex-wrap gap-1 pt-0.5">
+          {LOCATION_PRESETS.map((loc) => {
+            const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
+            return (
+              <button
+                key={loc.label}
+                type="button"
+                onClick={() => {
+                  setInputLat(loc.lat);
+                  setInputLon(loc.lon);
+                }}
+                className={cn(
+                  "px-2 py-1 rounded-md text-[9px] border transition-all cursor-pointer",
+                  isSelected
+                    ? "bg-cyan-950/70 border-cyan-400 text-cyan-300 font-bold shadow-[0_0_10px_rgba(56,189,248,0.2)]"
+                    : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
+                )}
+              >
+                {loc.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2. Locate Yourself (Auto-Detect Location) */}
+      <div className="space-y-1">
+        <button
+          type="button"
+          onClick={handleLocateMe}
+          disabled={isLocating}
+          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 hover:from-sky-500 hover:via-cyan-500 hover:to-teal-500 text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-cyan-950/40 disabled:opacity-60"
+        >
+          <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
+          <span>{isLocating ? "Detecting GPS Position..." : "Locate Yourself (Auto-Detect Location)"}</span>
+        </button>
+        <div className="text-[9px] text-[#666666] text-center font-sans">
+          Auto-detects device coordinates and aligns map focus point
+        </div>
+      </div>
+
+      {/* 3. Depth Measurement Slider */}
+      <div className="space-y-2 p-3 rounded-xl bg-[#121212] border border-[#222222]">
+        <div className="flex justify-between items-center text-[10px] text-[#888888]">
+          <span className="uppercase tracking-wider">Depth Measurement</span>
+          <span className="text-white font-bold bg-[#1e2025] px-2 py-0.5 rounded border border-[#333333] text-[11px]">
+            {workbenchDepth}m Level
+          </span>
+        </div>
+        <input 
+          type="range" 
+          min="0" 
+          max="2000" 
+          step="10" 
+          value={workbenchDepth} 
+          onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
+          className="w-full accent-cyan-400 h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
+        />
+        <div className="grid grid-cols-6 gap-1 text-center">
+          {[0, 50, 150, 500, 1000, 2000].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setWorkbenchDepth(d)}
+              className={cn(
+                "py-1 rounded text-[9px] border transition-all cursor-pointer",
+                workbenchDepth === d
+                  ? "bg-white text-black font-bold border-white"
+                  : "bg-[#161616] border-[#222222] text-[#777777] hover:text-white"
+              )}
+            >
+              {d === 0 ? "0m" : `${d}m`}
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-between text-[9px] text-[#666666] pt-0.5">
+          <span>Surface (0m)</span>
+          <span>Thermocline (150m)</span>
+          <span>Abyssal (2000m)</span>
+        </div>
+      </div>
+
+      {/* 4. Globe Shape Dropdown (Concentric Bounded 1st) */}
+      <div className="space-y-1.5">
+        <label className="text-[10px] uppercase tracking-wider text-[#888888] flex items-center justify-between">
+          <span>Globe Shape / Projection</span>
+          <span className="text-[9px] text-cyan-400 font-bold">
+            {PROJECTION_METADATA[activeProjection] || activeProjection}
+          </span>
+        </label>
+        <div className="relative">
+          <select
+            value={activeProjection}
+            onChange={(e) => handleSelectProjection(e.target.value)}
+            className="w-full bg-[#141414] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#333333] hover:border-cyan-500/60 focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-9 shadow-inner"
+          >
+            {PROJECTION_LIST.map((p) => (
+              <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono py-1">
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#888888]">
+            <ChevronDown className="w-4 h-4" />
+          </div>
+        </div>
+        <div className="text-[9px] text-[#666666] font-mono leading-tight">
+          First option represents the latitudinally &amp; longitudinally bounded Indian Ocean domain (40°S–30°N, 20°–130°E).
+        </div>
+      </div>
+
+      {/* 5. Predict Button */}
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={handlePredict}
+          disabled={isPredicting}
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-black font-extrabold text-xs font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-[0.99] disabled:opacity-75"
+        >
+          {isPredicting ? (
+            <>
+              <RefreshCw className="w-4 h-4 animate-spin text-black" />
+              <span>COMPUTING OCEAN STATE...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 text-black" />
+              <span>RUN OCEAN INTELLIGENCE PREDICTION</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
+  /**
+   * Reframed Answer Section
+   * Displays all 10 Copernicus Marine standardized variables with units, descriptions, and telemetry
+   */
+  const renderPredictionAnswerSection = () => (
+    <div className="space-y-4 font-mono text-xs">
+      {/* Region & Telemetry Header */}
+      <div className="border-b border-[#222222] pb-3 space-y-1.5">
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            COPERNICUS MARINE OUTPUT
+          </span>
+          <span className={cn(
+            "text-[9px] font-mono px-2 py-0.5 rounded border font-bold uppercase",
+            predictionResult.summary.riskStatus === 'SAFE' 
+              ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
+              : predictionResult.summary.riskStatus === 'ADVISORY'
+              ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
+              : "bg-red-950/60 border-red-800/60 text-red-400"
+          )}>
+            {predictionResult.summary.riskStatus}
+          </span>
+        </div>
+        <div className="flex justify-between items-baseline">
+          <h4 className="text-sm font-bold text-white font-sans">
+            {predictionResult.location.regionName}
+          </h4>
+          <span className="text-[10px] text-[#888888]">
+            {predictionResult.location.lat >= 0 ? `${predictionResult.location.lat}°N` : `${Math.abs(predictionResult.location.lat)}°S`}, {predictionResult.location.lon >= 0 ? `${predictionResult.location.lon}°E` : `${Math.abs(predictionResult.location.lon)}°W`} @ {predictionResult.location.depth}m
+          </span>
+        </div>
+      </div>
+
+      {/* Summary Velocity & Bearing Cards */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="p-2.5 rounded-xl bg-[#141414] border border-[#222222]">
+          <div className="text-[10px] text-[#777777]">CURRENT VELOCITY</div>
+          <div className="text-xs font-bold text-white mt-0.5">
+            {predictionResult.summary.currentSpeedMs} m s⁻¹
+          </div>
+          <div className="text-[9px] text-[#888888]">
+            {predictionResult.summary.currentSpeedKnots} knots
+          </div>
+        </div>
+        <div className="p-2.5 rounded-xl bg-[#141414] border border-[#222222]">
+          <div className="text-[10px] text-[#777777]">CURRENT BEARING</div>
+          <div className="text-xs font-bold text-cyan-300 mt-0.5">
+            {predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)
+          </div>
+          <div className="text-[9px] text-[#888888]">
+            Flow Vector (uo, vo)
+          </div>
+        </div>
+      </div>
+
+      {/* 10 Standardized Copernicus Marine Variables Table */}
+      <div className="rounded-xl border border-[#222222] bg-[#090909] overflow-hidden shadow-inner">
+        <div className="bg-[#121212] px-3 py-2 border-b border-[#222222] grid grid-cols-12 text-[10px] text-[#888888] uppercase tracking-wider font-semibold">
+          <span className="col-span-2">Variable</span>
+          <span className="col-span-4">Standard Name</span>
+          <span className="col-span-3 text-right">Value (Units)</span>
+          <span className="col-span-3 text-right">Description</span>
+        </div>
+        <div className="divide-y divide-[#181818] max-h-[380px] overflow-y-auto">
+          {Object.values(predictionResult.variables).map((v) => (
+            <div 
+              key={v.variable} 
+              className="px-3 py-2 grid grid-cols-12 items-center hover:bg-white/[0.03] transition-colors gap-1 text-[11px]"
+            >
+              {/* Variable Symbol Badge */}
+              <div className="col-span-2 flex items-center">
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded text-[10px] font-bold border tracking-tight font-mono",
+                  v.variable === 'uo' || v.variable === 'vo'
+                    ? "bg-amber-950/50 border-amber-800/50 text-amber-300"
+                    : v.variable === 'thetao' || v.variable === 'bottomT'
+                    ? "bg-cyan-950/50 border-cyan-800/50 text-cyan-300"
+                    : v.variable === 'so'
+                    ? "bg-emerald-950/50 border-emerald-800/50 text-emerald-300"
+                    : v.variable === 'chl'
+                    ? "bg-green-950/50 border-green-800/50 text-green-300"
+                    : "bg-[#181a1f] border-white/10 text-[#cccccc]"
+                )}>
+                  {v.variable}
+                </span>
+              </div>
+              {/* Standard Name */}
+              <div className="col-span-4 text-[10px] text-[#aaaaaa] truncate font-mono" title={v.standardName}>
+                {v.standardName}
+              </div>
+              {/* Value & Units */}
+              <div className="col-span-3 text-right font-bold text-white text-[11px] font-mono truncate" title={v.formattedValue}>
+                {v.formattedValue}
+              </div>
+              {/* Description */}
+              <div className="col-span-3 text-right text-[9px] text-[#777777] font-sans truncate" title={v.description}>
+                {v.description}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Advisory Note */}
+      <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] text-[10px] space-y-1">
+        <div className="text-[#888888] uppercase tracking-wider font-semibold">ADVISORY STATUS</div>
+        <div className="text-[#cccccc] font-sans leading-relaxed">
+          {predictionResult.summary.riskMessage}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderMergedControlsAndAnalytics = () => (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Top Header */}
       <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -416,275 +790,21 @@ export default function LeherLandingPage() {
       </div>
 
       {/* System Clock Card */}
-      <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-2">
+      <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] space-y-1.5">
         <div className="flex justify-between items-center text-[10px] font-mono text-[#888888] uppercase tracking-wider">
           <span>Operations Clock</span>
           <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
         </div>
-        <div className="text-sm font-mono text-white font-bold">
+        <div className="text-xs font-mono text-white font-bold">
           <span>{realTimeClock}</span>
         </div>
-        <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
-          <label className="text-[11px] text-[#aaaaaa]">Timezone:</label>
-          <select
-            value={selectedTimeZone}
-            onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
-            className="bg-[#1f1f1f] text-white text-xs font-mono rounded-lg px-2 py-1 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
-          >
-            {Object.entries(timeZoneMap).map(([tz, info]) => (
-              <option key={tz} value={tz}>
-                {tz} ({info.offsetLabel})
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
-      {/* Geographic Coordinates Inspector */}
-      <div className="p-3.5 rounded-xl bg-[#141414] border border-[#222222] space-y-3">
-        <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
-          <span className="text-[#888888]">Location Coordinates</span>
-          <span className="text-cyan-400 font-semibold">{inspectedCoords.status}</span>
-        </div>
+      {/* Inputs Section */}
+      {renderOperationInputs()}
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-black/50 border border-white/5 rounded-xl p-2.5">
-            <div className="text-[10px] font-mono text-[#666666]">LATITUDE (φ)</div>
-            <div className="text-xs font-mono font-bold text-cyan-300 mt-0.5 truncate">{inspectedCoords.valLat}</div>
-            <div className="text-[10px] font-mono text-[#888888] mt-0.5">{inspectedCoords.decLat}</div>
-          </div>
-          <div className="bg-black/50 border border-white/5 rounded-xl p-2.5">
-            <div className="text-[10px] font-mono text-[#666666]">LONGITUDE (λ)</div>
-            <div className="text-xs font-mono font-bold text-cyan-300 mt-0.5 truncate">{inspectedCoords.valLon}</div>
-            <div className="text-[10px] font-mono text-[#888888] mt-0.5">{inspectedCoords.decLon}</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-          <button
-            onClick={handleLocateMe}
-            disabled={isLocating}
-            className="py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-sans font-bold text-xs flex items-center justify-center transition-all cursor-pointer shadow-lg shadow-cyan-900/30 disabled:opacity-60"
-          >
-            <span>{isLocating ? "Detecting Location..." : "Auto-Detect Location"}</span>
-          </button>
-          <button
-            onClick={handleClearCoords}
-            title="Clear Selection"
-            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 text-[#aaaaaa] hover:text-red-300 flex items-center justify-center transition-all cursor-pointer"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Earth Projections Switcher */}
-      <div className="space-y-2.5">
-        <div className="flex justify-between items-center text-xs font-mono text-[#888888]">
-          <span className="uppercase tracking-wider">Regional Map Views</span>
-          <span className="text-cyan-400 font-semibold text-[10px]">
-            {PROJECTION_METADATA[activeProjection] || activeProjection}
-          </span>
-        </div>
-
-        {/* Concentric Region Special Button */}
-        <button 
-          onClick={() => handleSelectProjection('concentric_region')}
-          className={cn(
-            "w-full p-3 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden",
-            activeProjection === 'concentric_region'
-              ? "bg-gradient-to-br from-emerald-950/70 to-cyan-950/70 border-cyan-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]"
-              : "bg-gradient-to-br from-emerald-950/25 to-cyan-950/25 border-cyan-800/40 hover:border-cyan-500/60"
-          )}
-        >
-          <div className="flex items-center justify-end">
-            <span className={cn(
-              "text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold tracking-wider",
-              activeProjection === 'concentric_region' ? "bg-cyan-400 text-black" : "bg-cyan-950/60 text-cyan-300 border border-cyan-800/40"
-            )}>
-              CONCENTRIC FOCUS
-            </span>
-          </div>
-          <div className="font-bold text-white font-mono text-xs mt-1.5">40°S–30°N / 20°–130°E</div>
-          <div className="text-[11px] text-[#aaaaaa] font-sans mt-0.5">Indian Ocean & Indo-Pacific Regional Bounding Box</div>
-        </button>
-
-        {/* 8 Standard Projections Grid */}
-        <div className="grid grid-cols-2 gap-2">
-          {PROJECTION_LIST.map((p) => {
-            const isActive = activeProjection === p.key;
-            return (
-              <button
-                key={p.key}
-                onClick={() => handleSelectProjection(p.key)}
-                className={cn(
-                  "p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1",
-                  isActive
-                    ? "bg-cyan-950/40 border-cyan-400 shadow-[0_0_15px_rgba(56,189,248,0.25)] text-white"
-                    : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:border-[#3a3a3a] hover:text-white"
-                )}
-              >
-                <div className="flex items-center justify-end">
-                  <span className={cn(
-                    "text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold",
-                    isActive ? "bg-cyan-400 text-black font-bold" : "bg-white/5 text-[#888888]"
-                  )}>
-                    {p.badge}
-                  </span>
-                </div>
-                <div className="font-bold text-white font-sans text-xs">{p.name}</div>
-                <div className="text-[10px] text-[#777777] font-sans truncate">{p.desc}</div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Concentric Region Spec Box */}
-        {activeProjection === 'concentric_region' && (
-          <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-[11px] font-mono space-y-1 text-emerald-300">
-            <div className="font-bold text-xs text-white">Concentric Regional Focus</div>
-            <div><strong>Latitude:</strong> 40°00'00"S to 30°00'00"N</div>
-            <div><strong>Longitude:</strong> 20°00'00"E to 130°00'00"E</div>
-            <div className="text-[10px] text-emerald-400/80 pt-1 border-t border-emerald-900/40">
-              Target region rendered in vivid green & ocean blue. High-resolution regional domain.
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Variable Selector */}
-      <div className="space-y-2">
-        <label className="text-xs font-mono text-[#888888] uppercase tracking-wider">Environmental Conditions</label>
-        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-          <button onClick={() => { setWorkbenchVar('cur'); setWorkbenchMode('ocean'); setWorkbenchAnimate('currents'); }} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Currents</button>
-          <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>SST</button>
-          <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Salinity</button>
-          <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2.5 rounded-xl text-left border transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:text-white")}>Sea State</button>
-        </div>
-      </div>
-
-      {/* Depth Slice Level Slider */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-xs font-mono text-[#888888]">
-          <span>Depth Level</span>
-          <span className="text-white font-bold bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#333]">{workbenchDepth}m</span>
-        </div>
-        <input 
-          type="range" min="0" max="2000" step="10" 
-          value={workbenchDepth} 
-          onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-          className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
-        />
-        <div className="flex justify-between text-[10px] font-mono text-[#666666]">
-          <span>Surface (0m)</span>
-          <span>Mid-Depth (500m)</span>
-          <span>Deep (2000m)</span>
-        </div>
-      </div>
-
-      {/* Mode & Animate Options Box */}
-      <div className="p-3.5 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
-        <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
-          <span className="text-white font-bold uppercase tracking-wider text-[11px]">Environmental Controls</span>
-          <span className="text-cyan-400 text-[10px] bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">ACTIVE</span>
-        </div>
-
-        {/* Mode: Air | Ocean */}
-        <div className="space-y-1.5">
-          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Domain</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button 
-              onClick={() => setWorkbenchMode('ocean')} 
-              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'ocean' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
-            >
-              Ocean
-            </button>
-            <button 
-              onClick={() => setWorkbenchMode('air')} 
-              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchMode === 'air' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
-            >
-              Atmosphere
-            </button>
-          </div>
-        </div>
-
-        {/* Animate: Currents | Wind */}
-        <div className="space-y-1.5">
-          <div className="text-[10px] text-[#888888] uppercase tracking-wider">Dynamics</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button 
-              onClick={() => { setWorkbenchAnimate('currents'); setWorkbenchVar('cur'); setWorkbenchMode('ocean'); }} 
-              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'currents' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
-            >
-              Currents
-            </button>
-            <button 
-              onClick={() => { setWorkbenchAnimate('wind'); setWorkbenchMode('air'); }} 
-              className={cn("py-1.5 px-3 rounded-lg border text-center transition-all cursor-pointer text-xs", workbenchAnimate === 'wind' ? "bg-amber-400/20 border-amber-400 text-amber-300 font-bold" : "bg-[#090909] border-[#222222] text-[#888888] hover:text-white")}
-            >
-              Wind
-            </button>
-          </div>
-        </div>
-
-        {/* Data & Source Scale Bar */}
-        <div className="space-y-2 pt-2 border-t border-[#222222]">
-          <div className="flex justify-between text-[10px] text-[#888888]">
-            <span>DATA: <strong className="text-white">Surface Ocean Currents</strong></span>
-          </div>
-          <div className="space-y-1">
-            <div className="text-[10px] text-[#888888]">Scale:</div>
-            <div className="h-2 w-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-green-400 via-yellow-400 to-red-600 border border-white/20" />
-          </div>
-          <div className="text-[10px] text-[#888888]">
-            SOURCE: <span className="text-[#cccccc]">Verified Ocean Current Model</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Location Assessment Telemetry */}
-      <div className="p-4 rounded-2xl bg-[#121212] border border-[#222222] space-y-3 font-mono text-xs">
-        <div className="border-b border-[#222222] pb-2">
-          <div className="flex justify-between items-center">
-            <div className="text-[10px] text-[#888888] uppercase">LOCATION ASSESSMENT & RISK STATUS</div>
-            <span className="text-[10px] text-emerald-400 font-mono">Active</span>
-          </div>
-          <div className="font-bold text-white font-sans text-sm mt-0.5">Selected Ocean Location</div>
-          <div className="text-[#666666] text-[11px]">Arabian Sea (15.4°N, 71.2°E)</div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">2m Air Temp:</span>
-            <span className="text-white font-bold">
-              {pointReport?.measurements.atmosphericTemperature
-                ? `${pointReport.measurements.atmosphericTemperature.value} °C`
-                : "27.8 °C"}
-            </span>
-          </div>
-          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">Surface Current Speed:</span>
-            <span className="text-white font-bold">
-              {pointReport?.measurements.oceanCurrentSpeed
-                ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s`
-                : "0.42 m/s"}
-            </span>
-          </div>
-          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-[#888888]">Environmental Status:</span>
-            <span className="text-white font-bold">Normal</span>
-          </div>
-          <div className="flex justify-between p-2 rounded bg-[#090909] border border-[#222222]">
-            <span className="text-emerald-400">RISK STATUS:</span>
-            <span className="text-emerald-400 font-bold">SAFE</span>
-          </div>
-          {workbenchDepth > 15 && (
-            <div className="p-2 rounded bg-[#1a1405] border border-amber-900/40 text-[10px] text-amber-300">
-              Depth Level ({workbenchDepth}m): Verified multi-layer environmental conditions.
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Prediction Answers Section */}
+      {renderPredictionAnswerSection()}
     </div>
   );
 
@@ -1289,145 +1409,66 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 min-h-[580px]">
-            {/* Left Controls */}
-            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-r border-[#222222] p-5 space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-mono text-[#888888] uppercase">Sea Conditions</label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button onClick={() => setWorkbenchVar('cur')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'cur' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Currents</button>
-                  <button onClick={() => setWorkbenchVar('temp')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'temp' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>SST</button>
-                  <button onClick={() => setWorkbenchVar('sal')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'sal' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Salinity</button>
-                  <button onClick={() => setWorkbenchVar('chl')} className={cn("p-2 rounded-lg text-left border font-mono transition-all cursor-pointer", workbenchVar === 'chl' ? "bg-white text-black font-bold border-white" : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white")}>Sea State</button>
-                </div>
+          <div className="grid grid-cols-12 min-h-[640px]">
+            {/* Column 1: Input Controls (Lat/Lon, Auto-Detect, Depth, Globe Dropdown, Predict Button) */}
+            <div className="col-span-12 lg:col-span-4 bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-5 space-y-4">
+              <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
+                <span className="text-white font-bold uppercase tracking-wider text-xs font-mono flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                  INPUT &amp; CONTROLS
+                </span>
+                <span className="text-[10px] font-mono text-[#888888]">Interactive Predictor</span>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-mono text-[#888888]">
-                  <span>Depth Slice</span>
-                  <span className="text-white font-bold">{workbenchDepth}m</span>
-                </div>
-                <input 
-                  type="range" min="0" max="1000" step="10" 
-                  value={workbenchDepth} 
-                  onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-                  className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
-                />
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <label className="text-xs font-mono text-[#888888] uppercase">Operational Layers</label>
-                {[
-                  { label: "Risk Zones", key: "gliders" },
-                  { label: "Active Hazards", key: "argo" },
-                  { label: "Location Assessment", key: "moorings" }
-                ].map((item) => (
-                  <label key={item.key} className="flex justify-between items-center p-2 rounded-lg bg-[#141414] border border-[#222222] cursor-pointer hover:border-[#333333]">
-                    <span className="text-[#cccccc] font-sans">{item.label}</span>
-                    <input type="checkbox" defaultChecked className="accent-white cursor-pointer" />
-                  </label>
-                ))}
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => setIsPlatformOpen(true)}
-                  className="w-full py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
-                >
-                  Open Operations Console
-                </button>
-              </div>
+              {renderOperationInputs()}
             </div>
 
-            {/* Center 3D Earth Display */}
-            <div className="col-span-12 lg:col-span-6 bg-[#040404] relative flex flex-col justify-between overflow-hidden">
+            {/* Column 2: Center 3D Earth Display */}
+            <div className="col-span-12 lg:col-span-4 bg-[#040404] relative flex flex-col justify-between overflow-hidden border-b lg:border-b-0 min-h-[480px]">
               <div className="absolute top-3 left-4 right-4 z-10 flex justify-between items-center gap-2 pointer-events-none">
-                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc] pointer-events-auto">
-                  Environmental Condition: <span className="text-white uppercase font-bold">{workbenchVar}</span> @ {workbenchDepth}m Level
+                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc] pointer-events-auto shadow-md">
+                  Domain: <span className="text-white uppercase font-bold">{PROJECTION_METADATA[activeProjection] ? "BOUNDED" : activeProjection}</span> @ {workbenchDepth}m
                 </div>
 
-                <div className="bg-[#080808]/85 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] flex items-center gap-3 text-[11px] font-mono text-[#888888] pointer-events-auto">
+                <div className="bg-[#080808]/85 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] flex items-center gap-2 text-[11px] font-mono text-[#888888] pointer-events-auto shadow-md">
                   <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white flex items-center gap-1.5 cursor-pointer">
                     {isPlaying ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3 text-white" />}
                     <span className="font-semibold text-[#e0e0e0]">{isPlaying ? "LIVE" : "PAUSED"}</span>
                   </button>
-                  <span className="text-[10px] text-[#888888] hidden sm:inline">{realTimeClock}</span>
                 </div>
               </div>
 
               {/* CENTER 3D EARTH IFRAME */}
               <div className="w-full h-full min-h-[500px] relative">
                 <iframe
-                  key={workbenchVar}
+                  key={`${activeProjection}-${workbenchVar}`}
                   src={getEarthIframeUrl(workbenchVar)}
                   title="Leher Workbench 3D Earth"
                   className="w-full h-full border-0 absolute inset-0"
                   loading="lazy"
                 />
               </div>
+
+              {/* Bottom Map Bar with Coordinate HUD */}
+              <div className="absolute bottom-3 left-4 right-4 z-10 pointer-events-none">
+                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-[10px] font-mono text-[#aaaaaa] flex justify-between items-center pointer-events-auto shadow-md">
+                  <span>Selected: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong></span>
+                  <span className="text-cyan-400 font-semibold">Click map to inspect any point</span>
+                </div>
+              </div>
             </div>
 
-            {/* Right Telemetry Sidebar */}
-            <div className="col-span-12 lg:col-span-3 bg-[#0d0d0d] border-l border-[#222222] p-5 space-y-4 text-xs font-mono">
-              <div className="border-b border-[#222222] pb-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-[#888888] uppercase text-[10px]">SELECTED LOCATION</span>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40 font-mono">Surveillance Active</span>
-                </div>
-                <h4 className="text-sm font-bold text-white font-sans mt-0.5">Selected Ocean Location</h4>
-                <div className="text-[#666666] text-[11px] mt-1">Arabian Sea (15.4°N, 71.2°E)</div>
+            {/* Column 3: Answer Section (10 Copernicus Variables Table & Telemetry) */}
+            <div className="col-span-12 lg:col-span-4 bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-4 overflow-y-auto max-h-[680px]">
+              <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
+                <span className="text-white font-bold uppercase tracking-wider text-xs font-mono flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  PREDICTION ANSWERS
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
+                  Standardized CMEMS
+                </span>
               </div>
-
-              <div className="space-y-2.5">
-                <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#888888]">2m Air Temp:</span>
-                    <span className="text-white font-bold">
-                      {pointReport?.measurements.atmosphericTemperature
-                        ? `${pointReport.measurements.atmosphericTemperature.value} °C`
-                        : "27.8 °C"}
-                    </span>
-                  </div>
-                  <div className="text-[9px] text-[#666666] flex justify-between">
-                    <span>Source: Atmospheric Model</span>
-                    <span>Verified</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#888888]">Surface Current:</span>
-                    <span className="text-white font-bold">
-                      {pointReport?.measurements.oceanCurrentSpeed
-                        ? `${pointReport.measurements.oceanCurrentSpeed.value} m/s (${pointReport.measurements.oceanCurrentSpeedKnots?.value} kn)`
-                        : "0.42 m/s (0.8 kn)"}
-                    </span>
-                  </div>
-                  <div className="text-[9px] text-[#666666] flex justify-between">
-                    <span>Source: Ocean Velocity Field</span>
-                    <span>Depth: 15m</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col p-2.5 rounded-lg bg-[#141414] border border-[#222222] space-y-1">
-                  <div className="flex justify-between items-center">
-                    <span className="text-emerald-400">RISK STATUS:</span>
-                    <span className="text-emerald-300 font-bold">
-                      SAFE
-                    </span>
-                  </div>
-                  <div className="text-[9px] text-emerald-500/70 flex justify-between">
-                    <span>Assessment: Normal</span>
-                    <span>Low Hazard</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#141414] border border-[#222222] space-y-1.5">
-                <div className="text-[10px] text-[#888888] uppercase">OPERATIONAL INTEGRITY</div>
-                <div className="text-white text-xs font-sans font-medium">Verified Maritime Safety Architecture</div>
-                <div className="text-[10px] text-emerald-400 font-mono">Continuous Indian Ocean Risk Monitoring</div>
-              </div>
+              {renderPredictionAnswerSection()}
             </div>
           </div>
         </div>
