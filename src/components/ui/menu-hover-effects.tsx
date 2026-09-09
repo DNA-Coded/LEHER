@@ -98,12 +98,12 @@ export function NavMenu({
                 <span
                   className="
                     relative z-10 block uppercase text-[#cccccc] 
-                    font-sans font-semibold transition-colors duration-300 
+                    font-sans font-medium transition-colors duration-300 
                     group-hover:text-white
-                    text-xl py-2 px-3
-                    md:text-sm md:py-2 md:px-3
-                    lg:text-base lg:py-2 lg:px-4
-                    tracking-wider
+                    text-base py-2 px-3
+                    md:text-xs md:py-1.5 md:px-2.5
+                    lg:text-xs lg:py-1.5 lg:px-3
+                    tracking-wider whitespace-nowrap
                   "
                 >
                   {item.label}
@@ -163,16 +163,16 @@ export function MenuHoverLink({
           onClick();
         }
       }}
-      className={cn("relative inline-block group cursor-pointer", className)}
+      className={cn("relative inline-block group cursor-pointer whitespace-nowrap", className)}
     >
       {/* Link text */}
       <span
         className="
           relative z-10 block uppercase text-[#aaaaaa] 
-          font-sans font-semibold transition-colors duration-300 
+          font-sans font-medium transition-colors duration-300 
           group-hover:text-white
-          text-xs md:text-sm py-1.5 px-3
-          tracking-wider
+          text-[11px] lg:text-xs py-1 px-2.5 lg:px-3
+          tracking-wider whitespace-nowrap
         "
       >
         {children}

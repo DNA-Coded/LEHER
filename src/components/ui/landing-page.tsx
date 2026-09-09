@@ -726,7 +726,7 @@ export default function LeherLandingPage() {
           </div>
 
           {/* Nav Links with Menu Hover Effects (Light Sky Blue) */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-3 text-sm font-medium">
+          <div className="hidden md:flex items-center gap-1 lg:gap-2.5 text-xs font-medium whitespace-nowrap">
             <MenuHoverLink onClick={() => scrollToSection('section-story')}>Explore</MenuHoverLink>
             <MenuHoverLink onClick={() => scrollToSection('section-data')}>Conditions</MenuHoverLink>
             <MenuHoverLink onClick={() => scrollToSection('section-capabilities')}>Capabilities</MenuHoverLink>
