@@ -13,7 +13,7 @@
       "destination": "/globe/index.html"
     },
     {
-      "source": "/((?!(earth|globe)/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
