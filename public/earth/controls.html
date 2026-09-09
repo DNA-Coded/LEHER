@@ -409,11 +409,11 @@
         .proj-top {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-end;
         }
 
         .proj-icon {
-            font-size: 16px;
+            display: none;
         }
 
         .proj-badge-mini {
@@ -527,7 +527,6 @@
             </div>
             <a href="index.html" class="nav-link-btn" title="Open Pure Distraction-Free Globe Canvas">
                 <span>Pure Globe</span>
-                <span>↗</span>
             </a>
         </div>
     </header>
@@ -542,9 +541,7 @@
         <!-- Right Side: Controls & Analytics Workbench -->
         <aside class="controls-sidebar">
             <div class="panel-header">
-                <span class="panel-title">
-                    <span>⚡</span> Controls & Analytics
-                </span>
+                <span class="panel-title">Controls & Analytics</span>
                 <span class="panel-badge" id="telemetry-mode">LIVE TELEMETRY</span>
             </div>
 
@@ -571,9 +568,14 @@
 
                     <div class="action-row">
                         <button id="btn-locate" class="btn-primary" title="Detect device GPS & center on location">
-                            <span>📍</span> Auto-Detect My Location
+                            Auto-Detect My Location
                         </button>
-                        <button id="btn-clear" class="btn-icon-clear" title="Clear selection">✕</button>
+                        <button id="btn-clear" class="btn-icon-clear" title="Clear selection">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -588,7 +590,6 @@
                         <!-- Concentric Region (Special) -->
                         <button class="proj-btn highlight-special" data-proj="concentric_region" title="Concentric Regional Projection (40°S–30°N, 20°E–130°E)">
                             <div class="proj-top">
-                                <span class="proj-icon">🎯</span>
                                 <span class="proj-badge-mini">CONCENTRIC FOCUS</span>
                             </div>
                             <span class="proj-name">40°S–30°N / 20°–130°E</span>
@@ -598,7 +599,6 @@
                         <!-- Standard Projections -->
                         <button class="proj-btn active" data-proj="orthographic" title="Orthographic 3D Globe">
                             <div class="proj-top">
-                                <span class="proj-icon">🌐</span>
                                 <span class="proj-badge-mini">3D</span>
                             </div>
                             <span class="proj-name">3D Globe</span>
@@ -607,7 +607,6 @@
 
                         <button class="proj-btn" data-proj="equirectangular" title="Equirectangular Plate Carrée">
                             <div class="proj-top">
-                                <span class="proj-icon">🗺️</span>
                                 <span class="proj-badge-mini">FLAT</span>
                             </div>
                             <span class="proj-name">Flat Map</span>
@@ -616,7 +615,6 @@
 
                         <button class="proj-btn" data-proj="winkel3" title="Winkel Tripel">
                             <div class="proj-top">
-                                <span class="proj-icon">🪐</span>
                                 <span class="proj-badge-mini">GLOBAL</span>
                             </div>
                             <span class="proj-name">Winkel Tripel</span>
@@ -625,7 +623,6 @@
 
                         <button class="proj-btn" data-proj="waterman" title="Waterman Butterfly">
                             <div class="proj-top">
-                                <span class="proj-icon">🦋</span>
                                 <span class="proj-badge-mini">POLY</span>
                             </div>
                             <span class="proj-name">Waterman</span>
@@ -634,7 +631,6 @@
 
                         <button class="proj-btn" data-proj="stereographic" title="Stereographic Conformal">
                             <div class="proj-top">
-                                <span class="proj-icon">🔭</span>
                                 <span class="proj-badge-mini">CONFORM</span>
                             </div>
                             <span class="proj-name">Stereographic</span>
@@ -643,7 +639,6 @@
 
                         <button class="proj-btn" data-proj="azimuthal_equidistant" title="Azimuthal Polar">
                             <div class="proj-top">
-                                <span class="proj-icon">❄️</span>
                                 <span class="proj-badge-mini">POLAR</span>
                             </div>
                             <span class="proj-name">Azimuthal</span>
@@ -652,7 +647,6 @@
 
                         <button class="proj-btn" data-proj="conic_equidistant" title="Conic Equidistant">
                             <div class="proj-top">
-                                <span class="proj-icon">📐</span>
                                 <span class="proj-badge-mini">CONIC</span>
                             </div>
                             <span class="proj-name">Conic</span>
@@ -661,7 +655,6 @@
 
                         <button class="proj-btn" data-proj="atlantis" title="Atlantis Transverse Mollweide">
                             <div class="proj-top">
-                                <span class="proj-icon">🌊</span>
                                 <span class="proj-badge-mini">OCEAN</span>
                             </div>
                             <span class="proj-name">Atlantis</span>
@@ -680,7 +673,7 @@
                         <div><strong>Latitude Range:</strong> 40°00'00"S to 30°00'00"N</div>
                         <div><strong>Longitude Range:</strong> 20°00'00"E to 130°00'00"E</div>
                         <div style="margin-top: 4px; color: #a7f3d0;">
-                            ✨ Target region rendered in vivid green & ocean blue. Exterior clamped to pitch black (#000000).
+                            Target region rendered in vivid green & ocean blue. Exterior clamped to pitch black (#000000).
                         </div>
                     </div>
                 </div>
@@ -785,11 +778,11 @@
             // Auto-locate click
             btnLocate.addEventListener("click", function() {
                 btnLocate.disabled = true;
-                btnLocate.innerHTML = "<span>⏳</span> Detecting Location...";
+                btnLocate.textContent = "Detecting Location...";
                 sendToGlobe({ action: "locateMe" });
                 setTimeout(function() {
                     btnLocate.disabled = false;
-                    btnLocate.innerHTML = "<span>📍</span> Auto-Detect My Location";
+                    btnLocate.textContent = "Auto-Detect My Location";
                 }, 3000);
             });
 

@@ -358,7 +358,7 @@
                     }
                 }
                 var pt = globe.projection(coord);
-                d3.select("#coords-title").text("📍 Your Location");
+                d3.select("#coords-title").text("Your Location");
                 showLocationDetails(pt, coord);
                 if (activeLocation.point && activeLocation.coord) {
                     var path = d3.geo.path().projection(globe.projection).pointRadius(7);

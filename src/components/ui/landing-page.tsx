@@ -6,8 +6,6 @@ import {
   Play, 
   Pause, 
   Maximize2,
-  Globe as GlobeIcon,
-  Clock,
   Menu
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
@@ -36,25 +34,25 @@ export const PROJECTION_METADATA: Record<string, string> = {
 };
 
 export const PROJECTION_LIST = [
-  { key: 'orthographic', name: '3D Globe', desc: 'Spherical Orthographic', icon: '🌐', badge: '3D' },
-  { key: 'equirectangular', name: 'Flat Map', desc: 'Plate Carrée Cylindrical', icon: '🗺️', badge: 'FLAT' },
-  { key: 'winkel3', name: 'Winkel Tripel', desc: 'Compromise World Map', icon: '🪐', badge: 'GLOBAL' },
-  { key: 'waterman', name: 'Waterman', desc: 'Butterfly Octahedron', icon: '🦋', badge: 'POLY' },
-  { key: 'stereographic', name: 'Stereographic', desc: 'True-Shape Perspective', icon: '🔭', badge: 'CONFORM' },
-  { key: 'azimuthal_equidistant', name: 'Azimuthal', desc: 'Equidistant True-Distance', icon: '❄️', badge: 'POLAR' },
-  { key: 'conic_equidistant', name: 'Conic', desc: 'Mid-Latitude Equidistant', icon: '📐', badge: 'CONIC' },
-  { key: 'atlantis', name: 'Atlantis', desc: 'Transverse Equal-Area', icon: '🌊', badge: 'OCEAN' },
+  { key: 'orthographic', name: '3D Globe', desc: 'Spherical Orthographic', badge: '3D' },
+  { key: 'equirectangular', name: 'Flat Map', desc: 'Plate Carrée Cylindrical', badge: 'FLAT' },
+  { key: 'winkel3', name: 'Winkel Tripel', desc: 'Compromise World Map', badge: 'GLOBAL' },
+  { key: 'waterman', name: 'Waterman', desc: 'Butterfly Octahedron', badge: 'POLY' },
+  { key: 'stereographic', name: 'Stereographic', desc: 'True-Shape Perspective', badge: 'CONFORM' },
+  { key: 'azimuthal_equidistant', name: 'Azimuthal', desc: 'Equidistant True-Distance', badge: 'POLAR' },
+  { key: 'conic_equidistant', name: 'Conic', desc: 'Mid-Latitude Equidistant', badge: 'CONIC' },
+  { key: 'atlantis', name: 'Atlantis', desc: 'Transverse Equal-Area', badge: 'OCEAN' },
 ];
 
 const defaultGlobeConfig = {
   positions: [
-    { top: "50%", left: "72%", scale: 1.15 }, // 0: Hero
-    { top: "50%", left: "70%", scale: 1.2 },  // 1: Spatio-Temporal (Centered in background behind vertical stratification)
-    { top: "28%", left: "22%", scale: 0.85 }, // 2: Data Integration
-    { top: "50%", left: "80%", scale: 1.0 },  // 3: Profiles
-    { top: "40%", left: "80%", scale: 0.9 },  // 4: Capabilities
-    { top: "35%", left: "50%", scale: 1.1 },  // 5: Model vs Reality
-    { top: "50%", left: "50%", scale: 0.0 },  // 6: Platform Preview (3D Earth center, background globe hidden)
+    { top: "50%", left: "70%", scale: 1.2 },  // 0: Hero (Locked in position)
+    { top: "50%", left: "70%", scale: 1.2 },  // 1: Spatio-Temporal (Behind vertical stratification)
+    { top: "50%", left: "70%", scale: 1.2 },  // 2: Data Integration (Locked in place)
+    { top: "50%", left: "70%", scale: 1.2 },  // 3: Profiles (Locked in place)
+    { top: "50%", left: "70%", scale: 1.2 },  // 4: Capabilities (Locked in place)
+    { top: "52%", left: "50%", scale: 1.2 },  // 5: Model vs Reality (Smoothly glides to center & merges behind card)
+    { top: "50%", left: "50%", scale: 0.0 },  // 6: Platform Preview (Hidden, workbench iframe takes over)
   ]
 };
 
@@ -259,25 +257,53 @@ export default function LeherLandingPage() {
       }
     });
 
-    // Continuous smooth interpolation between section positions for reduced movement speed
-    const numSections = calculatedPositions.length - 1;
-    const continuousIndex = progress * numSections;
-    const i = Math.min(Math.floor(continuousIndex), numSections - 1);
-    const t = continuousIndex - i;
-    const iNext = Math.min(i + 1, numSections);
+    // Section-aware globe positioning:
+    // Sections 0 to 4 (Hero through Capabilities): globe sticks strictly in place at top: 50%, left: 70%, scale: 1.2
+    // Section 5 (Model vs Reality): glides smoothly to center (top: 52%, left: 50%, scale: 1.2) and merges with Model vs Reality
+    // Section 6 (Workbench): scales down to 0 as operational workbench takes over
+    const sec4 = sectionRefs.current[4];
+    const sec5 = sectionRefs.current[5];
+    const sec6 = sectionRefs.current[6];
 
-    const posA = calculatedPositions[i] || calculatedPositions[0];
-    const posB = calculatedPositions[iNext] || posA;
+    let currentLeft = 70;
+    let currentTop = 50;
+    let currentScale = 1.2;
 
-    const currentLeft = posA.left + (posB.left - posA.left) * t;
-    const currentTop = posA.top + (posB.top - posA.top) * t;
-    const currentScale = posA.scale + (posB.scale - posA.scale) * t;
+    if (sec4 && sec5) {
+      const top4 = sec4.offsetTop;
+      const top5 = sec5.offsetTop;
+      const top6 = sec6 ? sec6.offsetTop : (top5 + 850);
+
+      if (scrollTop <= top4) {
+        // Stick in this place only across hero, spatio-temporal, data, profiles, and capabilities
+        currentLeft = 70;
+        currentTop = 50;
+        currentScale = 1.2;
+      } else if (scrollTop < top5) {
+        // Smoothly transition and glide into center as Model vs Reality enters
+        const t = Math.min(Math.max((scrollTop - top4) / (top5 - top4), 0), 1);
+        currentLeft = 70 + (50 - 70) * t;
+        currentTop = 50 + (52 - 50) * t;
+        currentScale = 1.2;
+      } else if (scrollTop < top6) {
+        // Merged in center at Model vs Reality, transitioning to Workbench
+        const t = Math.min(Math.max((scrollTop - top5) / (top6 - top5), 0), 1);
+        currentLeft = 50;
+        currentTop = 52;
+        currentScale = 1.2 * (1 - t);
+      } else {
+        // In Section 6: hidden
+        currentLeft = 50;
+        currentTop = 52;
+        currentScale = 0;
+      }
+    }
 
     const transform = `translate3d(${currentLeft.toFixed(2)}vw, ${currentTop.toFixed(2)}vh, 0) translate3d(-50%, -50%, 0) scale3d(${currentScale.toFixed(3)}, ${currentScale.toFixed(3)}, 1)`;
     
     setGlobeTransform(transform);
     setActiveSection(newActiveSection);
-  }, [calculatedPositions]);
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -372,7 +398,6 @@ export default function LeherLandingPage() {
       {/* Top Header */}
       <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <span className="text-amber-400 text-sm">⚡</span>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Controls & Analytics</h3>
         </div>
         <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
@@ -387,8 +412,7 @@ export default function LeherLandingPage() {
           <span>System Clock</span>
           <span className="text-cyan-400 font-bold">{selectedTimeZone} ({timeZoneMap[selectedTimeZone].offsetLabel})</span>
         </div>
-        <div className="text-sm font-mono text-white font-bold flex items-center gap-2">
-          <Clock className="w-4 h-4 text-emerald-400" />
+        <div className="text-sm font-mono text-white font-bold">
           <span>{realTimeClock}</span>
         </div>
         <div className="pt-1 flex items-center justify-between gap-2 text-xs font-mono">
@@ -431,17 +455,16 @@ export default function LeherLandingPage() {
           <button
             onClick={handleLocateMe}
             disabled={isLocating}
-            className="py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-900/30 disabled:opacity-60"
+            className="py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-sans font-bold text-xs flex items-center justify-center transition-all cursor-pointer shadow-lg shadow-cyan-900/30 disabled:opacity-60"
           >
-            <span>{isLocating ? "⏳" : "📍"}</span>
             <span>{isLocating ? "Detecting Location..." : "Auto-Detect My Location"}</span>
           </button>
           <button
             onClick={handleClearCoords}
             title="Clear Selection"
-            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 text-[#aaaaaa] hover:text-red-300 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 text-[#aaaaaa] hover:text-red-300 flex items-center justify-center transition-all cursor-pointer"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -465,8 +488,7 @@ export default function LeherLandingPage() {
               : "bg-gradient-to-br from-emerald-950/25 to-cyan-950/25 border-cyan-800/40 hover:border-cyan-500/60"
           )}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-base">🎯</span>
+          <div className="flex items-center justify-end">
             <span className={cn(
               "text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold tracking-wider",
               activeProjection === 'concentric_region' ? "bg-cyan-400 text-black" : "bg-cyan-950/60 text-cyan-300 border border-cyan-800/40"
@@ -493,10 +515,9 @@ export default function LeherLandingPage() {
                     : "bg-[#141414] border-[#222222] text-[#aaaaaa] hover:border-[#3a3a3a] hover:text-white"
                 )}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">{p.icon}</span>
+                <div className="flex items-center justify-end">
                   <span className={cn(
-                    "text-[9px] font-mono px-1.5 py-0.5 rounded",
+                    "text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold",
                     isActive ? "bg-cyan-400 text-black font-bold" : "bg-white/5 text-[#888888]"
                   )}>
                     {p.badge}
@@ -516,7 +537,7 @@ export default function LeherLandingPage() {
             <div><strong>Latitude:</strong> 40°00'00"S to 30°00'00"N</div>
             <div><strong>Longitude:</strong> 20°00'00"E to 130°00'00"E</div>
             <div className="text-[10px] text-emerald-400/80 pt-1 border-t border-emerald-900/40">
-              ✨ Target region rendered in vivid green & ocean blue. High-resolution regional domain.
+              Target region rendered in vivid green & ocean blue. High-resolution regional domain.
             </div>
           </div>
         )}
@@ -787,9 +808,8 @@ export default function LeherLandingPage() {
               </button>
               <button 
                 onClick={() => { setIsEarthFullscreen(true); setIsMobileMenuOpen(false); }} 
-                className="w-full py-3.5 rounded-xl bg-[#181818] border border-[#2e2e2e] text-white font-medium text-xs hover:bg-[#252525] transition-all cursor-pointer text-center flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-[#181818] border border-[#2e2e2e] text-white font-medium text-xs hover:bg-[#252525] transition-all cursor-pointer text-center flex items-center justify-center"
               >
-                <GlobeIcon className="w-4 h-4 text-cyan-400" />
                 <span>Fullscreen 3D Earth</span>
               </button>
             </div>
@@ -810,8 +830,8 @@ export default function LeherLandingPage() {
         )}
         style={{
           transform: globeTransform,
-          transition: "transform 2.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
-          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : (activeSection === 0 || activeSection === 1 || activeSection === 5) ? 0.95 : 0.72,
+          transition: "transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
+          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 6) ? 0 : 0.95,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100 pointer-events-auto">
@@ -894,9 +914,8 @@ export default function LeherLandingPage() {
             </button>
             <button 
               onClick={() => scrollToSection('section-preview')}
-              className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer flex items-center gap-2"
+              className="px-7 py-3.5 rounded-2xl border border-[#262626] bg-[#0d0d0d] hover:bg-[#161616] text-white font-medium text-sm transition-all cursor-pointer flex items-center"
             >
-              <GlobeIcon className="w-4 h-4 text-cyan-400" />
               <span>3D Workbench Preview</span>
             </button>
           </div>
@@ -1000,7 +1019,7 @@ export default function LeherLandingPage() {
             { title: "BGC Sensors", desc: "Biogeochemical observation streams monitoring dissolved oxygen, pH, nitrate, and chlorophyll-a.", spec: "Biogeochemical Sensors" },
             { title: "Remote Sensing", desc: "Satellite sea surface temperature, sea surface height altimetry, and ocean color boundary conditions.", spec: "Global Altimetry & SST" }
           ].map((item, idx) => (
-            <div key={idx} className="p-6 rounded-2xl bg-[#121212] border border-[#222222] space-y-3">
+            <div key={idx} className="p-6 rounded-2xl bg-[#121212]/80 backdrop-blur-md border border-[#222222] hover:border-cyan-500/30 transition-all space-y-3">
               <h3 className="text-lg font-bold text-white">{item.title}</h3>
               <p className="text-[#888888] text-sm leading-relaxed">{item.desc}</p>
               <div className="text-xs font-mono text-[#aaaaaa]">{item.spec}</div>
@@ -1048,13 +1067,13 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-[#121212] border border-[#222222] space-y-6">
-            <div className="flex justify-between items-center border-b border-[#222222] pb-4">
+          <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-[#0a0f18]/45 backdrop-blur-xl border border-cyan-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-6">
+            <div className="flex justify-between items-center border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white">Vertical Profile Explorer</h3>
-                <span className="text-xs font-mono text-[#888888]">Arabian Sea Station (15.4°N, 71.2°E)</span>
+                <span className="text-xs font-mono text-cyan-300/80">Arabian Sea Station (15.4°N, 71.2°E)</span>
               </div>
-              <div className="font-mono text-xs text-white bg-[#1a1a1a] px-3 py-1 rounded-lg border border-[#333333]">
+              <div className="font-mono text-xs text-white bg-black/40 px-3 py-1 rounded-lg border border-white/15">
                 DEPTH: {selectedDepth} m
               </div>
             </div>
@@ -1069,23 +1088,23 @@ export default function LeherLandingPage() {
                 type="range" 
                 min="0" 
                 max="2000" 
-                step="10"
-                value={selectedDepth}
-                onChange={(e) => setSelectedDepth(Number(e.target.value))}
+                step="10" 
+                value={selectedDepth} 
+                onChange={(e) => setSelectedDepth(Number(e.target.value))} 
                 className="w-full h-1.5 bg-[#222222] rounded appearance-none cursor-pointer accent-white"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] text-center">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
                 <div className="text-xs text-[#888888] font-mono mb-1">TEMP</div>
                 <div className="text-2xl font-bold text-white font-mono">{modelValues.temp} °C</div>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] text-center">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
                 <div className="text-xs text-[#888888] font-mono mb-1">SALINITY</div>
                 <div className="text-2xl font-bold text-white font-mono">{modelValues.sal} PSU</div>
               </div>
-              <div className="p-4 rounded-xl bg-[#090909] border border-[#222222] text-center">
+              <div className="p-4 rounded-xl bg-black/35 backdrop-blur-md border border-white/10 text-center">
                 <div className="text-xs text-[#888888] font-mono mb-1">CHLOROPHYLL</div>
                 <div className="text-2xl font-bold text-white font-mono">{modelValues.chl} mg/m³</div>
               </div>
@@ -1125,7 +1144,7 @@ export default function LeherLandingPage() {
             { title: "Custom Visualization", desc: "Control color scales, opacity, and vertical exaggeration." },
             { title: "Extensible Architecture", desc: "Ready for additional sensors and NetCDF datasets." }
           ].map((item, idx) => (
-            <div key={idx} className="p-6 rounded-2xl bg-[#121212] border border-[#222222] space-y-2">
+            <div key={idx} className="p-6 rounded-2xl bg-[#121212]/80 backdrop-blur-md border border-[#222222] hover:border-cyan-500/30 transition-all space-y-2">
               <h3 className="text-base font-bold text-white">{item.title}</h3>
               <p className="text-[#888888] text-sm leading-relaxed">{item.desc}</p>
             </div>
@@ -1153,12 +1172,12 @@ export default function LeherLandingPage() {
           </p>
         </div>
 
-        <div className="max-w-4xl p-8 rounded-2xl bg-[#121212] border border-[#222222] space-y-8">
-          <div className="flex flex-wrap justify-between items-center gap-4 border-b border-[#222222] pb-6">
+        <div className="max-w-4xl p-8 rounded-2xl bg-[#0a0f18]/55 backdrop-blur-xl border border-cyan-500/25 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-8">
+          <div className="flex flex-wrap justify-between items-center gap-4 border-b border-white/10 pb-6">
             <div>
-              <span className="text-xs font-mono text-[#888888] uppercase">Station Profile</span>
+              <span className="text-xs font-mono text-cyan-400 uppercase">Station Profile</span>
               <h3 className="text-xl font-bold text-white">Argo Float #2902345</h3>
-              <p className="text-xs text-[#888888] font-mono">Location: 15.4°N, 71.2°E | Depth: {selectedDepth}m</p>
+              <p className="text-xs text-[#aaaaaa] font-mono">Location: 15.4°N, 71.2°E | Depth: {selectedDepth}m</p>
             </div>
 
             <div className="flex gap-2">
@@ -1168,7 +1187,7 @@ export default function LeherLandingPage() {
                   onClick={() => setSelectedVar(v)}
                   className={cn(
                     "px-4 py-1.5 rounded-xl text-xs font-mono uppercase transition-all cursor-pointer",
-                    selectedVar === v ? "bg-white text-black font-bold" : "bg-[#0a0a0a] text-[#888888] hover:text-white border border-[#222222]"
+                    selectedVar === v ? "bg-white text-black font-bold" : "bg-black/40 text-[#aaaaaa] hover:text-white border border-white/15"
                   )}
                 >
                   {v === 'temp' ? 'Temperature' : v === 'sal' ? 'Salinity' : 'Chlorophyll'}
@@ -1178,7 +1197,7 @@ export default function LeherLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl bg-[#090909] border border-[#222222] space-y-1">
+            <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
               <div className="text-xs font-mono text-[#888888]">MODEL PREDICTED</div>
               <div className="text-3xl font-bold text-white font-mono">
                 {modelValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
@@ -1186,7 +1205,7 @@ export default function LeherLandingPage() {
               <div className="text-xs text-[#666666]">Grid Output</div>
             </div>
 
-            <div className="p-6 rounded-xl bg-[#090909] border border-[#222222] space-y-1">
+            <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
               <div className="text-xs font-mono text-[#aaaaaa]">INSTRUMENT OBSERVED</div>
               <div className="text-3xl font-bold text-white font-mono">
                 {observedValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
@@ -1194,7 +1213,7 @@ export default function LeherLandingPage() {
               <div className="text-xs text-[#666666]">In-situ Cast</div>
             </div>
 
-            <div className="p-6 rounded-xl bg-[#090909] border border-[#222222] space-y-1">
+            <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
               <div className="text-xs font-mono text-amber-400">DIFFERENCE</div>
               <div className="text-3xl font-bold text-amber-400 font-mono">
                 {parseFloat(diffValues[selectedVar]) > 0 ? `+${diffValues[selectedVar]}` : diffValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
@@ -1470,7 +1489,6 @@ export default function LeherLandingPage() {
 
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-lg border border-[#262626]">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{realTimeClock}</span>
                 <select
                   value={selectedTimeZone}
@@ -1534,7 +1552,6 @@ export default function LeherLandingPage() {
             
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-lg border border-[#262626]">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{realTimeClock}</span>
                 <select
                   value={selectedTimeZone}
