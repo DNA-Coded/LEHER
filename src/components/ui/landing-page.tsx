@@ -6,8 +6,7 @@ import {
   Play, 
   Pause, 
   Maximize2,
-  Menu,
-  ArrowUpRight
+  Menu
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -15,13 +14,10 @@ import { SpinningBorderButton } from "@/components/ui/spinning-border-button";
 import { MenuHoverLink } from "@/components/ui/menu-hover-effects";
 import { 
   CardCurtainReveal, 
-  CardCurtainRevealBody, 
-  CardCurtainRevealFooter, 
   CardCurtainRevealTitle, 
   CardCurtainRevealDescription, 
   CardCurtain 
 } from "@/components/ui/card-curtain-reveal";
-import { Button } from "@/components/ui/button";
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
@@ -852,41 +848,6 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* Landing Page Interactive Globe Status Pill (Click to stop / resume) */}
-      {activeSection === 0 && (
-        <div 
-          onClick={() => {
-            const iframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
-            if (isGlobePaused) {
-              iframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
-              setIsGlobePaused(false);
-            } else {
-              iframe?.contentWindow?.postMessage({ type: "LEHER_STOP_ROTATION" }, "*");
-              setIsGlobePaused(true);
-            }
-          }}
-          className={cn(
-            "hidden sm:flex fixed bottom-8 right-8 lg:right-24 z-30 items-center gap-2.5 px-4 py-2 rounded-full border transition-all duration-300 cursor-pointer backdrop-blur-md shadow-xl select-none",
-            isGlobePaused 
-              ? "bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30" 
-              : "bg-[#141414]/80 border-white/15 text-[#aaaaaa] hover:text-white hover:border-white/30"
-          )}
-          title={isGlobePaused ? "Globe stopped. Click to resume auto-rotation." : "Click globe or badge to stop auto-rotation."}
-        >
-          {isGlobePaused ? (
-            <>
-              <Play className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-              <span className="text-xs font-mono font-medium tracking-wide">Globe Paused • Click to Resume</span>
-            </>
-          ) : (
-            <>
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <span className="text-xs font-mono tracking-wide">Interactive Globe • Click / Touch to Stop</span>
-            </>
-          )}
-        </div>
-      )}
-
       {/* ========================================================
           HERO SECTION
          ======================================================== */}
@@ -895,10 +856,6 @@ export default function LeherLandingPage() {
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto pointer-events-none"
       >
         <div className="max-w-2xl space-y-7 pointer-events-auto">
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#121212] border border-[#262626] backdrop-blur-md shadow-sm">
-            <img src="/logo.png" alt="Leher Logo" title="Leher" className="w-5 h-5 rounded-full object-contain shadow" />
-            <span className="text-xs font-mono text-cyan-300 font-medium tracking-wide">LEHER • MARITIME SAFETY & HAZARD INTELLIGENCE</span>
-          </div>
           <div className="space-y-1">
             <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.05]">
               LEHER
@@ -1026,88 +983,40 @@ export default function LeherLandingPage() {
           {[
             { 
               title: "Sea Surface Temperature", 
-              desc: "Monitors thermal gradients, temperature fronts, and anomalous heat layers impacting navigation routes.", 
-              spec: "High-Resolution SST",
-              image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-              action: () => { setWorkbenchMode('ocean'); setWorkbenchVar('temp'); scrollToSection('section-preview'); }
+              desc: "Monitors thermal gradients, temperature fronts, and anomalous heat layers impacting navigation routes."
             },
             { 
               title: "Surface Currents", 
-              desc: "Tracks surface flow vectors, velocities, and directional drift critical for vessel course and stability.", 
-              spec: "Current Vectors & Drift",
-              image: "https://images.unsplash.com/photo-1498084393753-b411b2d26b34?auto=format&fit=crop&w=600&q=80",
-              action: () => { setWorkbenchMode('ocean'); setWorkbenchAnimate('currents'); scrollToSection('section-preview'); }
+              desc: "Tracks surface flow vectors, velocities, and directional drift critical for vessel course and stability."
             },
             { 
               title: "Salinity", 
-              desc: "Assesses sea surface salinity distribution influencing water mass density and acoustic propagation.", 
-              spec: "Practical Salinity Field",
-              image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=600&q=80",
-              action: () => { setWorkbenchMode('ocean'); setWorkbenchVar('sal'); scrollToSection('section-preview'); }
+              desc: "Assesses sea surface salinity distribution influencing water mass density and acoustic propagation."
             },
             { 
               title: "Wind Conditions", 
-              desc: "Measures 10m surface winds, gusts, and directional vectors driving sea state and surface drift.", 
-              spec: "Surface Wind Vectors",
-              image: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=600&q=80",
-              action: () => { setWorkbenchMode('air'); setWorkbenchAnimate('wind'); scrollToSection('section-preview'); }
+              desc: "Measures 10m surface winds, gusts, and directional vectors driving sea state and surface drift."
             },
             { 
               title: "Sea State", 
-              desc: "Evaluates wave dynamics, swell direction, and sea surface roughness to identify hazardous navigation waters.", 
-              spec: "Wave & Swell Dynamics",
-              image: "https://images.unsplash.com/photo-1505228395841-b07167dd0ef7?auto=format&fit=crop&w=600&q=80",
-              action: () => { setWorkbenchMode('ocean'); setWorkbenchVar('ssh'); scrollToSection('section-preview'); }
+              desc: "Evaluates wave dynamics, swell direction, and sea surface roughness to identify hazardous navigation waters."
             },
             { 
               title: "Environmental Observations", 
-              desc: "In-situ monitoring networks and satellite feeds integrated for continuous risk ground truthing.", 
-              spec: "Continuous Surveillance",
-              image: "https://images.unsplash.com/photo-1476673160081-cf065607f449?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-model'); }
+              desc: "In-situ monitoring networks and satellite feeds integrated for continuous risk ground truthing."
             }
           ].map((item, idx) => (
             <CardCurtainReveal
               key={idx}
-              className="group relative rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-cyan-400/50 transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.6)] overflow-hidden min-h-[310px] flex flex-col justify-between"
+              className="relative p-6 sm:p-7 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden space-y-3"
             >
-              <CardCurtainRevealBody className="p-6 flex flex-col justify-between flex-1 relative z-10">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-cyan-400/90 bg-cyan-950/40 px-2.5 py-1 rounded border border-cyan-800/40">
-                      {item.spec}
-                    </span>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-8 w-8 rounded-full bg-white/10 text-white hover:bg-cyan-400 hover:text-black transition-colors"
-                      onClick={item.action}
-                      title={`Explore ${item.title}`}
-                    >
-                      <ArrowUpRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <CardCurtainRevealTitle className="text-lg font-bold text-white tracking-tight">
-                    {item.title}
-                  </CardCurtainRevealTitle>
-
-                  <CardCurtainRevealDescription alwaysVisible className="text-neutral-400 text-sm leading-relaxed">
-                    <p>{item.desc}</p>
-                  </CardCurtainRevealDescription>
-                </div>
-
-                <CardCurtain className="bg-gradient-to-t from-cyan-500/15 via-sky-500/5 to-transparent pointer-events-none" />
-              </CardCurtainRevealBody>
-
-              <CardCurtainRevealFooter className="h-28 w-full overflow-hidden relative border-t border-white/5">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover object-center filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent pointer-events-none" />
-              </CardCurtainRevealFooter>
+              <CardCurtainRevealTitle className="text-lg font-bold text-white tracking-tight">
+                {item.title}
+              </CardCurtainRevealTitle>
+              <CardCurtainRevealDescription alwaysVisible className="text-[#888888] text-sm leading-relaxed">
+                <p>{item.desc}</p>
+              </CardCurtainRevealDescription>
+              <CardCurtain className="bg-white/[0.03] pointer-events-none" />
             </CardCurtainReveal>
           ))}
         </div>
@@ -1222,94 +1131,48 @@ export default function LeherLandingPage() {
           {[
             { 
               title: "3D Maritime Visualization", 
-              desc: "Spatial representation of maritime domain conditions and dynamic oceanic vectors.",
-              image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
-              action: () => { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+              desc: "Spatial representation of maritime domain conditions and dynamic oceanic vectors."
             },
             { 
               title: "Risk Zone Monitoring", 
-              desc: "Continuous surveillance of designated maritime transit corridors and high-risk zones.",
-              image: "https://images.unsplash.com/photo-1524522173746-f628baad3644?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-preview'); }
+              desc: "Continuous surveillance of designated maritime transit corridors and high-risk zones."
             },
             { 
               title: "Hazard Detection", 
-              desc: "Early identification of convective storms, cyclone paths, extreme wave heights, and anomalies.",
-              image: "https://images.unsplash.com/photo-1516912481808-3406841bd33c?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-model'); }
+              desc: "Early identification of convective storms, cyclone paths, extreme wave heights, and anomalies."
             },
             { 
               title: "Location Assessment", 
-              desc: "Point-specific inspection of multi-parameter environmental conditions and safety indicators.",
-              image: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-model'); }
+              desc: "Point-specific inspection of multi-parameter environmental conditions and safety indicators."
             },
             { 
               title: "Route Risk Analysis", 
-              desc: "Comprehensive risk indexing along planned vessel transit waypoints and navigation lanes.",
-              image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-preview'); }
+              desc: "Comprehensive risk indexing along planned vessel transit waypoints and navigation lanes."
             },
             { 
               title: "Safer Route Planning", 
-              desc: "Identifies safer navigational trajectories avoiding severe hazards and extreme sea states.",
-              image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-preview'); }
+              desc: "Identifies safer navigational trajectories avoiding severe hazards and extreme sea states."
             },
             { 
               title: "Operational Alerts", 
-              desc: "Audio and visual notifications for vessels entering high-risk areas or deteriorating weather.",
-              image: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-preview'); }
+              desc: "Audio and visual notifications for vessels entering high-risk areas or deteriorating weather."
             },
             { 
               title: "Environmental Monitoring", 
-              desc: "Unified tracking of winds, currents, sea surface temperature, and swell dynamics.",
-              image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=600&q=80",
-              action: () => { scrollToSection('section-data'); }
+              desc: "Unified tracking of winds, currents, sea surface temperature, and swell dynamics."
             }
           ].map((item, idx) => (
             <CardCurtainReveal
               key={idx}
-              className="group relative rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-cyan-400/50 transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.6)] overflow-hidden min-h-[290px] flex flex-col justify-between"
+              className="relative p-6 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden space-y-2.5"
             >
-              <CardCurtainRevealBody className="p-5 flex flex-col justify-between flex-1 relative z-10">
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400/80 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
-                      Capability 0{idx + 1}
-                    </span>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-7 w-7 rounded-full bg-white/10 text-white hover:bg-cyan-400 hover:text-black transition-colors"
-                      onClick={item.action}
-                      title={`Inspect ${item.title}`}
-                    >
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  
-                  <CardCurtainRevealTitle className="text-base font-bold text-white tracking-tight">
-                    {item.title}
-                  </CardCurtainRevealTitle>
-
-                  <CardCurtainRevealDescription alwaysVisible className="text-neutral-400 text-xs leading-relaxed">
-                    <p>{item.desc}</p>
-                  </CardCurtainRevealDescription>
-                </div>
-
-                <CardCurtain className="bg-gradient-to-t from-cyan-500/15 via-sky-500/5 to-transparent pointer-events-none" />
-              </CardCurtainRevealBody>
-
-              <CardCurtainRevealFooter className="h-24 w-full overflow-hidden relative border-t border-white/5">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover object-center filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent pointer-events-none" />
-              </CardCurtainRevealFooter>
+              <CardCurtainRevealTitle className="text-base font-bold text-white tracking-tight">
+                {item.title}
+              </CardCurtainRevealTitle>
+              <CardCurtainRevealDescription alwaysVisible className="text-[#888888] text-sm leading-relaxed">
+                <p>{item.desc}</p>
+              </CardCurtainRevealDescription>
+              <CardCurtain className="bg-white/[0.03] pointer-events-none" />
             </CardCurtainReveal>
           ))}
         </div>
