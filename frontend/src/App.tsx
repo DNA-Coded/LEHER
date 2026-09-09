@@ -8,10 +8,10 @@ function App() {
       {/* High-tech maritime navigational grid, sonar arcs & contour pattern on the left */}
       <MaritimePattern opacity={0.65} />
 
-      {/* Dynamic light/dark blue flow field across full screen including right side */}
+      {/* Dynamic light/dark blue flow field across Hero section only (does not continue into lower sections) */}
       <FlowFieldBackground 
-        className="fixed inset-0 w-full h-full pointer-events-none z-0"
-        mask="none"
+        className="absolute top-0 left-0 w-full h-screen pointer-events-none z-0 overflow-hidden"
+        mask="linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 75%, transparent 100%)"
         opacity={0.6}
         particleCount={1100}
         speed={0.4}

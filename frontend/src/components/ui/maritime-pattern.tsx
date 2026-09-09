@@ -17,16 +17,18 @@ export function MaritimePattern({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-0 w-full h-full overflow-hidden select-none z-0",
+        "pointer-events-none absolute top-0 left-0 w-full h-screen overflow-hidden select-none z-0",
         className
       )}
       style={{
         opacity,
-        // Strictly masked to fade out between 35% and 60% across the screen, leaving the right side (globe) completely clear
+        // Strictly masked to fade out before reaching the globe on the right and at the bottom before Section 1
         maskImage:
-          "linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 32%, rgba(0,0,0,0.2) 48%, transparent 62%)",
+          "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, transparent 100%), linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 32%, rgba(0,0,0,0.2) 48%, transparent 62%)",
         WebkitMaskImage:
-          "linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 32%, rgba(0,0,0,0.2) 48%, transparent 62%)",
+          "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, transparent 100%), linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 32%, rgba(0,0,0,0.2) 48%, transparent 62%)",
+        maskComposite: "intersect",
+        WebkitMaskComposite: "destination-in",
       }}
       aria-hidden="true"
     >

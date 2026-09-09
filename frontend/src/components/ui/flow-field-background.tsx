@@ -217,8 +217,12 @@ export function FlowFieldBackground({
       }
     };
 
+    let isVisible = true;
+
     // --- ANIMATION LOOP ---
     const animate = () => {
+      if (!isVisible) return;
+
       // Trail fade effect: semi-transparent black overlay
       ctx.fillStyle = `rgba(0, 0, 0, ${trailOpacity})`;
       ctx.fillRect(0, 0, width, height);
@@ -262,6 +266,24 @@ export function FlowFieldBackground({
     };
 
     init();
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          cancelAnimationFrame(animationFrameId);
+        }
+      },
+      { threshold: 0 }
+    );
+
+    if (container) {
+      observer.observe(container);
+    }
+
     animate();
 
     window.addEventListener("resize", handleResize);
@@ -271,6 +293,7 @@ export function FlowFieldBackground({
     window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
