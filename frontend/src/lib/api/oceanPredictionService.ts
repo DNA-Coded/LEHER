@@ -5,6 +5,7 @@
 
 export interface OceanPredictionVariable {
   variable: string;
+  commonName: string;
   standardName: string;
   units: string;
   description: string;
@@ -177,6 +178,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
     variables: {
       thetao: {
         variable: "thetao",
+        commonName: "Sea Temperature",
         standardName: "sea_water_potential_temperature",
         units: "°C",
         description: "Conservative temperature at depth",
@@ -186,6 +188,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       so: {
         variable: "so",
+        commonName: "Salinity",
         standardName: "sea_water_salinity",
         units: "PSU (1e-3)",
         description: "Practical salinity",
@@ -195,6 +198,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       uo: {
         variable: "uo",
+        commonName: "Eastward Velocity",
         standardName: "eastward_sea_water_velocity",
         units: "m s⁻¹",
         description: "Eastward current component",
@@ -204,6 +208,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       vo: {
         variable: "vo",
+        commonName: "Northward Velocity",
         standardName: "northward_sea_water_velocity",
         units: "m s⁻¹",
         description: "Northward current component",
@@ -213,6 +218,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       zos: {
         variable: "zos",
+        commonName: "Sea Surface Height",
         standardName: "sea_surface_height_above_geoid",
         units: "m",
         description: "Sea surface height anomaly",
@@ -222,6 +228,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       mlotst: {
         variable: "mlotst",
+        commonName: "Mixed Layer Depth",
         standardName: "ocean_mixed_layer_thickness",
         units: "m",
         description: "Mixed layer depth (turbocline)",
@@ -231,6 +238,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       bottomT: {
         variable: "bottomT",
+        commonName: "Sea-Floor Temperature",
         standardName: "sea_water_potential_temperature_at_sea_floor",
         units: "°C",
         description: "Sea-floor temperature",
@@ -240,6 +248,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       siconc: {
         variable: "siconc",
+        commonName: "Sea-Ice Concentration",
         standardName: "sea_ice_area_fraction",
         units: "%",
         description: "Sea-ice concentration",
@@ -249,6 +258,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       sithick: {
         variable: "sithick",
+        commonName: "Sea-Ice Thickness",
         standardName: "sea_ice_thickness",
         units: "m",
         description: "Sea-ice thickness",
@@ -258,6 +268,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       },
       chl: {
         variable: "chl",
+        commonName: "Chlorophyll-a",
         standardName: "mass_concentration_of_chlorophyll_a",
         units: "mg m⁻³",
         description: "Chlorophyll-a concentration (from biogeochemistry model)",

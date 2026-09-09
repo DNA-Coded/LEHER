@@ -730,21 +730,20 @@ export default function LeherLandingPage() {
       {/* 10 Standardized Copernicus Marine Variables Table */}
       <div className="rounded-xl border border-[#222222] bg-[#090909] overflow-hidden shadow-inner">
         <div className="bg-[#121212] px-3 py-2 border-b border-[#222222] grid grid-cols-12 text-[10px] text-[#888888] uppercase tracking-wider font-semibold">
-          <span className="col-span-2">Variable</span>
-          <span className="col-span-4">Standard Name</span>
-          <span className="col-span-3 text-right">Value (Units)</span>
+          <span className="col-span-5">Variable & Parameter</span>
+          <span className="col-span-4 text-right">Value (Units)</span>
           <span className="col-span-3 text-right">Description</span>
         </div>
         <div className="divide-y divide-[#181818] max-h-[380px] overflow-y-auto">
           {Object.values(predictionResult.variables).map((v) => (
             <div 
               key={v.variable} 
-              className="px-3 py-2 grid grid-cols-12 items-center hover:bg-white/[0.03] transition-colors gap-1 text-[11px]"
+              className="px-3 py-2 grid grid-cols-12 items-center hover:bg-white/[0.03] transition-colors gap-2 text-[11px]"
             >
-              {/* Variable Symbol Badge */}
-              <div className="col-span-2 flex items-center">
+              {/* Variable Symbol Badge + Common Name + Standard Name */}
+              <div className="col-span-5 flex items-center gap-2 min-w-0">
                 <span className={cn(
-                  "px-1.5 py-0.5 rounded text-[10px] font-bold border tracking-tight font-mono",
+                  "px-1.5 py-0.5 rounded text-[10px] font-bold border tracking-tight font-mono shrink-0",
                   v.variable === 'uo' || v.variable === 'vo'
                     ? "bg-amber-950/50 border-amber-800/50 text-amber-300"
                     : v.variable === 'thetao' || v.variable === 'bottomT'
@@ -757,17 +756,23 @@ export default function LeherLandingPage() {
                 )}>
                   {v.variable}
                 </span>
+                <div className="min-w-0 flex flex-col">
+                  <span className="text-[11px] font-bold text-white leading-tight truncate">
+                    {v.commonName || v.variable}
+                  </span>
+                  <span className="text-[9px] text-[#666666] font-mono truncate" title={v.standardName}>
+                    {v.standardName}
+                  </span>
+                </div>
               </div>
-              {/* Standard Name */}
-              <div className="col-span-4 text-[10px] text-[#aaaaaa] truncate font-mono" title={v.standardName}>
-                {v.standardName}
-              </div>
+
               {/* Value & Units */}
-              <div className="col-span-3 text-right font-bold text-white text-[11px] font-mono truncate" title={v.formattedValue}>
+              <div className="col-span-4 text-right font-bold text-white text-xs font-mono truncate" title={v.formattedValue}>
                 {v.formattedValue}
               </div>
+
               {/* Description */}
-              <div className="col-span-3 text-right text-[9px] text-[#777777] font-sans truncate" title={v.description}>
+              <div className="col-span-3 text-right text-[9px] text-[#888888] font-sans truncate" title={v.description}>
                 {v.description}
               </div>
             </div>
