@@ -100,15 +100,22 @@ export default function OperationsPage() {
     }
   }, [inputLat, inputLon, sendToEarthIframe]);
 
-  // Handle Predict
+  // Handle Predict & Open Depth Slice Page
   const handlePredict = useCallback(() => {
     setIsPredicting(true);
+    const targetUrl = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
     setTimeout(() => {
       const res = predictOceanState(Number(inputLat), Number(inputLon), Number(workbenchDepth));
       setPredictionResult(res);
       setIsPredicting(false);
-    }, 300);
+      window.location.href = targetUrl;
+    }, 280);
   }, [inputLat, inputLon, workbenchDepth]);
+
+  const handleOpenDepthSlice = () => {
+    const url = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
+    window.location.href = url;
+  };
 
   // Locate yourself via Geolocation
   const handleLocateMe = useCallback(() => {
@@ -422,15 +429,18 @@ export default function OperationsPage() {
               type="button"
               onClick={handlePredict}
               disabled={isPredicting}
-              className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#e6e6e6] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-white via-cyan-100 to-white hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
             >
               {isPredicting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                  <span>Predicting...</span>
+                  <span>Generating 3D Depth Slice...</span>
                 </>
               ) : (
-                <span>Predict Ocean State</span>
+                <>
+                  <span>Predict Ocean State &amp; Open 3D Depth Slice</span>
+                  <ArrowUpRight className="w-4 h-4 text-black" />
+                </>
               )}
             </button>
           </div>
@@ -476,15 +486,28 @@ export default function OperationsPage() {
               ))}
             </div>
 
-            {/* View in Detail Button */}
-            <button
-              type="button"
-              onClick={handleOpenDetails}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
-            >
-              <span>View in detail</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
-            </button>
+            {/* Actions: Open 3D Depth Slice & View Parameter Dossier */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleOpenDepthSlice}
+                className="py-2.5 px-3 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                title="Open 3D Volumetric Depth Slice"
+              >
+                <span>3D Depth Slice</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenDetails}
+                className="py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                title="Open Full Parameter Dossier"
+              >
+                <span>Full Dossier</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

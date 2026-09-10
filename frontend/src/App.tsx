@@ -4,10 +4,14 @@ import FlowFieldBackground from "@/components/ui/flow-field-background";
 import MaritimePattern from "@/components/ui/maritime-pattern";
 import OperationsPage from "@/components/ui/operations-page";
 import DetailsPage from "@/components/ui/details-page";
+import DepthSlicePage from "@/components/ui/depth-slice-page";
 
-function getRoute(): 'home' | 'operations' | 'details' {
+function getRoute(): 'home' | 'operations' | 'details' | 'depth-slice' {
   const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase();
+  if (path.startsWith('/depth-slice') || path.startsWith('/slice') || hash.includes('depth-slice') || hash.includes('slice')) {
+    return 'depth-slice';
+  }
   if (path.startsWith('/operations') || path.startsWith('/direction') || hash.includes('operations') || hash.includes('direction')) {
     return 'operations';
   }
@@ -18,7 +22,7 @@ function getRoute(): 'home' | 'operations' | 'details' {
 }
 
 function App() {
-  const [route, setRoute] = useState<'home' | 'operations' | 'details'>(getRoute);
+  const [route, setRoute] = useState<'home' | 'operations' | 'details' | 'depth-slice'>(getRoute);
 
   useEffect(() => {
     const handleRouteChange = () => {
@@ -31,6 +35,10 @@ function App() {
       window.removeEventListener("hashchange", handleRouteChange);
     };
   }, []);
+
+  if (route === 'depth-slice') {
+    return <DepthSlicePage />;
+  }
 
   if (route === 'operations') {
     return <OperationsPage />;
