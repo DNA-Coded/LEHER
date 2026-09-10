@@ -3,17 +3,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { 
   ArrowLeft, 
+  ArrowUpRight,
   RotateCcw, 
-  Activity, 
-  TrendingUp, 
   Sliders, 
   ChevronRight, 
   ChevronLeft,
   Compass,
-  Thermometer,
-  Droplets,
-  Wind,
-  CheckCircle2,
   Maximize2
 } from 'lucide-react';
 import { predictOceanState } from '@/lib/api/oceanPredictionService';
@@ -704,17 +699,17 @@ export default function DepthSlicePage() {
           )}
         >
           {/* Panel Header */}
-          <div className="p-4 border-b border-[#222222] bg-gradient-to-b from-white/[0.03] to-transparent flex justify-between items-start shrink-0">
+          <div className="p-4 border-b border-[#222222] flex justify-between items-center shrink-0">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-mono uppercase font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[10px] font-mono uppercase font-bold text-[#aaaaaa] bg-white/10 px-2 py-0.5 rounded border border-white/10">
                   ML Telemetry
                 </span>
-                <span className="text-xs text-[#aaaaaa] font-medium">{basePrediction.location.regionName}</span>
+                <span className="text-xs text-[#888888] font-medium">{basePrediction.location.regionName}</span>
               </div>
-              <h3 className="text-base font-bold text-white">Water Column Intelligence</h3>
-              <div className="text-xs text-cyan-400 font-mono mt-0.5">
-                {lat.toFixed(4)}°N, {lon.toFixed(4)}°E
+              <h3 className="text-sm sm:text-base font-bold text-white">Water Column Intelligence</h3>
+              <div className="text-xs text-[#888888] font-mono mt-0.5">
+                {lat.toFixed(4)}°N, {lon.toFixed(4)}°E • @{selectedDepth}m
               </div>
             </div>
 
@@ -734,7 +729,7 @@ export default function DepthSlicePage() {
               className={cn(
                 "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center",
                 activeTab === 'telemetry'
-                  ? "bg-white/10 text-white border border-white/20"
+                  ? "bg-[#1c1c1c] text-white border border-[#333333]"
                   : "text-[#888888] hover:text-white"
               )}
             >
@@ -745,7 +740,7 @@ export default function DepthSlicePage() {
               className={cn(
                 "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center",
                 activeTab === 'layers'
-                  ? "bg-white/10 text-white border border-white/20"
+                  ? "bg-[#1c1c1c] text-white border border-[#333333]"
                   : "text-[#888888] hover:text-white"
               )}
             >
@@ -756,7 +751,7 @@ export default function DepthSlicePage() {
               className={cn(
                 "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center",
                 activeTab === 'profile'
-                  ? "bg-white/10 text-white border border-white/20"
+                  ? "bg-[#1c1c1c] text-white border border-[#333333]"
                   : "text-[#888888] hover:text-white"
               )}
             >
@@ -769,20 +764,20 @@ export default function DepthSlicePage() {
             {/* TAB 1: TELEMETRY & CARDS */}
             {activeTab === 'telemetry' && (
               <div className="space-y-4">
-                {/* 1. Depth Slice Selector Card */}
-                <div className="rounded-2xl border border-[#1f1f1f] bg-gradient-to-br from-[#10141e] to-[#0a0d14] p-4 space-y-2.5 shadow-lg">
+                {/* 1. Depth Slice Selector Card (Clean Monochrome) */}
+                <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 space-y-2.5 shadow-inner">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
                       <Sliders className="w-3.5 h-3.5 text-cyan-400" />
                       Depth Slice Selector
                     </span>
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-800/40 text-emerald-400">
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#141414] border border-[#262626] text-white">
                       {activeLayer.depth === 0 ? '0m (Surface)' : `${activeLayer.depth} meters`}
                     </span>
                   </div>
 
                   <div className="text-[11px] text-[#888888]">
-                    Zone: <strong className="text-cyan-400">{getZoneLabel(activeLayer.depth)}</strong>
+                    Zone: <strong className="text-white">{getZoneLabel(activeLayer.depth)}</strong>
                   </div>
 
                   <input
@@ -795,7 +790,7 @@ export default function DepthSlicePage() {
                       const idx = parseInt(e.target.value, 10);
                       if (waterColumn[idx]) setSelectedDepth(waterColumn[idx].depth);
                     }}
-                    className="w-full accent-white h-1.5 bg-[#222222] rounded appearance-none cursor-pointer"
+                    className="w-full accent-white h-1.5 bg-[#1f1f1f] rounded appearance-none cursor-pointer"
                   />
 
                   {/* Tick Marks */}
@@ -806,7 +801,7 @@ export default function DepthSlicePage() {
                         onClick={() => setSelectedDepth(d)}
                         className={cn(
                           "cursor-pointer hover:text-white transition-colors",
-                          activeLayer.depth === d && "text-emerald-400 font-bold"
+                          activeLayer.depth === d && "text-cyan-400 font-bold"
                         )}
                       >
                         {d}m
@@ -829,7 +824,7 @@ export default function DepthSlicePage() {
                         className={cn(
                           "py-1 px-1 rounded-lg text-[10px] font-mono border transition-all cursor-pointer text-center truncate",
                           activeLayer.depth === p.depth
-                            ? "bg-emerald-950/60 border-emerald-600 text-emerald-300 font-bold"
+                            ? "bg-[#1f1f1f] border-white/40 text-white font-bold"
                             : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
                         )}
                       >
@@ -839,160 +834,70 @@ export default function DepthSlicePage() {
                   </div>
                 </div>
 
-                {/* 2. Primary Metrics 2x2 Grid */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {/* Potential Temp */}
-                  <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-950/10 to-[#0c0c0c] p-3 space-y-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
-                      <Thermometer className="w-3.5 h-3.5" />
-                      Potential Temp (θ₀)
+                {/* 2. Operations Page Output Section (Image 1 Exact Layout) */}
+                <div className="space-y-4 text-xs font-sans pt-2 border-t border-[#222222]">
+                  {/* Top Header: Region & Status */}
+                  <div className="flex justify-between items-center pb-1">
+                    <div className="text-white font-bold text-sm">
+                      {basePrediction.location.regionName}
                     </div>
-                    <div className="text-xl font-bold text-white font-mono">
-                      {activeLayer.thetao.toFixed(2)}
-                      <span className="text-xs text-orange-300 ml-1 font-sans">°C</span>
-                    </div>
-                    <div className="text-[10px] text-[#888888]">
-                      {activeLayer.depth === 0 ? 'Surface Layer' : activeLayer.depth <= 200 ? 'Thermocline' : 'Deep Cold Zone'}
-                    </div>
+                    <span className={cn(
+                      "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
+                      basePrediction.summary.riskStatus === 'SAFE' 
+                        ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
+                        : basePrediction.summary.riskStatus === 'ADVISORY'
+                        ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
+                        : "bg-red-950/60 border-red-800/60 text-red-400"
+                    )}>
+                      {basePrediction.summary.riskStatus}
+                    </span>
                   </div>
 
-                  {/* Salinity */}
-                  <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/10 to-[#0c0c0c] p-3 space-y-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                      <Droplets className="w-3.5 h-3.5" />
-                      Salinity (S₀)
+                  {/* Clean Parameters Box (Identical to screenshot) */}
+                  <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 space-y-2.5 shadow-inner">
+                    <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
+                      <span className="text-[#888888]">Current speed</span>
+                      <span className="font-bold text-white font-mono">{basePrediction.summary.currentSpeedMs} m s⁻¹</span>
                     </div>
-                    <div className="text-xl font-bold text-white font-mono">
-                      {activeLayer.so.toFixed(2)}
-                      <span className="text-xs text-cyan-300 ml-1 font-sans">PSU</span>
+                    <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
+                      <span className="text-[#888888]">Current bearing</span>
+                      <span className="font-bold text-white font-mono">{basePrediction.summary.currentDirectionCompass} ({basePrediction.summary.currentDirectionDeg}°)</span>
                     </div>
-                    <div className="text-[10px] text-[#888888]">Practical Salinity</div>
-                  </div>
-
-                  {/* Velocity */}
-                  <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/10 to-[#0c0c0c] p-3 space-y-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                      <Wind className="w-3.5 h-3.5" />
-                      Current Velocity
-                    </div>
-                    <div className="text-xl font-bold text-white font-mono">
-                      {activeLayer.current_speed.toFixed(3)}
-                      <span className="text-xs text-emerald-300 ml-1 font-sans">m/s</span>
-                    </div>
-                    <div className="text-[10px] text-[#888888]">
-                      ≈ {(activeLayer.current_speed * 1.94384).toFixed(2)} knots
-                    </div>
-                  </div>
-
-                  {/* Bearing */}
-                  <div className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-950/10 to-[#0c0c0c] p-3 space-y-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                      <Compass className="w-3.5 h-3.5" />
-                      Current Heading
-                    </div>
-                    <div className="text-xl font-bold text-white font-mono">
-                      {Math.round(activeLayer.dirDeg)}°
-                      <span className="text-xs text-purple-300 ml-1 font-sans font-bold">{activeLayer.dirStr}</span>
-                    </div>
-                    <div className="text-[10px] text-[#888888]">Flow vector bearing</div>
-                  </div>
-                </div>
-
-                {/* 3. Horizontal Velocity Components (u₀, v₀) */}
-                <div className="rounded-xl border border-[#1f1f1f] bg-[#0e0e0e] p-3 space-y-2">
-                  <div className="text-xs font-bold text-[#aaaaaa]">Horizontal Velocity Components (u₀, v₀)</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-[#141414] p-2.5 rounded-lg border border-[#222222]">
-                      <div className="text-[10px] text-[#888888]">Eastward (u₀)</div>
-                      <div className={cn("text-sm font-bold font-mono mt-0.5", activeLayer.uo >= 0 ? "text-emerald-400" : "text-rose-400")}>
-                        {activeLayer.uo >= 0 ? `+${activeLayer.uo.toFixed(3)}` : activeLayer.uo.toFixed(3)} m/s
+                    {Object.values(basePrediction.variables).map((v) => (
+                      <div key={v.variable} className="flex justify-between items-center text-xs">
+                        <span className="text-[#888888]">
+                          {v.commonName}
+                        </span>
+                        <span className="font-bold text-white font-mono">
+                          {v.formattedValue}
+                        </span>
                       </div>
-                    </div>
-                    <div className="bg-[#141414] p-2.5 rounded-lg border border-[#222222]">
-                      <div className="text-[10px] text-[#888888]">Northward (v₀)</div>
-                      <div className={cn("text-sm font-bold font-mono mt-0.5", activeLayer.vo >= 0 ? "text-emerald-400" : "text-rose-400")}>
-                        {activeLayer.vo >= 0 ? `+${activeLayer.vo.toFixed(3)}` : activeLayer.vo.toFixed(3)} m/s
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
 
-                {/* 4. Chlorophyll Concentration */}
-                <div className="rounded-xl border border-emerald-500/25 bg-gradient-to-br from-emerald-950/20 to-[#0c0c0c] p-3 space-y-1">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                    <Activity className="w-3.5 h-3.5" />
-                    Chlorophyll-a Concentration
-                  </div>
-                  <div className="text-xl font-bold text-white font-mono">
-                    {activeLayer.chlorophyll.toFixed(3)}
-                    <span className="text-xs text-emerald-300 ml-1 font-sans">mg/m³</span>
-                  </div>
-                  <div className="text-[10px] text-[#888888]">
-                    {activeLayer.chlorophyll > 1.0
-                      ? 'High productivity (algal bloom active)'
-                      : activeLayer.chlorophyll > 0.3
-                      ? 'Moderate primary marine productivity'
-                      : 'Oligotrophic deep depletion layer'}
-                  </div>
-                </div>
+                  {/* Actions: Open 3D Depth Slice & View Parameter Dossier */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleResetCamera}
+                      className="py-2.5 px-3 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                      title="Reset 3D Depth Slice View"
+                    >
+                      <span>3D Depth Slice</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
+                    </button>
 
-                {/* 5. Water Column Stratification Metrics */}
-                <div className="rounded-xl border border-[#1f1f1f] bg-[#0e0e0e] p-3 space-y-2">
-                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
-                    Water Column Stratification Metrics
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-[#141414] p-2 rounded-lg border border-[#222222]">
-                      <div className="text-[10px] text-[#888888]">Thermocline Core</div>
-                      <div className="text-sm font-bold font-mono text-cyan-400 mt-0.5">
-                        {derivedMetrics.thermocline_depth} m
-                      </div>
-                    </div>
-                    <div className="bg-[#141414] p-2 rounded-lg border border-[#222222]">
-                      <div className="text-[10px] text-[#888888]">Mixed Layer Depth</div>
-                      <div className="text-sm font-bold font-mono text-emerald-400 mt-0.5">
-                        {derivedMetrics.mixed_layer_depth} m
-                      </div>
-                    </div>
-                    <div className="bg-[#141414] p-2 rounded-lg border border-[#222222]">
-                      <div className="text-[10px] text-[#888888]">Pycnocline Gradient</div>
-                      <div className="text-sm font-bold font-mono text-amber-300 mt-0.5">
-                        {derivedMetrics.pycnocline_strength} <span className="text-[9px] font-sans text-[#888888]">×10⁻² °C/m</span>
-                      </div>
-                    </div>
-                    <div className="bg-[#141414] p-2 rounded-lg border border-[#222222]">
-                      <div className="text-[10px] text-[#888888]">Column Mean Speed</div>
-                      <div className="text-sm font-bold font-mono text-purple-400 mt-0.5">
-                        {derivedMetrics.mean_column_speed} m/s
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 6. Model Provenance & Accuracy */}
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0a0a0a] p-3 space-y-2">
-                  <div className="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 font-mono">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Leher-Copernicus ML Model (v2.1)
-                  </div>
-                  <div className="grid grid-cols-4 gap-1.5 text-center">
-                    <div className="bg-[#121212] py-1.5 rounded-lg border border-[#222222]">
-                      <div className="text-[9px] text-[#888888]">R² (θ₀)</div>
-                      <div className="text-xs font-bold text-emerald-400 font-mono">0.998</div>
-                    </div>
-                    <div className="bg-[#121212] py-1.5 rounded-lg border border-[#222222]">
-                      <div className="text-[9px] text-[#888888]">R² (S₀)</div>
-                      <div className="text-xs font-bold text-emerald-400 font-mono">0.987</div>
-                    </div>
-                    <div className="bg-[#121212] py-1.5 rounded-lg border border-[#222222]">
-                      <div className="text-[9px] text-[#888888]">R² (u₀)</div>
-                      <div className="text-xs font-bold text-cyan-400 font-mono">0.763</div>
-                    </div>
-                    <div className="bg-[#121212] py-1.5 rounded-lg border border-[#222222]">
-                      <div className="text-[9px] text-[#888888]">R² (v₀)</div>
-                      <div className="text-xs font-bold text-cyan-400 font-mono">0.656</div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.open(`/details?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
+                      }}
+                      className="py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                      title="Open Full Parameter Dossier"
+                    >
+                      <span>Full Dossier</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
+                    </button>
                   </div>
                 </div>
               </div>
