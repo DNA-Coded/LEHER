@@ -208,15 +208,15 @@ export default function DepthSlicePage() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(5.2, 3.8, 6.4);
+    camera.position.set(3.8, 2.3, 5.0);
     cameraRef.current = camera;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(-0.8, 0, 0);
-    controls.minDistance = 2.5;
-    controls.maxDistance = 18;
+    controls.target.set(0, 0, 0);
+    controls.minDistance = 2.0;
+    controls.maxDistance = 14;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
     controlsRef.current = controls;
 
@@ -232,7 +232,7 @@ export default function DepthSlicePage() {
     scene.add(pointLight);
 
     const waterGroup = new THREE.Group();
-    waterGroup.position.set(-0.8, 0, 0);
+    waterGroup.position.set(0, 0, 0);
     scene.add(waterGroup);
     waterGroupRef.current = waterGroup;
 
@@ -284,9 +284,9 @@ export default function DepthSlicePage() {
     }
     layerGroupsRef.current = [];
 
-    const BLOCK_HEIGHT = 6.2;
-    const BLOCK_RADIUS = 1.6;
-    const BLOCK_WIDTH = 3.0;
+    const BLOCK_HEIGHT = 6.4;
+    const BLOCK_RADIUS = 2.4;
+    const BLOCK_WIDTH = 4.6;
     const maxDepth = waterColumn[waterColumn.length - 1]?.depth || 2000;
 
     // Outer translucent ocean block
@@ -389,7 +389,7 @@ export default function DepthSlicePage() {
       }
 
       // Current Velocity 3D Arrow
-      const arrowLength = Math.max(0.3, Math.min(1.2, layer.current_speed * 5.0));
+      const arrowLength = Math.max(0.4, Math.min(1.5, layer.current_speed * 6.5));
       const angle = Math.atan2(layer.vo, layer.uo);
       const arrowGrp = new THREE.Group();
       arrowGrp.rotation.y = -angle;
@@ -418,8 +418,8 @@ export default function DepthSlicePage() {
     // Seabed Base
     const baseGeo =
       geometryType === 'cylinder'
-        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.05, 36)
-        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.1, BLOCK_WIDTH + 0.1);
+        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.08, 48)
+        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.15, BLOCK_WIDTH + 0.15);
     const baseMat = new THREE.MeshStandardMaterial({
       color: 0x001428,
       roughness: 0.9,
@@ -432,7 +432,8 @@ export default function DepthSlicePage() {
 
     // Left Depth Ruler
     const rulerGrp = new THREE.Group();
-    rulerGrp.position.set(-2.3, 0, 0);
+    const rulerOffset = geometryType === 'cylinder' ? BLOCK_RADIUS + 0.65 : BLOCK_WIDTH / 2 + 0.65;
+    rulerGrp.position.set(-rulerOffset, 0, 0);
 
     const spineGeo = new THREE.CylinderGeometry(0.015, 0.015, BLOCK_HEIGHT, 8);
     const spineMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.35 });
@@ -479,9 +480,22 @@ export default function DepthSlicePage() {
 
   const handleResetCamera = useCallback(() => {
     if (!controlsRef.current || !cameraRef.current) return;
-    controlsRef.current.target.set(panelCollapsed ? 0 : -0.8, 0, 0);
-    cameraRef.current.position.set(5.2, 3.8, 6.4);
+    controlsRef.current.target.set(0, 0, 0);
+    cameraRef.current.position.set(3.8, 2.3, 5.0);
     controlsRef.current.update();
+  }, []);
+
+  // Update canvas on panel expand/collapse
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!mountRef.current || !rendererRef.current || !cameraRef.current) return;
+      const w = mountRef.current.clientWidth;
+      const h = mountRef.current.clientHeight;
+      rendererRef.current.setSize(w, h);
+      cameraRef.current.aspect = w / h;
+      cameraRef.current.updateProjectionMatrix();
+    }, 320);
+    return () => clearTimeout(timer);
   }, [panelCollapsed]);
 
   return (
@@ -562,17 +576,18 @@ export default function DepthSlicePage() {
         <div ref={mountRef} className="flex-1 h-full relative overflow-hidden">
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
-          {/* Floating Controls Bar (Top Left) */}
-          <div className="absolute top-4 left-4 z-10 flex flex-wrap items-center gap-2 pointer-events-none">
-            {/* Coordinates Badge */}
+          {/* Top Left: Coordinates Badge */}
+          <div className="absolute top-4 left-4 z-10 pointer-events-none">
             <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-3.5 py-2 shadow-xl flex items-center gap-2.5">
               <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <div className="font-mono text-xs text-[#e0e0e0]">
                 <strong className="text-white">{basePrediction.location.regionName}</strong> • {lat.toFixed(4)}°N, {lon.toFixed(4)}°E
               </div>
             </div>
+          </div>
 
-            {/* Geometry & Variable Toggles */}
+          {/* Top Right: Geometry & Variable Controls */}
+          <div className="absolute top-4 right-4 z-10 pointer-events-none">
             <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl p-1.5 shadow-xl flex items-center gap-2">
               {/* Geometry Toggle */}
               <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626]">
