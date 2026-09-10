@@ -207,16 +207,16 @@ export default function DepthSlicePage() {
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(3.8, 2.3, 5.0);
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(5.0, 3.0, 5.4);
     cameraRef.current = camera;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.target.set(0, 0, 0);
-    controls.minDistance = 2.0;
-    controls.maxDistance = 14;
+    controls.minDistance = 2.5;
+    controls.maxDistance = 16;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
     controlsRef.current = controls;
 
@@ -265,9 +265,17 @@ export default function DepthSlicePage() {
     handleResize();
     window.addEventListener('resize', handleResize);
 
+    const ro = new ResizeObserver(() => {
+      handleResize();
+    });
+    if (mountRef.current) {
+      ro.observe(mountRef.current);
+    }
+
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      ro.disconnect();
       renderer.dispose();
       controls.dispose();
     };
@@ -284,16 +292,16 @@ export default function DepthSlicePage() {
     }
     layerGroupsRef.current = [];
 
-    const BLOCK_HEIGHT = 6.4;
-    const BLOCK_RADIUS = 2.4;
-    const BLOCK_WIDTH = 4.6;
+    const BLOCK_HEIGHT = 4.8;
+    const BLOCK_RADIUS = 3.0;
+    const BLOCK_WIDTH = 5.6;
     const maxDepth = waterColumn[waterColumn.length - 1]?.depth || 2000;
 
     // Outer translucent ocean block
     const outerGeo =
       geometryType === 'cylinder'
-        ? new THREE.CylinderGeometry(BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_HEIGHT, 48, 24, false)
-        : new THREE.BoxGeometry(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_WIDTH, 16, 24, 16);
+        ? new THREE.CylinderGeometry(BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_HEIGHT, 64, 32, false)
+        : new THREE.BoxGeometry(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_WIDTH, 20, 32, 20);
 
     const outerMat = new THREE.MeshPhysicalMaterial({
       color: 0x004488,
@@ -317,7 +325,7 @@ export default function DepthSlicePage() {
     // Surface water cap
     const capGeo =
       geometryType === 'cylinder'
-        ? new THREE.CircleGeometry(BLOCK_RADIUS - 0.02, 48)
+        ? new THREE.CircleGeometry(BLOCK_RADIUS - 0.02, 64)
         : new THREE.PlaneGeometry(BLOCK_WIDTH - 0.04, BLOCK_WIDTH - 0.04);
     const capMat = new THREE.MeshStandardMaterial({
       color: 0x00f0ff,
@@ -351,7 +359,7 @@ export default function DepthSlicePage() {
       // Disc / Plate
       const discGeo =
         geometryType === 'cylinder'
-          ? new THREE.CircleGeometry(BLOCK_RADIUS * 0.96, 36)
+          ? new THREE.CircleGeometry(BLOCK_RADIUS * 0.96, 64)
           : new THREE.PlaneGeometry(BLOCK_WIDTH * 0.96, BLOCK_WIDTH * 0.96);
       const discMat = new THREE.MeshStandardMaterial({
         color,
@@ -367,7 +375,7 @@ export default function DepthSlicePage() {
 
       // Glowing Rim Ring
       if (geometryType === 'cylinder') {
-        const ringGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.95, BLOCK_RADIUS * 0.99, 36);
+        const ringGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.95, BLOCK_RADIUS * 0.99, 64);
         const ringMat = new THREE.MeshBasicMaterial({
           color,
           transparent: true,
@@ -389,20 +397,20 @@ export default function DepthSlicePage() {
       }
 
       // Current Velocity 3D Arrow
-      const arrowLength = Math.max(0.4, Math.min(1.5, layer.current_speed * 6.5));
+      const arrowLength = Math.max(0.5, Math.min(1.8, layer.current_speed * 7.5));
       const angle = Math.atan2(layer.vo, layer.uo);
       const arrowGrp = new THREE.Group();
       arrowGrp.rotation.y = -angle;
       arrowGrp.position.y = 0.04;
 
-      const shaftGeo = new THREE.CylinderGeometry(0.02, 0.02, arrowLength, 8);
+      const shaftGeo = new THREE.CylinderGeometry(0.022, 0.022, arrowLength, 8);
       const shaftMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
       const shaft = new THREE.Mesh(shaftGeo, shaftMat);
       shaft.position.set(arrowLength / 2, 0, 0);
       shaft.rotation.z = Math.PI / 2;
       arrowGrp.add(shaft);
 
-      const coneGeo = new THREE.ConeGeometry(0.07, 0.2, 10);
+      const coneGeo = new THREE.ConeGeometry(0.08, 0.22, 10);
       const coneMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
       const cone = new THREE.Mesh(coneGeo, coneMat);
       cone.position.set(arrowLength, 0, 0);
@@ -418,8 +426,8 @@ export default function DepthSlicePage() {
     // Seabed Base
     const baseGeo =
       geometryType === 'cylinder'
-        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.08, 48)
-        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.15, BLOCK_WIDTH + 0.15);
+        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.12, 64)
+        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.25, BLOCK_WIDTH + 0.25);
     const baseMat = new THREE.MeshStandardMaterial({
       color: 0x001428,
       roughness: 0.9,
@@ -432,7 +440,7 @@ export default function DepthSlicePage() {
 
     // Left Depth Ruler
     const rulerGrp = new THREE.Group();
-    const rulerOffset = geometryType === 'cylinder' ? BLOCK_RADIUS + 0.65 : BLOCK_WIDTH / 2 + 0.65;
+    const rulerOffset = geometryType === 'cylinder' ? BLOCK_RADIUS + 0.75 : BLOCK_WIDTH / 2 + 0.75;
     rulerGrp.position.set(-rulerOffset, 0, 0);
 
     const spineGeo = new THREE.CylinderGeometry(0.015, 0.015, BLOCK_HEIGHT, 8);
@@ -481,7 +489,7 @@ export default function DepthSlicePage() {
   const handleResetCamera = useCallback(() => {
     if (!controlsRef.current || !cameraRef.current) return;
     controlsRef.current.target.set(0, 0, 0);
-    cameraRef.current.position.set(3.8, 2.3, 5.0);
+    cameraRef.current.position.set(5.0, 3.0, 5.4);
     controlsRef.current.update();
   }, []);
 
