@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://leher-3d.vercel.app/" target="_blank" rel="noopener noreferrer">
+  <a href="https://leher-sih.vercel.app/" target="_blank" rel="noopener noreferrer">
     <img src="logo.png" alt="Leher Logo" width="160" height="160" style="border-radius: 50%; max-width: 100%;" />
   </a>
 </p>
