@@ -17,7 +17,9 @@ import {
   AlertCircle,
   RefreshCw,
   Sliders,
-  ArrowUpRight
+  ArrowUpRight,
+  ExternalLink,
+  FileText
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
 import { predictOceanState, type OceanPredictionResult } from "@/lib/api/oceanPredictionService";
@@ -693,15 +695,34 @@ export default function LeherLandingPage() {
         ))}
       </div>
 
-      {/* View in Detail Button */}
-      <button
-        type="button"
-        onClick={() => setIsDetailModalOpen(true)}
-        className="w-full py-2.5 px-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-      >
-        <span>View in detail</span>
-        <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
-      </button>
+      {/* Action Buttons: Open Direction and View Details in New Page */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+        <button
+          type="button"
+          onClick={() => {
+            window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
+          }}
+          className="py-2.5 px-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+          title="Open Directions and 3D Operations in a new page"
+        >
+          <Compass className="w-3.5 h-3.5" />
+          <span>Open Direction</span>
+          <ExternalLink className="w-3 h-3 opacity-70" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.open(`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
+          }}
+          className="py-2.5 px-3 rounded-xl bg-[#181818] hover:bg-[#222222] border border-[#2a2a2a] hover:border-white/20 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          title="Open Oceanographic Parameter Details in a new page"
+        >
+          <FileText className="w-3.5 h-3.5 text-cyan-400" />
+          <span>View Details</span>
+          <ExternalLink className="w-3 h-3 text-[#888888]" />
+        </button>
+      </div>
     </div>
   );
 
@@ -781,7 +802,7 @@ export default function LeherLandingPage() {
           {/* Action CTA & Hamburger Menu */}
           <div className="flex items-center gap-3">
             <ShinyButton 
-              onClick={() => setIsPlatformOpen(true)}
+              onClick={() => window.open('/operations', '_blank')}
               className="hidden sm:inline-flex py-2 px-5 text-xs font-semibold"
             >
               Open Operations
@@ -1399,10 +1420,10 @@ export default function LeherLandingPage() {
           </p>
           <div className="pt-2 flex justify-center">
             <ShinyButton 
-              onClick={() => setIsPlatformOpen(true)}
+              onClick={() => window.open('/operations', '_blank')}
               className="py-3.5 px-8 text-sm font-semibold shadow-xl"
             >
-              Open Operations Console
+              Open Operations &amp; Direction Console
             </ShinyButton>
           </div>
         </div>
@@ -1562,36 +1583,30 @@ export default function LeherLandingPage() {
                     </div>
                   </div>
 
-                  {/* Descriptions Section */}
-                  <div className="space-y-2.5 text-xs">
-                    {/* Scientific Definition */}
-                    <div className="p-3 rounded-xl bg-[#141414] border border-[#1e1e1e] space-y-1">
-                      <div className="text-[10px] uppercase font-mono tracking-wider text-cyan-400 font-semibold flex items-center gap-1.5">
-                        <span>Physical Definition &amp; Measurement</span>
+                  {/* Streamlined Operational Guidance (Reduced Text) */}
+                  <div className="space-y-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold text-cyan-300 font-mono text-[11px] block">
+                          Operational Meaning:
+                        </span>
+                        <p className="text-[#cccccc] text-xs leading-relaxed mt-0.5">
+                          {v.operationalImpact}
+                        </p>
                       </div>
-                      <p className="text-[#cccccc] font-sans text-xs leading-relaxed">
-                        {v.longDescription}
-                      </p>
                     </div>
 
-                    {/* Operational Impact */}
-                    <div className="p-3 rounded-xl bg-[#141414] border border-[#1e1e1e] space-y-1">
-                      <div className="text-[10px] uppercase font-mono tracking-wider text-amber-400 font-semibold flex items-center gap-1.5">
-                        <span>Maritime &amp; Operational Impact</span>
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/10 flex items-start gap-2">
+                      <Compass className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold text-amber-300 font-mono text-[11px] block">
+                          Regional Navigation State:
+                        </span>
+                        <p className="text-[#aaaaaa] text-xs leading-relaxed mt-0.5">
+                          {v.depthInterpretation}
+                        </p>
                       </div>
-                      <p className="text-[#bbbbbb] font-sans text-xs leading-relaxed">
-                        {v.operationalImpact}
-                      </p>
-                    </div>
-
-                    {/* Depth & Basin Context */}
-                    <div className="p-3 rounded-xl bg-[#141414] border border-[#1e1e1e] space-y-1">
-                      <div className="text-[10px] uppercase font-mono tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
-                        <span>Depth ({predictionResult.location.depth}m) &amp; Regional State</span>
-                      </div>
-                      <p className="text-[#aaaaaa] font-sans text-xs leading-relaxed">
-                        {v.depthInterpretation}
-                      </p>
                     </div>
                   </div>
                 </div>

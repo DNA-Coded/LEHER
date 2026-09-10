@@ -1,8 +1,45 @@
+import { useState, useEffect } from "react";
 import DemoOne from "@/components/ui/demo";
 import FlowFieldBackground from "@/components/ui/flow-field-background";
 import MaritimePattern from "@/components/ui/maritime-pattern";
+import OperationsPage from "@/components/ui/operations-page";
+import DetailsPage from "@/components/ui/details-page";
+
+function getRoute(): 'home' | 'operations' | 'details' {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+  if (path.startsWith('/operations') || path.startsWith('/direction') || hash.includes('operations') || hash.includes('direction')) {
+    return 'operations';
+  }
+  if (path.startsWith('/details') || path.startsWith('/dossier') || hash.includes('details') || hash.includes('dossier')) {
+    return 'details';
+  }
+  return 'home';
+}
 
 function App() {
+  const [route, setRoute] = useState<'home' | 'operations' | 'details'>(getRoute);
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setRoute(getRoute());
+    };
+    window.addEventListener("popstate", handleRouteChange);
+    window.addEventListener("hashchange", handleRouteChange);
+    return () => {
+      window.removeEventListener("popstate", handleRouteChange);
+      window.removeEventListener("hashchange", handleRouteChange);
+    };
+  }, []);
+
+  if (route === 'operations') {
+    return <OperationsPage />;
+  }
+
+  if (route === 'details') {
+    return <DetailsPage />;
+  }
+
   return (
     <div className="relative min-h-screen w-full bg-[#080808]">
       {/* High-tech maritime navigational grid, sonar arcs & contour pattern on the left */}
@@ -25,4 +62,3 @@ function App() {
 }
 
 export default App;
-

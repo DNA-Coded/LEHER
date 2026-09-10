@@ -1,0 +1,523 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { 
+  ArrowLeft, 
+  Compass, 
+  ExternalLink, 
+  Sliders, 
+  Locate, 
+  RefreshCw, 
+  CheckCircle2, 
+  ChevronDown,
+  Clock,
+  Navigation,
+  FileText
+} from 'lucide-react';
+import { 
+  predictOceanState, 
+  type OceanPredictionResult 
+} from '@/lib/api/oceanPredictionService';
+import { cn } from '@/lib/utils';
+import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
+
+const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
+  IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
+  UTC: { name: 'UTC / GMT (Universal)', timeZone: 'UTC', offsetLabel: 'UTC+00:00' },
+  EST: { name: 'EST (US Eastern)', timeZone: 'America/New_York', offsetLabel: 'UTC-05:00' },
+  PST: { name: 'PST (US Pacific)', timeZone: 'America/Los_Angeles', offsetLabel: 'UTC-08:00' },
+  JST: { name: 'JST (Japan Standard)', timeZone: 'Asia/Tokyo', offsetLabel: 'UTC+09:00' },
+  SGT: { name: 'SGT (Singapore)', timeZone: 'Asia/Singapore', offsetLabel: 'UTC+08:00' },
+};
+
+export default function OperationsPage() {
+  // Read coordinates and depth from URL query parameters (or fallback to defaults)
+  const [params] = useState(() => {
+    const search = new URLSearchParams(window.location.search);
+    const lat = parseFloat(search.get('lat') || '15.4');
+    const lon = parseFloat(search.get('lon') || '71.2');
+    const depth = parseInt(search.get('depth') || '0', 10);
+    return {
+      lat: isNaN(lat) ? 15.4 : lat,
+      lon: isNaN(lon) ? 71.2 : lon,
+      depth: isNaN(depth) ? 0 : depth,
+    };
+  });
+
+  const [inputLat, setInputLat] = useState<number>(params.lat);
+  const [inputLon, setInputLon] = useState<number>(params.lon);
+  const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
+  const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
+  const [workbenchVar] = useState<'temp' | 'sal' | 'chl' | 'cur'>('cur');
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [isPredicting, setIsPredicting] = useState<boolean>(false);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
+  const [realTimeClock, setRealTimeClock] = useState<string>('');
+
+  const [predictionResult, setPredictionResult] = useState<OceanPredictionResult>(() => 
+    predictOceanState(params.lat, params.lon, params.depth)
+  );
+
+  const LOCATION_PRESETS = [
+    { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
+    { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
+    { label: "Equator / IO", lat: 0.0, lon: 80.5 },
+    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
+    { label: "South IO", lat: -25.0, lon: 75.0 },
+    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
+    { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
+    { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
+  ];
+
+  // Send message to Earth iframe
+  const sendToEarthIframe = useCallback((data: { action: string; projection?: string; latitude?: number; longitude?: number }) => {
+    const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[title*="Earth"]');
+    iframes.forEach((iframe) => {
+      try {
+        iframe.contentWindow?.postMessage(data, "*");
+      } catch (err) {
+        console.warn("Unable to postMessage to Earth iframe", err);
+      }
+    });
+  }, []);
+
+  // Listen for coordinates from Earth iframe inspection
+  useEffect(() => {
+    const handleEarthMessage = (e: MessageEvent) => {
+      if (!e.data || typeof e.data !== "object") return;
+      if (e.data.type === "earth:location") {
+        const lat = typeof e.data.latitude === "number" ? e.data.latitude : 0;
+        const lon = typeof e.data.longitude === "number" ? e.data.longitude : 0;
+        setInputLat(parseFloat(lat.toFixed(4)));
+        setInputLon(parseFloat(lon.toFixed(4)));
+      }
+    };
+    window.addEventListener("message", handleEarthMessage);
+    return () => window.removeEventListener("message", handleEarthMessage);
+  }, []);
+
+  // Sync coordinates with Earth iframe whenever inputLat or inputLon changes
+  useEffect(() => {
+    if (typeof inputLat === "number" && typeof inputLon === "number") {
+      sendToEarthIframe({
+        action: "setLocation",
+        latitude: inputLat,
+        longitude: inputLon,
+      });
+    }
+  }, [inputLat, inputLon, sendToEarthIframe]);
+
+  // Handle Predict
+  const handlePredict = useCallback(() => {
+    setIsPredicting(true);
+    setTimeout(() => {
+      const res = predictOceanState(Number(inputLat), Number(inputLon), Number(workbenchDepth));
+      setPredictionResult(res);
+      setIsPredicting(false);
+    }, 300);
+  }, [inputLat, inputLon, workbenchDepth]);
+
+  // Locate yourself via Geolocation
+  const handleLocateMe = useCallback(() => {
+    setIsLocating(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = parseFloat(pos.coords.latitude.toFixed(4));
+          const lon = parseFloat(pos.coords.longitude.toFixed(4));
+          setInputLat(lat);
+          setInputLon(lon);
+          sendToEarthIframe({ action: "locateMe" });
+          setIsLocating(false);
+        },
+        () => {
+          sendToEarthIframe({ action: "locateMe" });
+          setIsLocating(false);
+        },
+        { timeout: 6000 }
+      );
+    } else {
+      sendToEarthIframe({ action: "locateMe" });
+      setIsLocating(false);
+    }
+  }, [sendToEarthIframe]);
+
+  const handleSelectProjection = useCallback((projKey: string) => {
+    setActiveProjection(projKey);
+    sendToEarthIframe({ action: "setProjection", projection: projKey });
+  }, [sendToEarthIframe]);
+
+  // Real-time clock
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      try {
+        const options: Intl.DateTimeFormatOptions = {
+          timeZone: timeZoneMap[selectedTimeZone].timeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        };
+        const formatter = new Intl.DateTimeFormat('en-CA', options);
+        const formatted = formatter.format(now).replace(', ', ' ');
+        setRealTimeClock(`${formatted} ${selectedTimeZone}`);
+      } catch {
+        setRealTimeClock(`${now.toISOString().substring(0, 19).replace('T', ' ')} ${selectedTimeZone}`);
+      }
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [selectedTimeZone]);
+
+  const handleBackToHome = () => {
+    if (window.history.length > 1 && window.opener) {
+      window.close();
+    } else {
+      window.location.href = '/';
+    }
+  };
+
+  const handleOpenDetails = () => {
+    const url = `/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
+    window.location.href = url;
+  };
+
+  const earthIframeUrl = useMemo(() => {
+    const projName = activeProjection || 'concentric_region';
+    return `/earth/index.html#current/ocean/surface/currents/overlay=ocean/${projName}`;
+  }, [activeProjection]);
+
+  return (
+    <div className="h-screen w-screen bg-[#050505] text-white flex flex-col overflow-hidden font-sans">
+      {/* TOP HEADER BAR */}
+      <header className="h-16 bg-[#090909] border-b border-[#222222] px-4 sm:px-6 flex justify-between items-center z-20 shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleBackToHome}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer shadow-sm"
+            title="Return to Home"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Home</span>
+          </button>
+
+          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
+
+          <div className="flex items-center gap-2.5">
+            <img 
+              src="/logo.png" 
+              alt="Leher Logo" 
+              title="Leher" 
+              className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)]" 
+            />
+            <span className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+              <span>Operations &amp; Directions Console</span>
+            </span>
+            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-800/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>LIVE OPERATIONS ACTIVE</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Real-time Clock */}
+          <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
+            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{realTimeClock}</span>
+            <select
+              value={selectedTimeZone}
+              onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+              className="bg-[#1f1f1f] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors ml-1"
+            >
+              {Object.entries(timeZoneMap).map(([tz, info]) => (
+                <option key={tz} value={tz}>
+                  {tz} ({info.offsetLabel})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Button to Open Parameter Details Dossier */}
+          <button
+            onClick={handleOpenDetails}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white text-xs font-semibold transition-all cursor-pointer shadow"
+          >
+            <FileText className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">View Details Dossier</span>
+            <span className="sm:hidden">Details</span>
+            <ExternalLink className="w-3 h-3 opacity-60 ml-0.5" />
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN WORKSPACE: 3D EARTH + RIGHT CONTROL PANEL */}
+      <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
+        {/* LEFT / CENTER: 3D EARTH IFRAME */}
+        <div className="flex-1 h-full relative bg-[#040404]">
+          <iframe
+            key={activeProjection}
+            src={earthIframeUrl}
+            title="Leher Fullscreen 3D Earth"
+            className="w-full h-full border-0 absolute inset-0"
+            onLoad={() => {
+              sendToEarthIframe({
+                action: "setLocation",
+                latitude: inputLat,
+                longitude: inputLon,
+              });
+            }}
+          />
+
+          {/* Floating Coordinate HUD */}
+          <div className="absolute bottom-4 left-4 right-4 lg:right-auto z-10 pointer-events-none">
+            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
+              <Compass className="w-4 h-4 text-cyan-400" />
+              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong> @ {workbenchDepth}m</span>
+              <span className="text-cyan-400 hidden sm:inline">• Click on map to inspect</span>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: INTERACTIVE WORKBENCH CONTROLS & LIVE DIRECTIONS */}
+        <div className="w-full lg:w-[440px] bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+          <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-cyan-400" />
+              <span>Operations &amp; Controls</span>
+            </h2>
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
+              Interactive Predictor
+            </span>
+          </div>
+
+          {/* 1. Projection Selector */}
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between items-center text-[11px] text-[#888888]">
+              <span>Globe Projection</span>
+              <span className="text-cyan-400 font-mono text-[10px]">{PROJECTION_METADATA[activeProjection] || activeProjection}</span>
+            </div>
+            <div className="relative">
+              <select
+                value={activeProjection}
+                onChange={(e) => handleSelectProjection(e.target.value)}
+                className="w-full bg-[#141414] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#262626] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
+              >
+                {PROJECTION_LIST.map((p) => (
+                  <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Coordinates Input */}
+          <div className="space-y-2 text-xs">
+            <div className="text-[11px] text-[#888888]">Target Coordinates</div>
+            <div className="grid grid-cols-2 gap-2">
+              {/* Latitude */}
+              <div className="bg-[#141414] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
+                <span className="text-[#888888] text-xs">Lat</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="-90"
+                    max="90"
+                    value={inputLat}
+                    onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
+                    className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  />
+                  <span className="text-[#666666] font-mono text-xs">{inputLat >= 0 ? "°N" : "°S"}</span>
+                </div>
+              </div>
+
+              {/* Longitude */}
+              <div className="bg-[#141414] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
+                <span className="text-[#888888] text-xs">Lon</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="-180"
+                    max="180"
+                    value={inputLon}
+                    onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
+                    className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  />
+                  <span className="text-[#666666] font-mono text-xs">{inputLon >= 0 ? "°E" : "°W"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Ocean Presets */}
+            <div className="grid grid-cols-4 gap-1 pt-1">
+              {LOCATION_PRESETS.map((loc) => {
+                const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
+                return (
+                  <button
+                    key={loc.label}
+                    type="button"
+                    onClick={() => {
+                      setInputLat(loc.lat);
+                      setInputLon(loc.lon);
+                    }}
+                    className={cn(
+                      "px-1.5 py-1 rounded-lg text-[10px] border transition-all cursor-pointer text-center truncate",
+                      isSelected
+                        ? "bg-white text-black font-semibold border-white"
+                        : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
+                    )}
+                  >
+                    {loc.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Locate Yourself */}
+          <button
+            type="button"
+            onClick={handleLocateMe}
+            disabled={isLocating}
+            className="w-full py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+          >
+            <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin text-cyan-400")} />
+            <span>{isLocating ? "Detecting GPS Position..." : "Locate My Coordinates"}</span>
+          </button>
+
+          {/* 4. Depth Measurement Slider */}
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between items-center text-[11px] text-[#888888]">
+              <span>Observation Depth</span>
+              <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[11px]">
+                {workbenchDepth}m
+              </span>
+            </div>
+            <input 
+              type="range" 
+              min="0" 
+              max="2000" 
+              step="10" 
+              value={workbenchDepth} 
+              onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
+              className="w-full accent-cyan-400 h-1 bg-[#222222] rounded appearance-none cursor-pointer"
+            />
+            <div className="grid grid-cols-6 gap-1 text-center">
+              {[0, 50, 150, 500, 1000, 2000].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setWorkbenchDepth(d)}
+                  className={cn(
+                    "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
+                    workbenchDepth === d
+                      ? "bg-white text-black font-bold border-white"
+                      : "bg-[#141414] border-[#222222] text-[#666666] hover:text-white"
+                  )}
+                >
+                  {d === 0 ? "0m" : `${d}m`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 5. Predict Ocean State Button */}
+          <button
+            type="button"
+            onClick={handlePredict}
+            disabled={isPredicting}
+            className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#e6e6e6] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-75"
+          >
+            {isPredicting ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                <span>Computing Numerical Model...</span>
+              </>
+            ) : (
+              <span>Predict Ocean State &amp; Flow Directions</span>
+            )}
+          </button>
+
+          {/* 6. LIVE NAVIGATION DIRECTIONS & TELEMETRY */}
+          <div className="pt-2 border-t border-[#222222] space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-white font-bold uppercase tracking-wider text-xs font-mono flex items-center gap-1.5">
+                <Navigation className="w-3.5 h-3.5 text-cyan-400" />
+                <span>LIVE DIRECTIONS &amp; FLOW</span>
+              </span>
+              <span className={cn(
+                "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
+                predictionResult.summary.riskStatus === 'SAFE' 
+                  ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
+                  : predictionResult.summary.riskStatus === 'ADVISORY'
+                  ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
+                  : "bg-red-950/60 border-red-800/60 text-red-400"
+              )}>
+                {predictionResult.summary.riskStatus}
+              </span>
+            </div>
+
+            {/* Flow direction & speed telemetry card */}
+            <div className="p-3.5 rounded-2xl bg-[#141414] border border-[#222222] space-y-2.5 text-xs">
+              <div className="flex justify-between items-center pb-2 border-b border-[#202020]">
+                <span className="text-[#888899]">Flow Direction (Bearing)</span>
+                <span className="font-bold text-white font-mono flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                  {predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center pb-2 border-b border-[#202020]">
+                <span className="text-[#888899]">Surface Drift Speed</span>
+                <span className="font-bold text-white font-mono">
+                  {predictionResult.summary.currentSpeedMs} m s⁻¹ <span className="text-[#888899] font-normal">({predictionResult.summary.currentSpeedKnots} kts)</span>
+                </span>
+              </div>
+
+              {/* Waypoint Leeway Guidance */}
+              <div className="p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-[11px] space-y-1">
+                <span className="font-semibold text-cyan-300 font-mono block">
+                  Directional Steering Advisory:
+                </span>
+                <p className="text-[#cccccc] leading-relaxed">
+                  Hydrodynamic flow vector setting toward <strong>{predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)</strong>. 
+                  Apply {Math.max(1, Math.round(predictionResult.summary.currentSpeedKnots * 3))}° counter-heading correction to maintain intended track.
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Parameters Table */}
+            <div className="rounded-2xl border border-[#1f1f1f] bg-[#101010] p-3 space-y-1.5 text-xs">
+              {Object.values(predictionResult.variables).slice(0, 5).map((v) => (
+                <div key={v.variable} className="flex justify-between items-center text-[11px]">
+                  <span className="text-[#888899]">{v.commonName}</span>
+                  <span className="font-mono font-bold text-white">{v.formattedValue}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action button to View Full Parameter Details Dossier */}
+            <button
+              type="button"
+              onClick={handleOpenDetails}
+              className="w-full py-2.5 px-4 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/15 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            >
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Open Detailed Parameter Dossier</span>
+              <ExternalLink className="w-3 h-3 text-[#888899]" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
