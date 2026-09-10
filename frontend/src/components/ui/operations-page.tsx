@@ -1,16 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ArrowLeft, 
-  Compass, 
-  ExternalLink, 
-  Sliders, 
+  ChevronDown, 
   Locate, 
   RefreshCw, 
-  CheckCircle2, 
-  ChevronDown,
+  ArrowUpRight,
   Clock,
-  Navigation,
-  FileText
+  Compass
 } from 'lucide-react';
 import { 
   predictOceanState, 
@@ -34,11 +30,11 @@ export default function OperationsPage() {
     const search = new URLSearchParams(window.location.search);
     const lat = parseFloat(search.get('lat') || '15.4');
     const lon = parseFloat(search.get('lon') || '71.2');
-    const depth = parseInt(search.get('depth') || '0', 10);
+    const depth = parseInt(search.get('depth') || '150', 10);
     return {
       lat: isNaN(lat) ? 15.4 : lat,
       lon: isNaN(lon) ? 71.2 : lon,
-      depth: isNaN(depth) ? 0 : depth,
+      depth: isNaN(depth) ? 150 : depth,
     };
   });
 
@@ -46,7 +42,6 @@ export default function OperationsPage() {
   const [inputLon, setInputLon] = useState<number>(params.lon);
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
   const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
-  const [workbenchVar] = useState<'temp' | 'sal' | 'chl' | 'cur'>('cur');
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
@@ -214,12 +209,8 @@ export default function OperationsPage() {
               className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)]" 
             />
             <span className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
-              <span>Operations &amp; Directions Console</span>
+              <span>Operations &amp; Analytics Console</span>
             </span>
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-800/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>LIVE OPERATIONS ACTIVE</span>
-            </div>
           </div>
         </div>
 
@@ -240,21 +231,10 @@ export default function OperationsPage() {
               ))}
             </select>
           </div>
-
-          {/* Button to Open Parameter Details Dossier */}
-          <button
-            onClick={handleOpenDetails}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white text-xs font-semibold transition-all cursor-pointer shadow"
-          >
-            <FileText className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">View Details Dossier</span>
-            <span className="sm:hidden">Details</span>
-            <ExternalLink className="w-3 h-3 opacity-60 ml-0.5" />
-          </button>
         </div>
       </header>
 
-      {/* MAIN WORKSPACE: 3D EARTH + RIGHT CONTROL PANEL */}
+      {/* MAIN WORKSPACE: 3D EARTH + RIGHT MINIMAL WORKBENCH CONTROLS */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT / CENTER: 3D EARTH IFRAME */}
         <div className="flex-1 h-full relative bg-[#040404]">
@@ -282,29 +262,30 @@ export default function OperationsPage() {
           </div>
         </div>
 
-        {/* RIGHT: INTERACTIVE WORKBENCH CONTROLS & LIVE DIRECTIONS */}
-        <div className="w-full lg:w-[440px] bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+        {/* RIGHT: EXACT MINIMAL WORKBENCH CONTROLS & ANALYTICS */}
+        <div className="w-full sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+          {/* Top Header */}
           <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-cyan-400" />
-              <span>Operations &amp; Controls</span>
-            </h2>
-            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
-              Interactive Predictor
-            </span>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+              OPERATIONS &amp; ANALYTICS
+            </h3>
+            <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span>OPERATIONS ACTIVE</span>
+            </div>
           </div>
 
-          {/* 1. Projection Selector */}
-          <div className="space-y-1.5 text-xs">
+          {/* 1. Globe Shape Dropdown */}
+          <div className="space-y-1.5 text-xs font-sans">
             <div className="flex justify-between items-center text-[11px] text-[#888888]">
-              <span>Globe Projection</span>
+              <span>Projection</span>
               <span className="text-cyan-400 font-mono text-[10px]">{PROJECTION_METADATA[activeProjection] || activeProjection}</span>
             </div>
             <div className="relative">
               <select
                 value={activeProjection}
                 onChange={(e) => handleSelectProjection(e.target.value)}
-                className="w-full bg-[#141414] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#262626] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
+                className="w-full bg-[#121212] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#262626] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
               >
                 {PROJECTION_LIST.map((p) => (
                   <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
@@ -319,46 +300,51 @@ export default function OperationsPage() {
           </div>
 
           {/* 2. Coordinates Input */}
-          <div className="space-y-2 text-xs">
-            <div className="text-[11px] text-[#888888]">Target Coordinates</div>
-            <div className="grid grid-cols-2 gap-2">
-              {/* Latitude */}
-              <div className="bg-[#141414] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
-                <span className="text-[#888888] text-xs">Lat</span>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="-90"
-                    max="90"
-                    value={inputLat}
-                    onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-                    className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                  />
-                  <span className="text-[#666666] font-mono text-xs">{inputLat >= 0 ? "°N" : "°S"}</span>
-                </div>
-              </div>
-
-              {/* Longitude */}
-              <div className="bg-[#141414] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
-                <span className="text-[#888888] text-xs">Lon</span>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="-180"
-                    max="180"
-                    value={inputLon}
-                    onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-                    className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                  />
-                  <span className="text-[#666666] font-mono text-xs">{inputLon >= 0 ? "°E" : "°W"}</span>
-                </div>
+          <div className="space-y-2 text-xs font-sans">
+            <div className="text-[11px] text-[#888888]">Coordinates</div>
+            
+            {/* Latitude */}
+            <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
+              <span className="text-[#888888] text-xs">Latitude</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="-90"
+                  max="90"
+                  value={inputLat}
+                  onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
+                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  placeholder="15.40"
+                />
+                <span className="text-[#666666] font-mono text-xs w-6 text-right">
+                  {inputLat >= 0 ? "°N" : "°S"}
+                </span>
               </div>
             </div>
 
-            {/* Ocean Presets */}
-            <div className="grid grid-cols-4 gap-1 pt-1">
+            {/* Longitude */}
+            <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
+              <span className="text-[#888888] text-xs">Longitude</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="-180"
+                  max="180"
+                  value={inputLon}
+                  onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
+                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  placeholder="71.20"
+                />
+                <span className="text-[#666666] font-mono text-xs w-6 text-right">
+                  {inputLon >= 0 ? "°E" : "°W"}
+                </span>
+              </div>
+            </div>
+
+            {/* Presets */}
+            <div className="grid grid-cols-4 gap-1 pt-0.5">
               {LOCATION_PRESETS.map((loc) => {
                 const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
                 return (
@@ -390,14 +376,14 @@ export default function OperationsPage() {
             disabled={isLocating}
             className="w-full py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
           >
-            <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin text-cyan-400")} />
-            <span>{isLocating ? "Detecting GPS Position..." : "Locate My Coordinates"}</span>
+            <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
+            <span>{isLocating ? "Locating..." : "Locate Yourself"}</span>
           </button>
 
-          {/* 4. Depth Measurement Slider */}
-          <div className="space-y-2 text-xs">
+          {/* 4. Depth Measurement */}
+          <div className="space-y-2 text-xs font-sans">
             <div className="flex justify-between items-center text-[11px] text-[#888888]">
-              <span>Observation Depth</span>
+              <span>Depth</span>
               <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[11px]">
                 {workbenchDepth}m
               </span>
@@ -409,7 +395,7 @@ export default function OperationsPage() {
               step="10" 
               value={workbenchDepth} 
               onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-              className="w-full accent-cyan-400 h-1 bg-[#222222] rounded appearance-none cursor-pointer"
+              className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
             />
             <div className="grid grid-cols-6 gap-1 text-center">
               {[0, 50, 150, 500, 1000, 2000].map((d) => (
@@ -431,29 +417,31 @@ export default function OperationsPage() {
           </div>
 
           {/* 5. Predict Ocean State Button */}
-          <button
-            type="button"
-            onClick={handlePredict}
-            disabled={isPredicting}
-            className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#e6e6e6] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-75"
-          >
-            {isPredicting ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                <span>Computing Numerical Model...</span>
-              </>
-            ) : (
-              <span>Predict Ocean State &amp; Flow Directions</span>
-            )}
-          </button>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handlePredict}
+              disabled={isPredicting}
+              className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#e6e6e6] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
+            >
+              {isPredicting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                  <span>Predicting...</span>
+                </>
+              ) : (
+                <span>Predict Ocean State</span>
+              )}
+            </button>
+          </div>
 
-          {/* 6. LIVE NAVIGATION DIRECTIONS & TELEMETRY */}
-          <div className="pt-2 border-t border-[#222222] space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-white font-bold uppercase tracking-wider text-xs font-mono flex items-center gap-1.5">
-                <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-                <span>LIVE DIRECTIONS &amp; FLOW</span>
-              </span>
+          {/* 6. Prediction Answers Section */}
+          <div className="space-y-4 text-xs font-sans pt-2 border-t border-[#222222]">
+            {/* Top Header: Region & Status */}
+            <div className="flex justify-between items-center pb-1">
+              <div className="text-white font-bold text-sm">
+                {predictionResult.location.regionName}
+              </div>
               <span className={cn(
                 "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
                 predictionResult.summary.riskStatus === 'SAFE' 
@@ -466,54 +454,36 @@ export default function OperationsPage() {
               </span>
             </div>
 
-            {/* Flow direction & speed telemetry card */}
-            <div className="p-3.5 rounded-2xl bg-[#141414] border border-[#222222] space-y-2.5 text-xs">
-              <div className="flex justify-between items-center pb-2 border-b border-[#202020]">
-                <span className="text-[#888899]">Flow Direction (Bearing)</span>
-                <span className="font-bold text-white font-mono flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-cyan-400" />
-                  {predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)
-                </span>
+            {/* Clean Parameters Box (Identical to screenshot) */}
+            <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 space-y-2.5 shadow-inner">
+              <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
+                <span className="text-[#888888]">Current speed</span>
+                <span className="font-bold text-white font-mono">{predictionResult.summary.currentSpeedMs} m s⁻¹</span>
               </div>
-
-              <div className="flex justify-between items-center pb-2 border-b border-[#202020]">
-                <span className="text-[#888899]">Surface Drift Speed</span>
-                <span className="font-bold text-white font-mono">
-                  {predictionResult.summary.currentSpeedMs} m s⁻¹ <span className="text-[#888899] font-normal">({predictionResult.summary.currentSpeedKnots} kts)</span>
-                </span>
+              <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
+                <span className="text-[#888888]">Current bearing</span>
+                <span className="font-bold text-white font-mono">{predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)</span>
               </div>
-
-              {/* Waypoint Leeway Guidance */}
-              <div className="p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-[11px] space-y-1">
-                <span className="font-semibold text-cyan-300 font-mono block">
-                  Directional Steering Advisory:
-                </span>
-                <p className="text-[#cccccc] leading-relaxed">
-                  Hydrodynamic flow vector setting toward <strong>{predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)</strong>. 
-                  Apply {Math.max(1, Math.round(predictionResult.summary.currentSpeedKnots * 3))}° counter-heading correction to maintain intended track.
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Parameters Table */}
-            <div className="rounded-2xl border border-[#1f1f1f] bg-[#101010] p-3 space-y-1.5 text-xs">
-              {Object.values(predictionResult.variables).slice(0, 5).map((v) => (
-                <div key={v.variable} className="flex justify-between items-center text-[11px]">
-                  <span className="text-[#888899]">{v.commonName}</span>
-                  <span className="font-mono font-bold text-white">{v.formattedValue}</span>
+              {Object.values(predictionResult.variables).map((v) => (
+                <div key={v.variable} className="flex justify-between items-center text-xs">
+                  <span className="text-[#888888]">
+                    {v.commonName}
+                  </span>
+                  <span className="font-bold text-white font-mono">
+                    {v.formattedValue}
+                  </span>
                 </div>
               ))}
             </div>
 
-            {/* Action button to View Full Parameter Details Dossier */}
+            {/* View in Detail Button */}
             <button
               type="button"
               onClick={handleOpenDetails}
-              className="w-full py-2.5 px-4 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/15 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              className="w-full py-2.5 px-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
             >
-              <FileText className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Open Detailed Parameter Dossier</span>
-              <ExternalLink className="w-3 h-3 text-[#888899]" />
+              <span>View in detail</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
             </button>
           </div>
         </div>
