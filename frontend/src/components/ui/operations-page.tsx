@@ -8,10 +8,6 @@ import {
   Clock,
   Compass
 } from 'lucide-react';
-import { 
-  predictOceanState, 
-  type OceanPredictionResult 
-} from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
 
@@ -46,10 +42,6 @@ export default function OperationsPage() {
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
-
-  const [predictionResult, setPredictionResult] = useState<OceanPredictionResult>(() => 
-    predictOceanState(params.lat, params.lon, params.depth)
-  );
 
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
@@ -105,17 +97,10 @@ export default function OperationsPage() {
     setIsPredicting(true);
     const targetUrl = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
     setTimeout(() => {
-      const res = predictOceanState(Number(inputLat), Number(inputLon), Number(workbenchDepth));
-      setPredictionResult(res);
       setIsPredicting(false);
       window.location.href = targetUrl;
     }, 280);
   }, [inputLat, inputLon, workbenchDepth]);
-
-  const handleOpenDepthSlice = () => {
-    const url = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
-    window.location.href = url;
-  };
 
   // Locate yourself via Geolocation
   const handleLocateMe = useCallback(() => {
@@ -180,11 +165,6 @@ export default function OperationsPage() {
     } else {
       window.location.href = '/';
     }
-  };
-
-  const handleOpenDetails = () => {
-    const url = `/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
-    window.location.href = url;
   };
 
   const earthIframeUrl = useMemo(() => {
@@ -443,71 +423,6 @@ export default function OperationsPage() {
                 </>
               )}
             </button>
-          </div>
-
-          {/* 6. Prediction Answers Section */}
-          <div className="space-y-4 text-xs font-sans pt-2 border-t border-[#222222]">
-            {/* Top Header: Region & Status */}
-            <div className="flex justify-between items-center pb-1">
-              <div className="text-white font-bold text-sm">
-                {predictionResult.location.regionName}
-              </div>
-              <span className={cn(
-                "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
-                predictionResult.summary.riskStatus === 'SAFE' 
-                  ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
-                  : predictionResult.summary.riskStatus === 'ADVISORY'
-                  ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
-                  : "bg-red-950/60 border-red-800/60 text-red-400"
-              )}>
-                {predictionResult.summary.riskStatus}
-              </span>
-            </div>
-
-            {/* Clean Parameters Box (Identical to screenshot) */}
-            <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 space-y-2.5 shadow-inner">
-              <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
-                <span className="text-[#888888]">Current speed</span>
-                <span className="font-bold text-white font-mono">{predictionResult.summary.currentSpeedMs} m s⁻¹</span>
-              </div>
-              <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
-                <span className="text-[#888888]">Current bearing</span>
-                <span className="font-bold text-white font-mono">{predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)</span>
-              </div>
-              {Object.values(predictionResult.variables).map((v) => (
-                <div key={v.variable} className="flex justify-between items-center text-xs">
-                  <span className="text-[#888888]">
-                    {v.commonName}
-                  </span>
-                  <span className="font-bold text-white font-mono">
-                    {v.formattedValue}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Actions: Open 3D Depth Slice & View Parameter Dossier */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={handleOpenDepthSlice}
-                className="py-2.5 px-3 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                title="Open 3D Volumetric Depth Slice"
-              >
-                <span>3D Depth Slice</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleOpenDetails}
-                className="py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                title="Open Full Parameter Dossier"
-              >
-                <span>Full Dossier</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
