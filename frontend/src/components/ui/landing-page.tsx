@@ -1120,66 +1120,84 @@ export default function LeherLandingPage() {
       <section 
         id="section-capabilities"
         ref={(el) => { sectionRefs.current[3] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
+        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-16 sm:py-20 max-w-7xl mx-auto"
       >
-        <div className="space-y-4 max-w-2xl mb-16">
-          <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
+        <div className="space-y-3 max-w-xl mb-7">
+          <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             OPERATIONAL CAPABILITIES
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
             Maritime Risk & Hazard Intelligence.
           </h2>
-          <p className="text-[#888888] leading-relaxed text-base font-light">
+          <p className="text-[#888888] leading-relaxed text-sm sm:text-base font-light">
             Monitor conditions, identify hazards, assess location risk, and support safer maritime decisions.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* All 9 Translucent Cards in a 3x3 Grid — strictly left-aligned so the rotating globe on the right remains completely unobstructed */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 max-w-xl lg:max-w-[52%] xl:max-w-[54%]">
           {[
             { 
+              code: "3DV",
               title: "3D Maritime Visualization", 
               desc: "Spatial representation of maritime domain conditions and dynamic oceanic vectors."
             },
             { 
+              code: "RZM",
               title: "Risk Zone Monitoring", 
-              desc: "Continuous surveillance of designated maritime transit corridors and high-risk zones."
+              desc: "Continuous surveillance of designated transit corridors and high-risk zones."
             },
             { 
+              code: "HZD",
               title: "Hazard Detection", 
-              desc: "Early identification of convective storms, cyclone paths, extreme wave heights, and anomalies."
+              desc: "Early identification of convective storms, cyclones, and extreme wave heights."
             },
             { 
+              code: "LOC",
               title: "Location Assessment", 
-              desc: "Point-specific inspection of multi-parameter environmental conditions and safety indicators."
+              desc: "Point-specific inspection of multi-parameter environmental conditions."
             },
             { 
+              code: "RRA",
               title: "Route Risk Analysis", 
-              desc: "Comprehensive risk indexing along planned vessel transit waypoints and navigation lanes."
+              desc: "Comprehensive risk indexing along planned vessel transit waypoints."
             },
             { 
+              code: "SRP",
               title: "Safer Route Planning", 
-              desc: "Identifies safer navigational trajectories avoiding severe hazards and extreme sea states."
+              desc: "Identifies safer navigational trajectories avoiding severe hazards."
             },
             { 
+              code: "ALT",
               title: "Operational Alerts", 
-              desc: "Audio and visual notifications for vessels entering high-risk areas or deteriorating weather."
+              desc: "Audio and visual notifications for vessels entering high-risk areas."
             },
             { 
+              code: "ENV",
               title: "Environmental Monitoring", 
-              desc: "Unified tracking of winds, currents, sea surface temperature, and swell dynamics."
+              desc: "Unified tracking of winds, currents, sea surface temperature, and swell."
+            },
+            { 
+              code: "SAR",
+              title: "Search & Rescue Support", 
+              desc: "Emergency vector calculation and drift trajectory modeling for rescue ops."
             }
           ].map((item, idx) => (
             <CardCurtainReveal
               key={idx}
-              className="relative p-6 rounded-2xl bg-[#121212]/90 backdrop-blur-md border border-[#222222] hover:border-white/25 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden h-[195px] flex flex-col justify-start cursor-pointer group"
+              className="relative p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0a0d14]/40 hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 hover:border-cyan-400/50 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,240,255,0.15)] overflow-hidden h-[105px] sm:h-[112px] flex flex-col justify-start cursor-pointer group"
             >
-              <CardCurtainRevealTitle centerOffset={52} className="text-base font-bold text-white tracking-tight">
-                {item.title}
+              <CardCurtainRevealTitle centerOffset={18} className="text-[11px] sm:text-xs font-bold text-white tracking-tight flex items-start justify-between gap-1">
+                <span className="line-clamp-2 leading-snug">{item.title}</span>
+                <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/10 text-cyan-300/80 shrink-0 group-hover:border-cyan-400/40 group-hover:text-cyan-300 transition-colors">
+                  {item.code}
+                </span>
               </CardCurtainRevealTitle>
-              <CardCurtainRevealDescription className="text-[#888888] text-sm leading-relaxed mt-2.5">
+              <CardCurtainRevealDescription className="text-[#a0a0aa] text-[10px] sm:text-[11px] leading-tight mt-1 line-clamp-2">
                 <p>{item.desc}</p>
               </CardCurtainRevealDescription>
-              <CardCurtain className="bg-white/[0.03] pointer-events-none" />
+              <CardCurtain className="bg-gradient-to-br from-cyan-500/[0.08] via-transparent to-transparent pointer-events-none" />
             </CardCurtainReveal>
           ))}
         </div>
