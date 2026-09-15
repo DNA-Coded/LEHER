@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-export interface ShinyButtonProps {
+import { cn } from "@/lib/utils"
+
+export interface ShinyButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode
-  onClick?: () => void
-  className?: string
-  style?: React.CSSProperties
-  type?: "button" | "submit" | "reset"
 }
 
 export function ShinyButton({
@@ -16,6 +15,8 @@ export function ShinyButton({
   className = "",
   style,
   type = "button",
+  disabled,
+  ...props
 }: ShinyButtonProps) {
   return (
     <>
@@ -208,9 +209,11 @@ export function ShinyButton({
 
       <button
         type={type}
-        className={`shiny-cta ${className}`}
+        disabled={disabled}
+        className={cn("shiny-cta disabled:opacity-50 disabled:pointer-events-none cursor-pointer", className)}
         onClick={onClick}
         style={style}
+        {...props}
       >
         <span>{children}</span>
       </button>

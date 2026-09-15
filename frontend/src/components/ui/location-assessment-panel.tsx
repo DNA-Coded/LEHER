@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RiskBadge } from '@/components/ui/risk-badge';
+import { ShinyButton } from '@/components/ui/shiny-button';
+import { SpinningBorderButton } from '@/components/ui/spinning-border-button';
 import type { LocationAssessmentData } from '@/lib/types/operational-types';
 
 interface LocationAssessmentPanelProps {
@@ -223,15 +225,16 @@ export function LocationAssessmentPanel({
       <div className="bg-[#121212] border border-[#222222] rounded-xl p-3.5 space-y-3">
         <div className="flex items-center justify-between text-xs">
           <span className="font-mono text-[#888888] text-[11px]">COORDINATE INSPECTION</span>
-          <button
+          <SpinningBorderButton
             type="button"
             onClick={onLocateMe}
             disabled={isLocating}
-            className="flex items-center gap-1.5 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 disabled:opacity-60 transition-colors cursor-pointer"
+            hideArrow
+            className="text-[11px] py-1 px-3"
           >
-            <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
+            <Locate className={cn("w-3 h-3 mr-1", isLocating && "animate-spin")} />
             <span>{isLocating ? 'Locating...' : 'Locate Vessel'}</span>
-          </button>
+          </SpinningBorderButton>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -352,24 +355,24 @@ export function LocationAssessmentPanel({
 
       {/* 6. PRIMARY CTA: PREDICT OCEAN STATE & OPEN 3D DEPTH SLICE */}
       <div className="pt-1">
-        <button
+        <ShinyButton
           type="button"
           onClick={onPredict}
           disabled={isPredicting}
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 hover:brightness-110 active:scale-[0.99] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-75"
+          className="w-full py-3 px-4 text-xs font-bold shadow-lg"
         >
           {isPredicting ? (
             <>
-              <RefreshCw className="w-4 h-4 animate-spin text-black" />
+              <RefreshCw className="w-4 h-4 animate-spin text-cyan-300" />
               <span>Generating 3D Depth Slice...</span>
             </>
           ) : (
             <>
               <span>Predict Ocean State &amp; Open 3D Depth Slice</span>
-              <ArrowUpRight className="w-4 h-4 text-black" />
+              <ArrowUpRight className="w-4 h-4 text-cyan-400" />
             </>
           )}
-        </button>
+        </ShinyButton>
         <p className="text-[10px] text-center text-[#666666] font-mono mt-2">
           Calculates vertical water column across 10 depth horizons (0–2000m)
         </p>

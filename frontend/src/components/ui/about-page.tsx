@@ -1,6 +1,8 @@
 import React from 'react';
 import { ArrowRight, Compass } from 'lucide-react';
 import AppNavbar from '@/components/ui/app-navbar';
+import { ShinyButton } from '@/components/ui/shiny-button';
+import { SpinningBorderButton } from '@/components/ui/spinning-border-button';
 
 export function AboutLeherPage() {
   const navigateTo = (path: string) => {
@@ -28,21 +30,21 @@ export function AboutLeherPage() {
             Leher is an interactive 3D ocean platform for exploring ocean conditions, assessing locations and understanding maritime risk across the Indian Ocean.
           </p>
 
-          <div className="pt-2 flex flex-wrap justify-center gap-3">
-            <button
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+            <ShinyButton
               onClick={() => navigateTo('/operations')}
-              className="inline-flex items-center gap-2 py-2.5 px-6 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-black font-semibold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(6,182,212,0.25)] cursor-pointer"
+              className="py-2.5 px-6 text-xs sm:text-sm font-semibold shadow-lg"
             >
-              <Compass className="w-4 h-4" />
+              <Compass className="w-4 h-4 text-cyan-400" />
               <span>Launch Platform</span>
               <ArrowRight className="w-4 h-4 opacity-80" />
-            </button>
-            <button
+            </ShinyButton>
+            <SpinningBorderButton
               onClick={() => navigateTo('/')}
-              className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-white font-medium text-xs sm:text-sm transition-all cursor-pointer"
+              hideArrow
             >
               <span>Back to Home</span>
-            </button>
+            </SpinningBorderButton>
           </div>
         </section>
 
@@ -366,15 +368,21 @@ export function AboutLeherPage() {
             </p>
           </div>
 
-          <div className="pt-2 flex justify-center">
-            <button
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+            <ShinyButton
               onClick={() => navigateTo('/operations')}
-              className="inline-flex items-center gap-2 py-3 px-8 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-sm transition-all shadow-[0_0_20px_rgba(6,182,212,0.25)] cursor-pointer"
+              className="py-3 px-8 text-sm font-semibold shadow-xl"
             >
-              <Compass className="w-4 h-4" />
+              <Compass className="w-4 h-4 text-cyan-400" />
               <span>Launch Platform</span>
               <ArrowRight className="w-4 h-4 opacity-80" />
-            </button>
+            </ShinyButton>
+            <SpinningBorderButton
+              onClick={() => navigateTo('/')}
+              hideArrow
+            >
+              <span>Back to Home</span>
+            </SpinningBorderButton>
           </div>
         </section>
 

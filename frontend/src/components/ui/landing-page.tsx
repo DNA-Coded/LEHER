@@ -674,16 +674,17 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* 3. Locate Yourself */}
-      <button
+      {/* 3. Locate Yourself (Secondary Button Animation) */}
+      <SpinningBorderButton
         type="button"
         onClick={handleLocateMe}
         disabled={isLocating}
-        className="w-full py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+        hideArrow
+        className="w-full text-xs"
       >
-        <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
+        <Locate className={cn("w-3.5 h-3.5 mr-1.5", isLocating && "animate-spin")} />
         <span>{isLocating ? "Locating..." : "Locate Yourself"}</span>
-      </button>
+      </SpinningBorderButton>
 
       {/* 4. Depth Measurement */}
       <div className="space-y-2">
@@ -721,23 +722,23 @@ export default function LeherLandingPage() {
         </div>
       </div>
 
-      {/* 5. Predict Button */}
+      {/* 5. Predict Button (Primary Button Animation) */}
       <div className="pt-2">
-        <button
+        <ShinyButton
           type="button"
           onClick={handlePredict}
           disabled={isPredicting}
-          className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#e6e6e6] text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
+          className="w-full py-3 px-4 text-xs font-bold"
         >
           {isPredicting ? (
             <>
-              <RefreshCw className="w-4 h-4 animate-spin text-black" />
+              <RefreshCw className="w-4 h-4 animate-spin text-cyan-300" />
               <span>Predicting...</span>
             </>
           ) : (
             <span>Predict Ocean State</span>
           )}
-        </button>
+        </ShinyButton>
       </div>
     </div>
   );
@@ -783,46 +784,47 @@ export default function LeherLandingPage() {
         ))}
       </div>
 
-      {/* Action Buttons: Open Direction and View Details in New Page */}
+      {/* Action Buttons: Open Direction (Primary) and View Details (Secondary) in New Page */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-        <button
+        <ShinyButton
           type="button"
           onClick={() => {
             window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
           }}
-          className="py-2.5 px-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+          className="w-full py-2 px-3 text-xs font-bold"
           title="Open Directions and 3D Operations in a new page"
         >
-          <Compass className="w-3.5 h-3.5" />
+          <Compass className="w-3.5 h-3.5 text-cyan-400" />
           <span>Open Direction</span>
           <ExternalLink className="w-3 h-3 opacity-70" />
-        </button>
+        </ShinyButton>
 
-        <button
+        <SpinningBorderButton
           type="button"
           onClick={() => {
             window.open(`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
           }}
-          className="py-2.5 px-3 rounded-xl bg-[#181818] hover:bg-[#222222] border border-[#2a2a2a] hover:border-white/20 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          hideArrow
+          className="w-full text-xs"
           title="Open Oceanographic Parameter Details in a new page"
         >
-          <FileText className="w-3.5 h-3.5 text-cyan-400" />
+          <FileText className="w-3.5 h-3.5 text-cyan-400 mr-1.5" />
           <span>View Details</span>
-          <ExternalLink className="w-3 h-3 text-[#888888]" />
-        </button>
+          <ExternalLink className="w-3 h-3 text-[#888888] ml-1" />
+        </SpinningBorderButton>
 
-        <button
+        <ShinyButton
           type="button"
           onClick={() => {
             window.open(`/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
           }}
-          className="col-span-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-950/60 to-blue-950/60 hover:from-cyan-900/60 hover:to-blue-900/60 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+          className="col-span-1 sm:col-span-2 w-full py-2.5 px-3 text-xs font-bold"
           title="Open 3D Volumetric Ocean Depth Slice in a new page"
         >
           <Layers className="w-3.5 h-3.5 text-cyan-400" />
           <span>Open 3D Depth Slice</span>
-          <ExternalLink className="w-3 h-3 text-cyan-400" />
-        </button>
+          <ExternalLink className="w-3 h-3 text-cyan-300" />
+        </ShinyButton>
       </div>
     </div>
   );
@@ -1066,13 +1068,20 @@ export default function LeherLandingPage() {
           <p className="text-[#888888] text-lg font-light leading-relaxed">
             Real-time environmental monitoring, hazard intelligence, and safer navigation planning across the Indian Ocean.
           </p>
-          <div className="pt-2 flex justify-center">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <ShinyButton 
               onClick={() => window.open('/operations', '_blank')}
               className="py-3.5 px-8 text-sm font-semibold shadow-xl"
             >
-              Open Operations &amp; Direction Console
+              <Compass className="w-4 h-4 text-cyan-400 inline mr-2" />
+              <span>Open Operations &amp; Direction Console</span>
             </ShinyButton>
+            <SpinningBorderButton
+              onClick={() => scrollToSection('section-story')}
+              hideArrow
+            >
+              <span>Explore Operational Workflow</span>
+            </SpinningBorderButton>
           </div>
         </div>
       </section>
