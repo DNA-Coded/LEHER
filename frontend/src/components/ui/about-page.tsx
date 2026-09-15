@@ -19,9 +19,6 @@ export function AboutLeherPage() {
             01 — INTRODUCTION
            ======================================================== */}
         <section className="pt-6 sm:pt-10 text-center max-w-3xl mx-auto space-y-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-neutral-300 text-xs font-mono font-medium">
-            <span>ABOUT</span>
-          </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
             Understand the Ocean. Make Safer Decisions.
