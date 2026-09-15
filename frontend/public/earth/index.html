@@ -20,6 +20,18 @@
         <span style="font-weight: 700; font-size: 14px; letter-spacing: -0.02em;">Leher</span>
         <span style="font-size: 11px; opacity: 0.6; font-family: 'JetBrains Mono', monospace; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 8px;">3D Earth</span>
     </div>
+    <script>
+      (function() {
+        if (window.location.search.indexOf('hidebadge=1') !== -1 || window.location.hash.indexOf('hidebadge=1') !== -1) {
+          var b = document.getElementById('leher-brand-badge');
+          if (b) b.style.display = 'none';
+          document.addEventListener('DOMContentLoaded', function() {
+            var b2 = document.getElementById('leher-brand-badge');
+            if (b2) b2.style.display = 'none';
+          });
+        }
+      })();
+    </script>
 
     <!-- Full-screen Globe & World Projection Canvas / SVG -->
     <div id="display">

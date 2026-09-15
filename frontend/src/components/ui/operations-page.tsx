@@ -6,10 +6,25 @@ import {
   RefreshCw, 
   ArrowUpRight,
   Clock,
-  Compass
+  Compass,
+  Waves,
+  Thermometer,
+  Droplets,
+  Activity,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Radio,
+  Satellite,
+  ExternalLink,
+  ShieldCheck,
+  Ship,
+  Navigation
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
+import { predictOceanState, type OceanPredictionResult } from '@/lib/api/oceanPredictionService';
+import { RiskBadge } from '@/components/ui/risk-badge';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -159,6 +174,21 @@ export default function OperationsPage() {
     return () => clearInterval(interval);
   }, [selectedTimeZone]);
 
+  // Oceanographic prediction calculation based on current coordinates & depth
+  const prediction: OceanPredictionResult = useMemo(() => {
+    return predictOceanState(inputLat, inputLon, workbenchDepth);
+  }, [inputLat, inputLon, workbenchDepth]);
+
+  const [isHudExpanded, setIsHudExpanded] = useState<boolean>(true);
+
+  const depthLayerClassification = useMemo(() => {
+    if (workbenchDepth === 0) return "Surface Boundary Layer (0-10m)";
+    if (workbenchDepth <= 50) return "Epipelagic Euphotic Zone (0-50m)";
+    if (workbenchDepth <= 200) return "Mesopelagic Thermocline Core (50-200m)";
+    if (workbenchDepth <= 1000) return "Bathypelagic Intermediate Water (200-1000m)";
+    return "Abyssal Plain Subsurface (>1000m)";
+  }, [workbenchDepth]);
+
   const handleBackToHome = () => {
     if (window.history.length > 1 && window.opener) {
       window.close();
@@ -169,7 +199,7 @@ export default function OperationsPage() {
 
   const earthIframeUrl = useMemo(() => {
     const projName = activeProjection || 'concentric_region';
-    return `/earth/index.html#current/ocean/surface/currents/overlay=ocean/${projName}`;
+    return `/earth/index.html?hidebadge=1#current/ocean/surface/currents/overlay=ocean/${projName}`;
   }, [activeProjection]);
 
   return (
@@ -239,12 +269,282 @@ export default function OperationsPage() {
             }}
           />
 
-          {/* Floating Coordinate HUD */}
-          <div className="absolute bottom-4 left-4 right-4 lg:right-auto z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
+          {/* LEFT CORNER: MARITIME INTELLIGENCE & TELEMETRY HUD */}
+          <div className="absolute top-3 left-3 z-20 transition-all duration-300 pointer-events-auto">
+            {!isHudExpanded ? (
+              <button
+                type="button"
+                onClick={() => setIsHudExpanded(true)}
+                className="bg-[#070b12]/90 hover:bg-[#0c121d] backdrop-blur-xl border border-cyan-500/30 hover:border-cyan-400 text-white rounded-2xl p-2.5 px-3.5 shadow-2xl flex items-center gap-3 transition-all group cursor-pointer"
+                title="Expand Maritime Intelligence HUD"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span className="font-mono text-xs font-bold text-cyan-300">
+                    {prediction.location.regionName.toUpperCase()}
+                  </span>
+                </div>
+                <div className="h-3 w-[1px] bg-white/20" />
+                <RiskBadge 
+                  level={prediction.summary.riskStatus === 'HAZARD' ? 'DANGER' : prediction.summary.riskStatus === 'ADVISORY' ? 'CAUTION' : 'SAFE'} 
+                  size="sm" 
+                />
+                <div className="p-1 rounded-lg bg-white/5 group-hover:bg-white/10 text-cyan-400 transition-colors">
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </div>
+              </button>
+            ) : (
+              <div className="w-80 sm:w-88 lg:w-92 max-h-[calc(100%-1.5rem)] flex flex-col bg-[#070b12]/92 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-cyan-950/40 overflow-hidden text-xs text-white">
+                {/* HUD Header */}
+                <div className="px-4 py-3 border-b border-white/10 bg-white/[0.02] flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="font-mono font-bold tracking-wider text-[11px] text-cyan-300 uppercase">
+                      MARITIME INTELLIGENCE HUD
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] text-[#888888] bg-white/[0.05] px-2 py-0.5 rounded border border-white/10">
+                      INCOIS • CMEMS
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsHudExpanded(false)}
+                      className="p-1 rounded-lg hover:bg-white/10 text-[#888888] hover:text-white transition-colors cursor-pointer"
+                      title="Collapse HUD"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* HUD Scrollable Body */}
+                <div className="flex-1 overflow-y-auto p-3.5 space-y-3 scrollbar-thin scrollbar-thumb-white/10">
+                  {/* 1. Tactical Basin & Depth Profile Card */}
+                  <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] text-cyan-400/80 uppercase tracking-wide">
+                        TACTICAL REGION
+                      </span>
+                      <span className="font-mono text-[10px] text-[#888888]">
+                        {inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}
+                      </span>
+                    </div>
+                    <div className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                      <Ship className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <span className="truncate">{prediction.location.regionName}</span>
+                    </div>
+                    <div className="pt-1 border-t border-white/5 flex items-center justify-between text-[11px] text-[#888888]">
+                      <span>Depth Level: <strong className="text-white font-mono">{workbenchDepth}m</strong></span>
+                      <span className="text-cyan-400/90 truncate max-w-[160px] text-right text-[10px]">
+                        {depthLayerClassification}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2. Operational Safety & Risk Advisory */}
+                  <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] text-[#888888] uppercase tracking-wide">
+                        OPERATIONAL ASSESSMENT
+                      </span>
+                      <RiskBadge 
+                        level={prediction.summary.riskStatus === 'HAZARD' ? 'DANGER' : prediction.summary.riskStatus === 'ADVISORY' ? 'CAUTION' : 'SAFE'} 
+                        size="sm" 
+                      />
+                    </div>
+                    <p className="text-[11px] text-[#cccccc] leading-relaxed">
+                      {prediction.summary.riskMessage}
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5 pt-1 text-[10px] font-mono">
+                      <div className="bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-[#aaaaaa]">
+                        Acoustics: <span className="text-cyan-300">{workbenchDepth < 100 ? 'Surface Duct' : 'SOFAR Channel'}</span>
+                      </div>
+                      <div className="bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-[#aaaaaa]">
+                        Fairway: <span className="text-emerald-400">Ice-Free / Clear</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Real Hydrodynamic Telemetry Matrix */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#888888] px-1">
+                      <span>COPERNICUS HYDRODYNAMIC METRICS</span>
+                      <span className="text-cyan-400">PHYSICAL MODEL</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Current Velocity & Drift */}
+                      <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-2.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#888888]">
+                          <span className="flex items-center gap-1">
+                            <Waves className="w-3 h-3 text-cyan-400" />
+                            <span>Current Drift</span>
+                          </span>
+                        </div>
+                        <div className="text-sm font-bold font-mono text-white flex items-baseline gap-1">
+                          <span>{prediction.summary.currentSpeedKnots}</span>
+                          <span className="text-[10px] font-normal text-[#888888]">kts</span>
+                          <span className="text-[10px] font-mono text-[#666666]">({prediction.summary.currentSpeedMs} m/s)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-300 pt-0.5">
+                          <Navigation 
+                            className="w-3 h-3 text-cyan-400 transition-transform duration-300 shrink-0" 
+                            style={{ transform: `rotate(${prediction.summary.currentDirectionDeg}deg)` }} 
+                          />
+                          <span>{prediction.summary.currentDirectionCompass} ({prediction.summary.currentDirectionDeg}°)</span>
+                        </div>
+                      </div>
+
+                      {/* Conservative Temperature (thetao) */}
+                      <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-2.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#888888]">
+                          <span className="flex items-center gap-1">
+                            <Thermometer className="w-3 h-3 text-rose-400" />
+                            <span>Water Temp (θ)</span>
+                          </span>
+                        </div>
+                        <div className="text-sm font-bold font-mono text-white">
+                          {prediction.variables.thetao.formattedValue}
+                        </div>
+                        <div className="text-[10px] text-[#888888] truncate">
+                          {workbenchDepth < 50 ? 'Upper Mixed Layer' : workbenchDepth < 250 ? 'Thermocline Core' : 'Abyssal Deep Water'}
+                        </div>
+                      </div>
+
+                      {/* Practical Salinity (so) */}
+                      <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-2.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#888888]">
+                          <span className="flex items-center gap-1">
+                            <Droplets className="w-3 h-3 text-blue-400" />
+                            <span>Salinity (Sp)</span>
+                          </span>
+                        </div>
+                        <div className="text-sm font-bold font-mono text-white">
+                          {prediction.variables.so.formattedValue}
+                        </div>
+                        <div className="text-[10px] text-[#888888] truncate">
+                          {prediction.location.regionName.includes('Bay of Bengal') ? 'Runoff Dilution' : 'Normal Oceanic'}
+                        </div>
+                      </div>
+
+                      {/* Mixed Layer Thickness (mlotst) */}
+                      <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-2.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#888888]">
+                          <span className="flex items-center gap-1">
+                            <Activity className="w-3 h-3 text-emerald-400" />
+                            <span>Mixed Layer</span>
+                          </span>
+                        </div>
+                        <div className="text-sm font-bold font-mono text-white">
+                          {prediction.variables.mlotst.formattedValue}
+                        </div>
+                        <div className="text-[10px] text-[#888888] truncate">
+                          Pycnocline boundary
+                        </div>
+                      </div>
+
+                      {/* Sea Surface Height Anomaly (zos) */}
+                      <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-2.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#888888]">
+                          <span className="flex items-center gap-1">
+                            <Layers className="w-3 h-3 text-amber-400" />
+                            <span>Dynamic Height</span>
+                          </span>
+                        </div>
+                        <div className="text-sm font-bold font-mono text-white">
+                          {prediction.variables.zos.formattedValue}
+                        </div>
+                        <div className="text-[10px] text-[#888888] truncate">
+                          Geoid dynamic topography
+                        </div>
+                      </div>
+
+                      {/* Sea Floor Temp (bottomT) */}
+                      <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-2.5 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#888888]">
+                          <span className="flex items-center gap-1">
+                            <Compass className="w-3 h-3 text-purple-400" />
+                            <span>Benthic Temp</span>
+                          </span>
+                        </div>
+                        <div className="text-sm font-bold font-mono text-white">
+                          {prediction.variables.bottomT.formattedValue}
+                        </div>
+                        <div className="text-[10px] text-[#888888] truncate">
+                          Deep sea-floor layer
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. Active Sensor Feeds & Network Synchrony */}
+                  <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#888888]">
+                      <span>OBSERVATION NETWORKS</span>
+                      <span className="text-emerald-400 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>SYNCHRONIZED</span>
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-[10px] font-mono text-[#aaaaaa]">
+                      <div className="flex items-center justify-between py-0.5 border-b border-white/5">
+                        <span className="flex items-center gap-1.5 text-white">
+                          <Radio className="w-3 h-3 text-cyan-400" />
+                          <span>INCOIS High-Res OSF</span>
+                        </span>
+                        <span className="text-[#888888]">0.05° Hydro Mesh</span>
+                      </div>
+                      <div className="flex items-center justify-between py-0.5 border-b border-white/5">
+                        <span className="flex items-center gap-1.5 text-white">
+                          <Satellite className="w-3 h-3 text-cyan-400" />
+                          <span>Copernicus PHY Model</span>
+                        </span>
+                        <span className="text-[#888888]">GLOBAL_001_030</span>
+                      </div>
+                      <div className="flex items-center justify-between py-0.5">
+                        <span className="flex items-center gap-1.5 text-white">
+                          <Compass className="w-3 h-3 text-cyan-400" />
+                          <span>Argo IO Profilers</span>
+                        </span>
+                        <span className="text-cyan-400">Array Active</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Direct Fast Action Shortcuts */}
+                  <div className="space-y-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={handlePredict}
+                      disabled={isPredicting}
+                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-950/70 via-blue-950/70 to-cyan-950/70 hover:from-cyan-900/90 hover:to-blue-900/90 border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-950/40 active:scale-[0.99]"
+                    >
+                      <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Open 3D Depth Slice ({workbenchDepth}m)</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
+                    </button>
+
+                    <a
+                      href={`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`}
+                      className="w-full py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-[#aaaaaa] hover:text-white text-[11px] font-mono flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+                    >
+                      <span>Inspect Copernicus Variable Matrix</span>
+                      <ExternalLink className="w-3 h-3 text-[#888888]" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Floating Coordinate HUD (Positioned on the bottom-right of the map canvas) */}
+          <div className="hidden sm:flex absolute bottom-4 right-4 z-10 pointer-events-none">
+            <div className="bg-[#000000]/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
               <Compass className="w-4 h-4 text-cyan-400" />
-              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong> @ {workbenchDepth}m</span>
-              <span className="text-cyan-400 hidden sm:inline">• Click on map to inspect</span>
+              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}</strong> @ {workbenchDepth}m</span>
+              <span className="text-cyan-400 hidden md:inline">• Click on map to inspect</span>
             </div>
           </div>
         </div>
