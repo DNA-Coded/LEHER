@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Compass } from 'lucide-react';
+import { ArrowRight, Compass, Waves, Radio, MapPin, ShieldAlert, AlertTriangle, ShieldCheck, Wind, CloudRain } from 'lucide-react';
 import AppNavbar from '@/components/ui/app-navbar';
 import { ShinyButton } from '@/components/ui/shiny-button';
 import { SpinningBorderButton } from '@/components/ui/spinning-border-button';
@@ -15,22 +15,30 @@ export function AboutLeherPage() {
       <AppNavbar currentRoute="about" />
 
       {/* Main Content */}
-      <main className="flex-1 pt-24 pb-16 px-4 sm:px-6 lg:px-12 max-w-5xl mx-auto w-full space-y-16 sm:space-y-20">
+      <main className="flex-1 pt-24 pb-20 px-4 sm:px-6 lg:px-12 max-w-5xl mx-auto w-full space-y-20 sm:space-y-24">
         
         {/* ========================================================
-            01 — INTRODUCTION
+            01 — ABOUT LEHER (HERO)
            ======================================================== */}
-        <section className="pt-6 sm:pt-10 text-center max-w-3xl mx-auto space-y-5">
+        <section className="pt-8 sm:pt-14 text-center max-w-3xl mx-auto space-y-6">
+          <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+            ABOUT LEHER
+          </span>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15]">
             Understand the Ocean. Make Safer Decisions.
           </h1>
 
-          <p className="text-base sm:text-lg text-[#94a3b8] leading-relaxed max-w-2xl mx-auto font-normal">
-            Leher is an interactive 3D ocean platform for exploring ocean conditions, assessing locations and understanding maritime risk across the Indian Ocean.
-          </p>
+          <div className="space-y-2 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-neutral-300 leading-relaxed font-normal">
+              Leher is an interactive 3D ocean platform for exploring ocean conditions, observations and maritime risk across the Indian Ocean.
+            </p>
+            <p className="text-sm sm:text-base text-neutral-400 leading-relaxed font-normal">
+              It helps users move from understanding a location to identifying hazards and making informed maritime decisions.
+            </p>
+          </div>
 
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+          <div className="pt-3 flex flex-wrap items-center justify-center gap-4">
             <ShinyButton
               onClick={() => navigateTo('/operations')}
               className="py-2.5 px-6 text-xs sm:text-sm font-semibold shadow-lg"
@@ -49,125 +57,150 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            02 — WHY LEHER
+            02 — THE PROBLEM
            ======================================================== */}
-        <section className="space-y-6">
-          <div className="border-b border-[#1f2430] pb-4">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">01 / WHY LEHER</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
-              Understanding Ocean Conditions Should Be Easier
+        <section className="space-y-8 pt-4">
+          <div className="border-b border-[#1c1c1c] pb-5">
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+              01 / THE PROBLEM
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
+              Understanding the Ocean Is Not Just About One Variable
             </h2>
-            <p className="text-sm text-[#94a3b8] mt-2 max-w-2xl leading-relaxed">
-              Ocean data can vary across location, depth and time. Bringing these conditions together in a single interactive view makes them easier to explore and interpret.
+            <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
+              Ocean conditions change with location, depth and time. Different observations and environmental factors need to be understood together before a user can judge what a location means for maritime activity.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 block">01</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-2.5">
+              <span className="text-xs font-mono text-neutral-500 block">CARD 01</span>
               <h3 className="text-base font-semibold text-white tracking-tight">
-                Complex Ocean Conditions
+                Conditions Change
               </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Temperature, salinity and currents change across the ocean and with depth.
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                Temperature, salinity and currents vary across location and depth.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 block">02</span>
+            <div className="p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-2.5">
+              <span className="text-xs font-mono text-neutral-500 block">CARD 02</span>
               <h3 className="text-base font-semibold text-white tracking-tight">
-                Different Sources of Information
+                Information Comes From Different Sources
               </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Ocean models and instrument observations provide different views of the same environment.
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                Ocean models and in-situ observations provide different views of the same environment.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 block">03</span>
+            <div className="p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-2.5">
+              <span className="text-xs font-mono text-neutral-500 block">CARD 03</span>
               <h3 className="text-base font-semibold text-white tracking-tight">
-                Hard to Interpret in Isolation
+                Context Matters
               </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Users need a clear way to explore these conditions together and understand what they mean at a selected location.
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                A condition becomes more useful when it can be understood for a specific location, time and surrounding risk.
               </p>
             </div>
           </div>
         </section>
 
         {/* ========================================================
-            03 — WHAT YOU CAN EXPLORE
+            03 — WHAT LEHER BRINGS TOGETHER
            ======================================================== */}
-        <section className="space-y-6">
-          <div className="border-b border-[#1f2430] pb-4">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">02 / EXPLORE</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
-              Explore the Ocean in One Place
+        <section className="space-y-8">
+          <div className="border-b border-[#1c1c1c] pb-5">
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+              02 / THE PLATFORM
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
+              One View of the Ocean and Its Risk
             </h2>
-            <p className="text-sm text-[#94a3b8] mt-2 max-w-2xl leading-relaxed">
-              Leher brings the main ocean variables and observations into an interactive 3D environment.
+            <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
+              Leher brings the main information a maritime user needs into one interactive environment.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-neutral-400 block">01</span>
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                3D Ocean View
-              </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Explore ocean conditions across location and depth in an interactive 3D view.
-              </p>
+          {/* Connected Flow: OCEAN -> OBSERVATIONS -> LOCATION -> DECISION */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+            {/* Block 01 */}
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-cyan-400 font-semibold">01 — OCEAN</span>
+                  <Waves className="w-4 h-4 text-neutral-500" />
+                </div>
+                <h3 className="text-base font-semibold text-white">
+                  Ocean Conditions
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Explore temperature, salinity and currents across location and depth.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+                <span>Connects to</span>
+                <span className="text-neutral-400">→ Observations</span>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-neutral-400 block">02</span>
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                Ocean Conditions
-              </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Inspect temperature, salinity and currents at different locations and depths.
-              </p>
+            {/* Block 02 */}
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-cyan-400 font-semibold">02 — OBSERVATIONS</span>
+                  <Radio className="w-4 h-4 text-neutral-500" />
+                </div>
+                <h3 className="text-base font-semibold text-white">
+                  Ocean Observations
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  View observations from instruments such as Argo floats and gliders alongside the ocean environment.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+                <span>Connects to</span>
+                <span className="text-neutral-400">→ Location</span>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-neutral-400 block">03</span>
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                Depth &amp; Time
-              </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Move through depth levels and time to see how ocean conditions change.
-              </p>
+            {/* Block 03 */}
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-cyan-400 font-semibold">03 — LOCATION</span>
+                  <MapPin className="w-4 h-4 text-neutral-500" />
+                </div>
+                <h3 className="text-base font-semibold text-white">
+                  Location Assessment
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Select a location to understand its conditions, observations and current risk status.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+                <span>Connects to</span>
+                <span className="text-neutral-400">→ Decision</span>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-neutral-400 block">04</span>
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                Ocean Observations
-              </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Explore observations from instruments such as Argo floats and gliders.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-neutral-400 block">05</span>
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                Location Assessment
-              </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Select a location to view its conditions and current risk status.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-neutral-400 block">06</span>
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                Model &amp; Observation View
-              </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Compare ocean model information with available observations at a selected location.
-              </p>
+            {/* Block 04 */}
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-cyan-400 font-semibold">04 — DECISION</span>
+                  <ShieldAlert className="w-4 h-4 text-neutral-500" />
+                </div>
+                <h3 className="text-base font-semibold text-white">
+                  Maritime Decision Support
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Use the available information to identify hazards, understand risk and support safer maritime decisions.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-mono text-cyan-400 flex items-center gap-1.5">
+                <span>Outcome</span>
+                <span className="text-white font-medium">→ Safer Decisions</span>
+              </div>
             </div>
           </div>
         </section>
@@ -175,96 +208,117 @@ export function AboutLeherPage() {
         {/* ========================================================
             04 — RISK & HAZARDS
            ======================================================== */}
-        <section className="space-y-6">
-          <div className="border-b border-[#1f2430] pb-4">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">03 / MARITIME RISK</span>
-            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mt-1">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                See Where Conditions Become a Risk
-              </h2>
-              <div className="text-xs font-mono text-neutral-400 font-medium tracking-wide">
-                SAFE → CAUTION → DANGER
-              </div>
-            </div>
-            <p className="text-sm text-[#94a3b8] mt-2 max-w-2xl leading-relaxed">
-              Leher connects ocean conditions with a clear view of maritime risk, helping users identify areas that may require attention.
+        <section className="space-y-8">
+          <div className="border-b border-[#1c1c1c] pb-5">
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+              03 / MARITIME RISK
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
+              Understand What Makes a Location Risky
+            </h2>
+            <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
+              Leher presents environmental conditions and detected hazards in a way that helps users understand the safety status of a selected location.
             </p>
           </div>
 
-          {/* Risk States */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-emerald-500/25 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold uppercase tracking-wider">
-                  SAFE
-                </span>
-                <span className="text-[11px] font-mono text-emerald-400/80">Nominal</span>
+          {/* RISK STATES */}
+          <div className="space-y-3">
+            <span className="text-xs font-mono uppercase tracking-wider text-neutral-400 block">
+              RISK STATES
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 font-mono text-xs font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>SAFE</span>
+                </div>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed pt-1">
+                  Conditions indicate lower operational risk.
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed pt-1">
-                Lower operational risk based on the available conditions.
-              </p>
-            </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-amber-500/25 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-xs font-mono font-bold uppercase tracking-wider">
-                  CAUTION
-                </span>
-                <span className="text-[11px] font-mono text-amber-400/80">Advisory</span>
+              <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-950/60 border border-amber-800/60 text-amber-400 font-mono text-xs font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span>CAUTION</span>
+                </div>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed pt-1">
+                  Conditions require additional attention before proceeding.
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed pt-1">
-                Conditions require additional attention before proceeding.
-              </p>
-            </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-rose-500/25 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-xs font-mono font-bold uppercase tracking-wider">
-                  DANGER
-                </span>
-                <span className="text-[11px] font-mono text-rose-400/80">Warning</span>
+              <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-rose-950/60 border border-rose-800/60 text-rose-400 font-mono text-xs font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  <span>DANGER</span>
+                </div>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed pt-1">
+                  Conditions indicate elevated maritime risk.
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed pt-1">
-                Conditions indicate elevated risk and require appropriate caution.
-              </p>
             </div>
           </div>
 
-          {/* Compact Hazard Subsection */}
-          <div className="pt-4 space-y-4">
-            <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-              Maritime Hazards
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-                <span className="text-xs font-mono text-neutral-400 block">01</span>
-                <h4 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                  CYCLONE / STORM
-                </h4>
-                <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                  Severe weather systems that can affect maritime movement and safety.
-                </p>
+          {/* RISK FACTORS & HAZARDS (2-column layout) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+            {/* Risk Factors */}
+            <div className="lg:col-span-7 p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-4">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-400 block">
+                WHAT CAN AFFECT RISK?
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">1. Ocean Conditions</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Temperature, currents and other local environmental conditions.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">2. Severe Weather</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Cyclone and storm conditions that can affect maritime activity.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">3. Storm Surge</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Abnormal coastal water-level rise associated with severe weather.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">4. Local Conditions</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Conditions at a selected location that may change its overall safety status.
+                  </p>
+                </div>
               </div>
+            </div>
 
-              <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-                <span className="text-xs font-mono text-neutral-400 block">02</span>
-                <h4 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                  STORM SURGE
-                </h4>
-                <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                  Abnormal coastal water-level rise associated with severe weather.
-                </p>
-              </div>
+            {/* Compact Hazards List */}
+            <div className="lg:col-span-5 p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-4">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-400 block">
+                HAZARDS
+              </span>
+              <div className="space-y-3.5">
+                <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                  <div className="flex items-center gap-2 text-rose-400 font-semibold text-xs font-mono">
+                    <Wind className="w-3.5 h-3.5" />
+                    <span>CYCLONE / STORM</span>
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Severe weather that can affect maritime movement and safety.
+                  </p>
+                </div>
 
-              <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-                <span className="text-xs font-mono text-neutral-400 block">03</span>
-                <h4 className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                  OCEAN CONDITIONS
-                </h4>
-                <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                  Temperature, currents and other environmental conditions that can contribute to local risk.
-                </p>
+                <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                  <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs font-mono">
+                    <CloudRain className="w-3.5 h-3.5" />
+                    <span>STORM SURGE</span>
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Abnormal coastal water-level rise associated with severe weather.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -273,49 +327,63 @@ export function AboutLeherPage() {
         {/* ========================================================
             05 — HOW LEHER WORKS
            ======================================================== */}
-        <section className="space-y-6">
-          <div className="border-b border-[#1f2430] pb-3">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">04 / USER FLOW</span>
-            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mt-1">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                From Ocean Data to Action
-              </h2>
-              <div className="text-xs font-mono text-neutral-400 font-medium tracking-wide">
-                SEE → CLICK → UNDERSTAND → ACT
-              </div>
+        <section className="space-y-8">
+          <div className="border-b border-[#1c1c1c] pb-5">
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+              04 / USER FLOW
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
+              From Ocean Conditions to Action
+            </h2>
+            <div className="mt-3 flex items-center gap-2 font-mono text-xs text-cyan-400 font-semibold tracking-wide">
+              <span>SEE</span>
+              <span className="text-neutral-600">→</span>
+              <span>CLICK</span>
+              <span className="text-neutral-600">→</span>
+              <span>UNDERSTAND</span>
+              <span className="text-neutral-600">→</span>
+              <span>ACT</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 01</span>
-              <h3 className="text-base font-bold text-white tracking-tight">SEE</h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Explore the 3D ocean and identify an area of interest.
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+              <span className="text-xs font-mono text-neutral-500 block">STEP 01</span>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                SEE
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                Explore the 3D ocean environment and identify an area of interest.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 02</span>
-              <h3 className="text-base font-bold text-white tracking-tight">CLICK</h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+              <span className="text-xs font-mono text-neutral-500 block">STEP 02</span>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                CLICK
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
                 Select a location or hazard on the map.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 03</span>
-              <h3 className="text-base font-bold text-white tracking-tight">UNDERSTAND</h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+              <span className="text-xs font-mono text-neutral-500 block">STEP 03</span>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                UNDERSTAND
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
                 Review ocean conditions, observations and risk for that location.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 04</span>
-              <h3 className="text-base font-bold text-white tracking-tight">ACT</h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Use the information to respond to hazards or choose a safer route.
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] space-y-2">
+              <span className="text-xs font-mono text-neutral-500 block">STEP 04</span>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                ACT
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                Use the information to respond to hazards or support a safer route decision.
               </p>
             </div>
           </div>
@@ -324,32 +392,34 @@ export function AboutLeherPage() {
         {/* ========================================================
             06 — WHO IT IS FOR
            ======================================================== */}
-        <section className="space-y-6">
-          <div className="border-b border-[#1f2430] pb-3">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">05 / USERS</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
-              Built for Maritime Users
+        <section className="space-y-8">
+          <div className="border-b border-[#1c1c1c] pb-5">
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+              05 / USERS
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
+              Designed Around Maritime Use
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-6 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <div className="text-xs font-mono text-neutral-400 uppercase tracking-wider">Operational User</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-3">
+              <span className="text-xs font-mono text-cyan-400 font-semibold block">USER GROUP 01</span>
               <h3 className="text-lg font-bold text-white tracking-tight">
-                Fishermen
+                FISHERMEN
               </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                Simple information about ocean conditions, hazards and local risk to support safer decisions at sea.
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                Quickly understand conditions, hazards and local risk before making decisions at sea.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <div className="text-xs font-mono text-neutral-400 uppercase tracking-wider">Command &amp; Surveillance</div>
+            <div className="p-6 rounded-2xl bg-[#111111] border border-[#222222] space-y-3">
+              <span className="text-xs font-mono text-cyan-400 font-semibold block">USER GROUP 02</span>
               <h3 className="text-lg font-bold text-white tracking-tight">
-                Coast Guard
+                COAST GUARD
               </h3>
-              <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-                A broader view of ocean conditions, hazards and route risk for maritime assessment and operations.
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                Inspect ocean conditions, hazards and route risk when assessing maritime situations.
               </p>
             </div>
           </div>
@@ -358,17 +428,15 @@ export function AboutLeherPage() {
         {/* ========================================================
             07 — FINAL CTA
            ======================================================== */}
-        <section className="p-8 sm:p-10 rounded-2xl bg-[#0e1117] border border-[#1f2430] text-center space-y-5">
-          <div className="max-w-xl mx-auto space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              Explore the Indian Ocean
-            </h2>
-            <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-              Open Leher to explore ocean conditions, assess locations and understand maritime risk.
-            </p>
-          </div>
+        <section className="pt-4 text-center max-w-xl mx-auto space-y-5 border-t border-[#1c1c1c]">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            Explore Leher
+          </h2>
+          <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+            Explore ocean conditions, assess locations and understand maritime risk across the Indian Ocean.
+          </p>
 
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+          <div className="pt-2 flex justify-center">
             <ShinyButton
               onClick={() => navigateTo('/operations')}
               className="py-3 px-8 text-sm font-semibold shadow-xl"
@@ -377,12 +445,6 @@ export function AboutLeherPage() {
               <span>Launch Platform</span>
               <ArrowRight className="w-4 h-4 opacity-80" />
             </ShinyButton>
-            <SpinningBorderButton
-              onClick={() => navigateTo('/')}
-              hideArrow
-            >
-              <span>Back to Home</span>
-            </SpinningBorderButton>
           </div>
         </section>
 
@@ -390,15 +452,21 @@ export function AboutLeherPage() {
 
       {/* Footer */}
       <footer className="border-t border-[#1c1c1c] bg-[#050505] py-8 px-4 sm:px-6 lg:px-12 z-20">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-mono text-[#666666]">
-          <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-5 w-auto object-contain opacity-75" />
-            <span>Leher • Indian Ocean Maritime Safety &amp; Hazard Intelligence</span>
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-mono text-neutral-500">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-4 w-auto object-contain opacity-70" />
+            <span>Leher • Indian Ocean Maritime Safety &amp; Risk Intelligence</span>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigateTo('/')} className="hover:text-white cursor-pointer transition-colors">Home</button>
-            <button onClick={() => navigateTo('/about')} className="text-neutral-200 hover:text-white cursor-pointer transition-colors">About</button>
-            <button onClick={() => navigateTo('/operations')} className="hover:text-white cursor-pointer transition-colors">Explore / Platform</button>
+            <button onClick={() => navigateTo('/')} className="hover:text-white cursor-pointer transition-colors">
+              Home
+            </button>
+            <button onClick={() => navigateTo('/about')} className="text-neutral-300 hover:text-white cursor-pointer transition-colors">
+              About
+            </button>
+            <button onClick={() => navigateTo('/operations')} className="hover:text-white cursor-pointer transition-colors">
+              Explore / Platform
+            </button>
           </div>
         </div>
       </footer>
