@@ -24,7 +24,6 @@ import {
 } from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
 import RiskBadge from '@/components/ui/risk-badge';
-import { ScannerCardStream } from '@/components/ui/scanner-card-stream';
 
 // Timezones for the status bar
 type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
@@ -438,32 +437,6 @@ export default function DetailsPage() {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* LIVE TELEMETRY RADAR STREAM (SCANNER CARD STREAM) */}
-        <div className="py-10 border-t border-white/10 relative overflow-hidden bg-[#040608]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-mono text-[#dfc58d] uppercase tracking-wider mb-1">
-                <span className="w-2 h-2 rounded-full bg-[#dfc58d] animate-ping" />
-                Live Radar Scanner Stream
-              </div>
-              <h2 className="text-xl font-bold text-white tracking-tight">
-                Oceanographic Sensor Array Feeds
-              </h2>
-              <p className="text-xs text-[#888899] mt-0.5">
-                Drag or observe live bathymetry cards as they traverse the central LiDAR scanner line
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#888899] bg-white/[0.03] border border-white/10 px-3 py-1.5 rounded-xl">
-              <span className="text-emerald-400">● 18 BUOYS SYNCED</span>
-              <span>• SCAN EFF: SCRAMBLE</span>
-            </div>
-          </div>
-
-          <div className="relative h-[280px] w-full overflow-hidden bg-black/50 border-y border-white/5">
-            <ScannerCardStream showControls initialSpeed={80} cardGap={40} />
           </div>
         </div>
 
