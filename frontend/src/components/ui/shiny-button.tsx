@@ -64,6 +64,7 @@ export function ShinyButton({
           cursor: pointer;
           outline-offset: 4px;
           padding: 0.875rem 2rem;
+          white-space: nowrap;
           font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
           font-size: 0.95rem;
           line-height: 1.25;
@@ -147,6 +148,7 @@ export function ShinyButton({
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
+          white-space: nowrap;
         }
 
         .shiny-cta span::before {

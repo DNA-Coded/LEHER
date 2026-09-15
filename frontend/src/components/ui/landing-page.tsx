@@ -785,18 +785,19 @@ export default function LeherLandingPage() {
       </div>
 
       {/* Action Buttons: Open Direction (Primary) and View Details (Secondary) in New Page */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <ShinyButton
           type="button"
           onClick={() => {
             window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
           }}
-          className="w-full py-2 px-3 text-xs font-bold"
+          className="w-full text-xs font-semibold whitespace-nowrap !px-2.5 !py-2.5"
+          style={{ padding: '0.625rem 0.5rem' }}
           title="Open Directions and 3D Operations in a new page"
         >
-          <Compass className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Open Direction</span>
-          <ExternalLink className="w-3 h-3 opacity-70" />
+          <Compass className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span className="whitespace-nowrap text-xs">Open Direction</span>
+          <ExternalLink className="w-3 h-3 opacity-70 shrink-0 ml-0.5" />
         </ShinyButton>
 
         <SpinningBorderButton
@@ -805,12 +806,13 @@ export default function LeherLandingPage() {
             window.open(`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
           }}
           hideArrow
-          className="w-full text-xs"
+          className="w-full whitespace-nowrap text-xs"
+          innerClassName="py-2.5 px-2.5"
           title="Open Oceanographic Parameter Details in a new page"
         >
-          <FileText className="w-3.5 h-3.5 text-cyan-400 mr-1.5" />
-          <span>View Details</span>
-          <ExternalLink className="w-3 h-3 text-[#888888] ml-1" />
+          <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span className="whitespace-nowrap text-xs">View Details</span>
+          <ExternalLink className="w-3 h-3 text-[#888888] shrink-0 ml-0.5" />
         </SpinningBorderButton>
 
         <button

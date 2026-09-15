@@ -4,20 +4,21 @@ import { cn } from "@/lib/utils";
 export interface SpinningBorderButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   hideArrow?: boolean;
+  innerClassName?: string;
 }
 
 export const SpinningBorderButton = React.forwardRef<
   HTMLButtonElement,
   SpinningBorderButtonProps
 >(function SpinningBorderButton(
-  { children = "Request Demo", className, hideArrow = false, ...props },
+  { children = "Request Demo", className, innerClassName, hideArrow = false, ...props },
   ref,
 ) {
   return (
     <button
       ref={ref}
       className={cn(
-        "group inline-flex overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_25px_rgba(56,189,248,0.35)] rounded-full p-[1px] relative items-center justify-center cursor-pointer disabled:opacity-50 disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:shadow-none",
+        "group inline-flex overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_25px_rgba(56,189,248,0.35)] rounded-full p-[1px] relative items-center justify-center cursor-pointer disabled:opacity-50 disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:shadow-none whitespace-nowrap shrink-0",
         className
       )}
       {...props}
@@ -29,8 +30,13 @@ export const SpinningBorderButton = React.forwardRef<
       <span className="absolute inset-0 rounded-full bg-zinc-800 transition-opacity duration-300 group-hover:opacity-0 pointer-events-none" />
 
       {/* 3D Button Surface & Content with Light Sky Inset Shadow */}
-      <span className="flex items-center justify-center gap-2 uppercase transition-colors duration-300 group-hover:text-sky-200 text-xs font-medium text-zinc-400 tracking-widest bg-gradient-to-b from-zinc-800 to-zinc-950 w-full h-full rounded-full py-2.5 px-6 relative shadow-[inset_0_1px_0_rgba(56,189,248,0.45)]">
-        <span className="relative z-10 inline-flex items-center gap-2">{children}</span>
+      <span
+        className={cn(
+          "flex items-center justify-center gap-1.5 transition-colors duration-300 group-hover:text-sky-200 text-xs font-medium text-zinc-300 bg-gradient-to-b from-zinc-800 to-zinc-950 w-full h-full rounded-full py-2 px-3 sm:px-4 relative shadow-[inset_0_1px_0_rgba(56,189,248,0.45)] whitespace-nowrap",
+          innerClassName
+        )}
+      >
+        <span className="relative z-10 inline-flex items-center gap-1.5 whitespace-nowrap">{children}</span>
         {!hideArrow && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
