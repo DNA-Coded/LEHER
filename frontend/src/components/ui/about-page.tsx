@@ -21,10 +21,6 @@ export function AboutLeherPage() {
             01 — ABOUT LEHER (HERO)
            ======================================================== */}
         <section className="pt-8 sm:pt-14 text-center max-w-3xl mx-auto space-y-6">
-          <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-            ABOUT LEHER
-          </span>
-
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15]">
             Understand the Ocean. Make Safer Decisions.
           </h1>
