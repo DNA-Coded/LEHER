@@ -813,18 +813,18 @@ export default function LeherLandingPage() {
           <ExternalLink className="w-3 h-3 text-[#888888] ml-1" />
         </SpinningBorderButton>
 
-        <ShinyButton
+        <button
           type="button"
           onClick={() => {
             window.open(`/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`, '_blank');
           }}
-          className="col-span-1 sm:col-span-2 w-full py-2.5 px-3 text-xs font-bold"
+          className="col-span-1 sm:col-span-2 w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-950/60 to-blue-950/60 hover:from-cyan-900/60 hover:to-blue-900/60 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
           title="Open 3D Volumetric Ocean Depth Slice in a new page"
         >
           <Layers className="w-3.5 h-3.5 text-cyan-400" />
           <span>Open 3D Depth Slice</span>
-          <ExternalLink className="w-3 h-3 text-cyan-300" />
-        </ShinyButton>
+          <ExternalLink className="w-3 h-3 text-cyan-400" />
+        </button>
       </div>
     </div>
   );
