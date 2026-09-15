@@ -609,8 +609,7 @@ export default function DepthSlicePage() {
 
           {/* Top Left: Coordinates Badge */}
           <div className="absolute top-4 left-4 z-10 pointer-events-none">
-            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-3.5 py-2 shadow-xl flex items-center gap-2.5">
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-3.5 py-2 shadow-xl flex items-center gap-2">
               <div className="font-mono text-xs text-[#e0e0e0]">
                 <strong className="text-white">{basePrediction.location.regionName}</strong> • {lat.toFixed(4)}°N, {lon.toFixed(4)}°E
               </div>

@@ -291,8 +291,7 @@ export default function DetailsPage() {
         {/* EXECUTIVE VITAL SIGNS BANNER */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[#0b0e14]/70 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-1 max-w-2xl">
-            <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <div className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider font-semibold">
               <span>Target Maritime Sector Profile</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">

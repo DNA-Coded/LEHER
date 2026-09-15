@@ -838,10 +838,6 @@ export default function LeherLandingPage() {
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Operations & Analytics</h3>
         </div>
-        <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span>OPERATIONS ACTIVE</span>
-        </div>
       </div>
 
       {/* Inputs Section */}
@@ -932,8 +928,7 @@ export default function LeherLandingPage() {
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-16 sm:py-20 max-w-7xl mx-auto"
       >
         <div className="space-y-3 max-w-xl text-left mb-12">
-          <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
             OPERATIONAL WORKFLOW
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
@@ -973,7 +968,6 @@ export default function LeherLandingPage() {
         <div className="rounded-3xl bg-[#090909] border border-[#222222] overflow-hidden shadow-2xl">
           <div className="bg-[#121212] px-6 py-3.5 border-b border-[#222222] flex flex-wrap justify-between items-center text-xs font-mono text-[#888888] gap-2">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-white font-bold">INDIAN OCEAN MARITIME OPERATIONS CONSOLE</span>
             </div>
             <div className="flex items-center gap-4">
@@ -1303,10 +1297,6 @@ export default function LeherLandingPage() {
               <span className="font-bold text-lg text-white flex items-center gap-2">
                 <span>Indian Ocean Maritime Operations Console</span>
               </span>
-              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>LIVE MARITIME OPERATIONS</span>
-              </div>
             </div>
 
             <div className="flex items-center gap-4">
@@ -1373,10 +1363,6 @@ export default function LeherLandingPage() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-7 w-auto object-contain" />
               <span className="font-bold text-lg text-white">Leher 3D Ocean Intelligence Workbench</span>
-              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/40">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>OPERATIONAL WORKBENCH</span>
-              </div>
             </div>
             
             <div className="flex items-center gap-4">

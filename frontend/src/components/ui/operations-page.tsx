@@ -279,7 +279,6 @@ export default function OperationsPage() {
                 title="Expand Maritime Intelligence HUD"
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                   <span className="font-mono text-xs font-bold text-cyan-300">
                     {prediction.location.regionName.toUpperCase()}
                   </span>
@@ -298,7 +297,6 @@ export default function OperationsPage() {
                 {/* HUD Header */}
                 <div className="px-4 py-3 border-b border-white/10 bg-white/[0.02] flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                     <span className="font-mono font-bold tracking-wider text-[11px] text-cyan-300 uppercase">
                       MARITIME INTELLIGENCE HUD
                     </span>
@@ -482,9 +480,8 @@ export default function OperationsPage() {
                   <div className="bg-[#0b101b]/80 border border-white/10 rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between text-[10px] font-mono text-[#888888]">
                       <span>OBSERVATION NETWORKS</span>
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>SYNCHRONIZED</span>
+                      <span className="text-emerald-400 font-mono text-[10px]">
+                        SYNCHRONIZED
                       </span>
                     </div>
 
@@ -556,10 +553,6 @@ export default function OperationsPage() {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
               OPERATIONS &amp; ANALYTICS
             </h3>
-            <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>OPERATIONS ACTIVE</span>
-            </div>
           </div>
 
           {/* 1. Globe Shape Dropdown */}
