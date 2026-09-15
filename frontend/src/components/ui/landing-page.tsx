@@ -19,7 +19,11 @@ import {
   Sliders,
   ArrowUpRight,
   ExternalLink,
-  FileText
+  FileText,
+  Eye,
+  MousePointerClick,
+  BrainCircuit,
+  Navigation
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
 import { predictOceanState, type OceanPredictionResult } from "@/lib/api/oceanPredictionService";
@@ -32,6 +36,92 @@ import {
   CardCurtainRevealDescription, 
   CardCurtain 
 } from "@/components/ui/card-curtain-reveal";
+import AppNavbar from "@/components/ui/app-navbar";
+import RiskBadge from "@/components/ui/risk-badge";
+import HowItWorks, { type Step } from "@/components/ui/how-it-works";
+
+const LEHER_STEPS: Step[] = [
+  {
+    title: "SEE • Explore Ocean",
+    description: "Observe dynamic currents, wave fields, and thermal gradients across the 3D Indian Ocean globe.",
+    colorTheme: "cyan",
+    colors: {
+      bg: "bg-cyan-500/10",
+      text: "text-cyan-400",
+      border: "border-cyan-500/30",
+    },
+    popup: {
+      tag: "3D BASIN TELEMETRY",
+      headline: "Live Ocean Environment",
+      statusText: "Active Stream",
+      details: [
+        "Real-time sea surface temperature layers",
+        "High-resolution hydrodynamic current vectors",
+        "Subsurface salinity & density gradients"
+      ]
+    }
+  },
+  {
+    title: "CLICK • Select Location",
+    description: "Click anywhere on the interactive map or specify GPS coordinates and transit depth layers.",
+    colorTheme: "sky",
+    colors: {
+      bg: "bg-sky-500/10",
+      text: "text-sky-400",
+      border: "border-sky-500/30",
+    },
+    popup: {
+      tag: "COORDINATE INSPECTOR",
+      headline: "Target Inspection & Locking",
+      statusText: "Point-Specific",
+      details: [
+        "Click anywhere on map to lock GPS coordinates",
+        "Inspect depth layers from 0m to 2000m",
+        "Auto-detect vessel location via GPS"
+      ]
+    }
+  },
+  {
+    title: "UNDERSTAND • Assess Risk",
+    description: "Review standardized CMEMS ocean parameters and risk indicators without deciphering raw telemetry.",
+    colorTheme: "blue",
+    colors: {
+      bg: "bg-blue-500/10",
+      text: "text-blue-400",
+      border: "border-blue-500/30",
+    },
+    popup: {
+      tag: "SAFETY INDEXING",
+      headline: "Standardized Risk Triad",
+      statusText: "CMEMS Analysis",
+      details: [
+        "SAFE: Nominal conditions for standard transit",
+        "CAUTION: Rising swell or currents; watchkeeping",
+        "DANGER: Severe squalls or hazards; sheltering"
+      ]
+    }
+  },
+  {
+    title: "ACT • Execute Decisions",
+    description: "Identify maritime hazards, adjust voyage departure windows, and plan safer navigation trajectories.",
+    colorTheme: "indigo",
+    colors: {
+      bg: "bg-indigo-500/10",
+      text: "text-indigo-400",
+      border: "border-indigo-500/30",
+    },
+    popup: {
+      tag: "DECISION SUPPORT",
+      headline: "Operational Route Decision",
+      statusText: "Safer Trajectory",
+      details: [
+        "Compare planned route risk against alternatives",
+        "Identify severe storms and maritime hazards",
+        "Determine safer departure and transit windows"
+      ]
+    }
+  },
+];
 
 export type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
 
@@ -71,12 +161,8 @@ export const PROJECTION_LIST = [
 const defaultGlobeConfig = {
   positions: [
     { top: "50%", left: "70%", scale: 1.2 },  // 0: Hero (Locked in position)
-    { top: "50%", left: "70%", scale: 1.2 },  // 1: Spatio-Temporal (Behind vertical stratification)
-    { top: "50%", left: "70%", scale: 1.2 },  // 2: Data Integration (Locked in place)
-    { top: "50%", left: "70%", scale: 1.2 },  // 3: Profiles (Locked in place)
-    { top: "50%", left: "70%", scale: 1.2 },  // 4: Capabilities (Locked in place)
-    { top: "52%", left: "50%", scale: 1.2 },  // 5: Model vs Reality (Smoothly glides to center & merges behind card)
-    { top: "50%", left: "50%", scale: 0.0 },  // 6: Platform Preview (Hidden, workbench iframe takes over)
+    { top: "50%", left: "70%", scale: 1.2 },  // 1: Steps to Use Leher
+    { top: "50%", left: "50%", scale: 0.0 },  // 2: Platform Preview (Hidden, workbench iframe takes over)
   ]
 };
 
@@ -86,6 +172,7 @@ export default function LeherLandingPage() {
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [globeTransform, setGlobeTransform] = useState("");
+  const [globeOpacity, setGlobeOpacity] = useState(0.95);
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -357,50 +444,49 @@ export default function LeherLandingPage() {
     });
 
     // Section-aware globe positioning:
-    // Sections 0 to 3 (Hero through Capabilities): globe sticks strictly in place at top: 50%, left: 70%, scale: 1.2
-    // Section 4 (Location Assessment): glides smoothly to center (top: 52%, left: 50%, scale: 1.2)
-    // Section 5 (Workbench): scales down to 0 as operational workbench takes over
-    const secCap = sectionRefs.current[3];
-    const secModel = sectionRefs.current[4];
-    const secWorkbench = sectionRefs.current[5];
+    // Sections 0 & 1 (Hero through Step 1, 2, 3): globe remains strictly static at top: 50%, left: 70%, scale: 1.2
+    // Reaching Step 4: globe decreases its size and transitions smoothly to center (50vw) to merge into the Operations Console
+    const secSteps = sectionRefs.current[1];
+    const secWorkbench = sectionRefs.current[2];
 
     let currentLeft = 70;
     let currentTop = 50;
     let currentScale = 1.2;
+    let currentOpacity = 0.95;
 
-    if (secCap && secModel) {
-      const topCap = secCap.offsetTop;
-      const topModel = secModel.offsetTop;
-      const topWorkbench = secWorkbench ? secWorkbench.offsetTop : (topModel + 850);
+    if (secSteps && secWorkbench) {
+      const topSteps = secSteps.offsetTop;
+      const topWorkbench = secWorkbench.offsetTop;
+      // Step 4 is reached towards the lower part of Section 1
+      const step4Trigger = topSteps + Math.max((topWorkbench - topSteps) * 0.55, 300);
 
-      if (scrollTop <= topCap) {
-        // Stick in place across hero, maritime surveillance, environmental conditions, and capabilities
+      if (scrollTop <= step4Trigger) {
+        // Strictly static in Hero and Steps 1, 2, 3 until Step 4 is reached
         currentLeft = 70;
         currentTop = 50;
         currentScale = 1.2;
-      } else if (scrollTop < topModel) {
-        // Smoothly transition and glide into center as Location Assessment enters
-        const t = Math.min(Math.max((scrollTop - topCap) / (topModel - topCap), 0), 1);
-        currentLeft = 70 + (50 - 70) * t;
-        currentTop = 50 + (52 - 50) * t;
-        currentScale = 1.2;
+        currentOpacity = 0.95;
       } else if (scrollTop < topWorkbench) {
-        // Merged in center at Location Assessment, transitioning to Workbench
-        const t = Math.min(Math.max((scrollTop - topModel) / (topWorkbench - topModel), 0), 1);
-        currentLeft = 50;
-        currentTop = 52;
-        currentScale = 1.2 * (1 - t);
+        // When reaching Step 4 and progressing towards Operations Console:
+        // Decrease size, move horizontally towards center (50vw), and merge into console display
+        const progress = Math.min(Math.max((scrollTop - step4Trigger) / (topWorkbench - step4Trigger), 0), 1);
+        const ease = progress * progress * (3 - 2 * progress); // smoothstep easing
+        currentLeft = 70 + (50 - 70) * ease;
+        currentTop = 50;
+        currentScale = 1.2 * (1 - 0.72 * ease); // decreases from 1.2 down to ~0.34
+        currentOpacity = 0.95 * (1 - ease); // dissolves into console's active 3D workbench
       } else {
-        // In Section 5 (Workbench): hidden
         currentLeft = 50;
-        currentTop = 52;
+        currentTop = 50;
         currentScale = 0;
+        currentOpacity = 0;
       }
     }
 
     const transform = `translate3d(${currentLeft.toFixed(2)}vw, ${currentTop.toFixed(2)}vh, 0) translate3d(-50%, -50%, 0) scale3d(${currentScale.toFixed(3)}, ${currentScale.toFixed(3)}, 1)`;
     
     setGlobeTransform(transform);
+    setGlobeOpacity(currentOpacity);
     setActiveSection(newActiveSection);
   }, []);
 
@@ -663,16 +749,16 @@ export default function LeherLandingPage() {
         <div className="text-white font-bold text-sm">
           {predictionResult.location.regionName}
         </div>
-        <span className={cn(
-          "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
-          predictionResult.summary.riskStatus === 'SAFE' 
-            ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
-            : predictionResult.summary.riskStatus === 'ADVISORY'
-            ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
-            : "bg-red-950/60 border-red-800/60 text-red-400"
-        )}>
-          {predictionResult.summary.riskStatus}
-        </span>
+        <RiskBadge
+          level={
+            predictionResult.summary.riskStatus === 'SAFE'
+              ? 'SAFE'
+              : predictionResult.summary.riskStatus === 'ADVISORY'
+              ? 'CAUTION'
+              : 'DANGER'
+          }
+          size="sm"
+        />
       </div>
 
       {/* Clean Parameters Box (Style of the trading widget in screenshot) */}
@@ -780,130 +866,7 @@ export default function LeherLandingPage() {
       </div>
 
       {/* NAVIGATION */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-[#080808]/80 backdrop-blur-md border-b border-[#1c1c1c]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
-          {/* Brand Logo */}
-          <div 
-            className="flex items-center gap-3.5 cursor-pointer group" 
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <div className="relative h-9 sm:h-10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <img 
-                src="/logo.png" 
-                alt="Leher Logo" 
-                title="Leher"
-                className="h-8 sm:h-9 w-auto object-contain filter drop-shadow-[0_0_10px_rgba(56,189,248,0.35)]" 
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-bold text-2xl tracking-tight text-white group-hover:text-cyan-300 transition-colors">
-                Leher
-              </span>
-              <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
-                Maritime Safety & Hazards
-              </span>
-            </div>
-          </div>
-
-          {/* Nav Links with Menu Hover Effects (Light Sky Blue) */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-2.5 text-xs font-medium whitespace-nowrap">
-            <MenuHoverLink onClick={() => scrollToSection('section-story')}>Explore</MenuHoverLink>
-            <MenuHoverLink onClick={() => scrollToSection('section-data')}>Conditions</MenuHoverLink>
-            <MenuHoverLink onClick={() => scrollToSection('section-capabilities')}>Capabilities</MenuHoverLink>
-            <MenuHoverLink onClick={() => scrollToSection('section-model')}>Location Assessment</MenuHoverLink>
-            <MenuHoverLink onClick={() => scrollToSection('section-preview')}>Operations</MenuHoverLink>
-          </div>
-
-          {/* Action CTA & Hamburger Menu */}
-          <div className="flex items-center gap-3">
-            <ShinyButton 
-              onClick={() => window.open('/operations', '_blank')}
-              className="hidden sm:inline-flex py-2 px-5 text-xs font-semibold"
-            >
-              Open Operations
-            </ShinyButton>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2.5 rounded-xl bg-[#141414] hover:bg-[#222222] border border-[#262626] text-white flex items-center gap-2 cursor-pointer transition-all"
-              aria-label="Toggle Navigation Menu"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* HAMBURGER MENU OVERLAY */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 top-20 z-40 bg-[#080808]/95 backdrop-blur-xl border-b border-[#222222] p-6 flex flex-col justify-between transition-all duration-300 animate-in fade-in slide-in-from-top-4">
-          <div className="space-y-6 max-w-xl mx-auto w-full pt-4">
-            <div className="text-xs font-mono uppercase text-[#888888] tracking-widest border-b border-[#222222] pb-3 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-5 w-auto object-contain" />
-                <span>Operations Menu</span>
-              </div>
-              <span className="text-emerald-400 font-mono text-xs">{realTimeClock}</span>
-            </div>
-            <div className="flex flex-col gap-3 text-base sm:text-lg font-semibold text-[#cccccc]">
-              <button 
-                onClick={() => { scrollToSection('section-story'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
-              >
-                <span className="group-hover:translate-x-1 transition-transform">Open Operations</span>
-                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">01</span>
-              </button>
-              <button 
-                onClick={() => { scrollToSection('section-data'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
-              >
-                <span className="group-hover:translate-x-1 transition-transform">Maritime Conditions</span>
-                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">02</span>
-              </button>
-              <button 
-                onClick={() => { scrollToSection('section-capabilities'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
-              >
-                <span className="group-hover:translate-x-1 transition-transform">Risk & Hazard Intelligence</span>
-                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">03</span>
-              </button>
-              <button 
-                onClick={() => { scrollToSection('section-model'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
-              >
-                <span className="group-hover:translate-x-1 transition-transform">Location Assessment</span>
-                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">04</span>
-              </button>
-              <button 
-                onClick={() => { scrollToSection('section-preview'); setIsMobileMenuOpen(false); }} 
-                className="text-left py-2.5 px-4 rounded-xl bg-[#121212] hover:bg-[#0c1e36] hover:border-sky-400 hover:text-sky-200 border border-[#222222] transition-all cursor-pointer flex items-center justify-between group shadow-sm"
-              >
-                <span className="group-hover:translate-x-1 transition-transform">Operations Console</span>
-                <span className="text-xs font-mono text-[#666666] group-hover:text-sky-400">05</span>
-              </button>
-            </div>
-
-            <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ShinyButton 
-                onClick={() => { setIsPlatformOpen(true); setIsMobileMenuOpen(false); }} 
-                className="w-full py-3 text-xs font-bold"
-              >
-                Open Operations Console
-              </ShinyButton>
-              <SpinningBorderButton 
-                onClick={() => { setIsEarthFullscreen(true); setIsMobileMenuOpen(false); }}
-                className="w-full"
-              >
-                View Operations Map
-              </SpinningBorderButton>
-            </div>
-          </div>
-
-          <div className="max-w-xl mx-auto w-full text-center text-xs font-mono text-[#666666] pt-4 border-t border-[#181818] flex items-center justify-center gap-2">
-            <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-4 w-auto object-contain opacity-80" />
-            <span>Leher Maritime Safety & Hazard Intelligence • INCOIS</span>
-          </div>
-        </div>
-      )}
+      <AppNavbar currentRoute="home" />
 
       {/* 3D GLOBE BACKDROP (Hidden when fullscreen or at 3D workbench section) */}
       <div
@@ -913,8 +876,8 @@ export default function LeherLandingPage() {
         )}
         style={{
           transform: globeTransform,
-          transition: "transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out",
-          opacity: (isEarthFullscreen || isPlatformOpen || activeSection === 5) ? 0 : 0.95,
+          transition: "transform 0.4s ease-out, opacity 0.4s ease-out",
+          opacity: (isEarthFullscreen || isPlatformOpen) ? 0 : globeOpacity,
         }}
       >
         <div className="scale-75 sm:scale-90 lg:scale-100 pointer-events-auto">
@@ -957,368 +920,38 @@ export default function LeherLandingPage() {
       </section>
 
       {/* ========================================================
-          SECTION 1: SPATIO-TEMPORAL DYNAMICS
+          SECTION 1: STEPS TO USE LEHER (OPERATIONAL WORKFLOW)
          ======================================================== */}
       <section
         id="section-story"
         ref={(el) => { sectionRefs.current[1] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-              MARITIME SURVEILLANCE
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-              Monitor Maritime Conditions in Real Time.
-            </h2>
-            <p className="text-[#888888] leading-relaxed text-base font-light">
-              Assess ocean conditions that directly influence maritime safety, navigation, and operational decisions.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4 pt-4 text-sm">
-              <div className="p-4 rounded-xl bg-[#0a0d14]/40 hover:bg-white/[0.04] backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-                <div className="font-mono text-xs text-[#888899] uppercase mb-1">POSITION & COVERAGE</div>
-                <div className="text-white font-medium">Indian Ocean navigation domain</div>
-              </div>
-              <div className="p-4 rounded-xl bg-[#0a0d14]/40 hover:bg-white/[0.04] backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-                <div className="font-mono text-xs text-[#888899] uppercase mb-1">SURFACE & DEPTH</div>
-                <div className="text-white font-medium">Surface and subsurface layers</div>
-              </div>
-              <div className="p-4 rounded-xl bg-[#0a0d14]/40 hover:bg-white/[0.04] backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-                <div className="font-mono text-xs text-[#888899] uppercase mb-1">TEMPORAL FORECAST</div>
-                <div className="text-white font-medium">Hourly updates and trend tracking</div>
-              </div>
-              <div className="p-4 rounded-xl bg-[#0a0d14]/40 hover:bg-white/[0.04] backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-                <div className="font-mono text-xs text-[#888899] uppercase mb-1">MULTI-VARIABLE</div>
-                <div className="text-white font-medium">Wind, waves, currents & salinity</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-6 rounded-2xl bg-[#0a0d14]/40 backdrop-blur-2xl border border-white/10 p-5 sm:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] space-y-4">
-            {/* Top macOS-style window header */}
-            <div className="flex items-center justify-between pb-1 text-xs font-mono text-[#888899]">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
-              </div>
-              <div className="tracking-wide text-[#9999aa]">
-                ocean conditions &middot; live output
-              </div>
-              <div className="w-2 h-2 rounded-full bg-[#ffbd2e] animate-pulse" />
-            </div>
-
-            {/* Top single card */}
-            <div className="rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/10 p-4 flex items-center gap-3.5 hover:border-white/20 hover:bg-white/[0.06] transition-all duration-200">
-              <div className="px-2.5 py-0.5 rounded bg-white/[0.06] border border-white/10 text-xs font-mono font-bold text-[#b0b0bb] shrink-0">
-                SST
-              </div>
-              <div>
-                <div className="text-white font-semibold italic text-base leading-snug">
-                  &ldquo;Sea Surface Temperature&rdquo;
-                </div>
-                <div className="text-xs font-mono text-[#888899] mt-0.5">
-                  thermal status &middot; surface layer
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom grouped cards with dividers */}
-            <div className="rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/10 divide-y divide-white/10 overflow-hidden">
-              {/* CUR */}
-              <div className="p-4 flex items-start gap-3.5 hover:bg-white/[0.04] transition-colors">
-                <div className="border border-[#785b1a] bg-[#292215]/80 text-[#eab308] text-xs font-mono font-bold px-2.5 py-0.5 rounded shrink-0 mt-0.5">
-                  CUR
-                </div>
-                <div>
-                  <div className="text-white font-bold text-base leading-snug">
-                    &ldquo;Surface Current Speed&rdquo;
-                  </div>
-                  <div className="text-xs font-mono text-[#888899] mt-1">
-                    drift vector &middot; hydrodynamic flow
-                  </div>
-                </div>
-              </div>
-
-              {/* SAL */}
-              <div className="p-4 flex items-start gap-3.5 hover:bg-white/[0.04] transition-colors">
-                <div className="border border-[#785b1a] bg-[#292215]/80 text-[#eab308] text-xs font-mono font-bold px-2.5 py-0.5 rounded shrink-0 mt-0.5">
-                  SAL
-                </div>
-                <div>
-                  <div className="text-white font-bold text-base leading-snug">
-                    &ldquo;Salinity&rdquo;
-                  </div>
-                  <div className="text-xs font-mono text-[#888899] mt-1">
-                    water mass &middot; practical salinity
-                  </div>
-                </div>
-              </div>
-
-              {/* SEA */}
-              <div className="p-4 flex items-start gap-3.5 hover:bg-white/[0.04] transition-colors">
-                <div className="border border-[#785b1a] bg-[#292215]/80 text-[#eab308] text-xs font-mono font-bold px-2.5 py-0.5 rounded shrink-0 mt-0.5">
-                  SEA
-                </div>
-                <div>
-                  <div className="text-white font-bold text-base leading-snug">
-                    &ldquo;Sea State&rdquo;
-                  </div>
-                  <div className="text-xs font-mono text-[#888899] mt-1">
-                    roughness &middot; wave height dynamics
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 2: DATA INTEGRATION (DATA PART)
-         ======================================================== */}
-      <section
-        id="section-data"
-        ref={(el) => { sectionRefs.current[2] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-16 sm:py-20 max-w-7xl mx-auto"
       >
-        <div className="space-y-3 max-w-xl mb-7">
+        <div className="space-y-3 max-w-xl text-left mb-12">
           <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            LIVE ENVIRONMENTAL CONDITIONS
+            OPERATIONAL WORKFLOW
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Live Maritime Environmental Conditions.
+            How to Use Leher.
           </h2>
           <p className="text-[#888888] leading-relaxed text-sm sm:text-base font-light">
-            Integrated environmental parameters provide real-time situational awareness across the Indian Ocean domain.
+            A 4-step decision-support workflow designed for coastal fishermen, patrol vessels, and maritime authorities.
           </p>
         </div>
 
-        {/* All 6 Translucent Cards in 2 Columns — strictly left-aligned so the rotating globe on the right remains completely unobstructed */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 max-w-xl lg:max-w-[48%] xl:max-w-[50%]">
-          {[
-            { 
-              code: "SST",
-              title: "Sea Surface Temperature", 
-              desc: "Monitors thermal gradients & heat layers impacting navigation routes."
-            },
-            { 
-              code: "CUR",
-              title: "Surface Currents", 
-              desc: "Tracks surface flow vectors & drift critical for vessel course."
-            },
-            { 
-              code: "SAL",
-              title: "Salinity", 
-              desc: "Assesses water mass density distribution & acoustic propagation."
-            },
-            { 
-              code: "WND",
-              title: "Wind Conditions", 
-              desc: "Measures 10m surface winds & directional gusts driving sea state."
-            },
-            { 
-              code: "SEA",
-              title: "Sea State", 
-              desc: "Evaluates wave dynamics & swell direction for hazardous waters."
-            },
-            { 
-              code: "OBS",
-              title: "Environmental Observations", 
-              desc: "In-situ monitoring networks & satellite feeds for ground truthing."
-            }
-          ].map((item, idx) => (
-            <CardCurtainReveal
-              key={idx}
-              className="relative p-4 sm:p-5 rounded-2xl bg-[#0a0d14]/40 hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 hover:border-cyan-400/50 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,240,255,0.15)] overflow-hidden h-[115px] sm:h-[120px] flex flex-col justify-start cursor-pointer group"
-            >
-              <CardCurtainRevealTitle centerOffset={24} className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center justify-between">
-                <span>{item.title}</span>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-white/[0.06] border border-white/10 text-cyan-300/80 shrink-0 group-hover:border-cyan-400/40 group-hover:text-cyan-300 transition-colors ml-2">
-                  {item.code}
-                </span>
-              </CardCurtainRevealTitle>
-              <CardCurtainRevealDescription className="text-[#a0a0aa] text-xs leading-relaxed mt-2 line-clamp-2">
-                <p>{item.desc}</p>
-              </CardCurtainRevealDescription>
-              <CardCurtain className="bg-gradient-to-br from-cyan-500/[0.08] via-transparent to-transparent pointer-events-none" />
-            </CardCurtainReveal>
-          ))}
+        {/* Strictly left-aligned container so the 3D rotating globe on the right remains unobstructed */}
+        <div className="w-full lg:max-w-[640px]">
+          <HowItWorks features={LEHER_STEPS} align="left" />
         </div>
       </section>
 
       {/* ========================================================
-          SECTION 3: CAPABILITIES (BELOW DATA PART)
-         ======================================================== */}
-      <section 
-        id="section-capabilities"
-        ref={(el) => { sectionRefs.current[3] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-16 sm:py-20 max-w-7xl mx-auto"
-      >
-        <div className="space-y-3 max-w-xl mb-7">
-          <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            OPERATIONAL CAPABILITIES
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            Maritime Risk & Hazard Intelligence.
-          </h2>
-          <p className="text-[#888888] leading-relaxed text-sm sm:text-base font-light">
-            Monitor conditions, identify hazards, assess location risk, and support safer maritime decisions.
-          </p>
-        </div>
-
-        {/* All 9 Translucent Cards in a 3x3 Grid — strictly left-aligned so the rotating globe on the right remains completely unobstructed */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 max-w-xl lg:max-w-[52%] xl:max-w-[54%]">
-          {[
-            { 
-              code: "3DV",
-              title: "3D Maritime Visualization", 
-              desc: "Spatial representation of maritime domain conditions and dynamic oceanic vectors."
-            },
-            { 
-              code: "RZM",
-              title: "Risk Zone Monitoring", 
-              desc: "Continuous surveillance of designated transit corridors and high-risk zones."
-            },
-            { 
-              code: "HZD",
-              title: "Hazard Detection", 
-              desc: "Early identification of convective storms, cyclones, and extreme wave heights."
-            },
-            { 
-              code: "LOC",
-              title: "Location Assessment", 
-              desc: "Point-specific inspection of multi-parameter environmental conditions."
-            },
-            { 
-              code: "RRA",
-              title: "Route Risk Analysis", 
-              desc: "Comprehensive risk indexing along planned vessel transit waypoints."
-            },
-            { 
-              code: "SRP",
-              title: "Safer Route Planning", 
-              desc: "Identifies safer navigational trajectories avoiding severe hazards."
-            },
-            { 
-              code: "ALT",
-              title: "Operational Alerts", 
-              desc: "Audio and visual notifications for vessels entering high-risk areas."
-            },
-            { 
-              code: "ENV",
-              title: "Environmental Monitoring", 
-              desc: "Unified tracking of winds, currents, sea surface temperature, and swell."
-            },
-            { 
-              code: "SAR",
-              title: "Search & Rescue Support", 
-              desc: "Emergency vector calculation and drift trajectory modeling for rescue ops."
-            }
-          ].map((item, idx) => (
-            <CardCurtainReveal
-              key={idx}
-              className="relative p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0a0d14]/40 hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 hover:border-cyan-400/50 transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,240,255,0.15)] overflow-hidden h-[105px] sm:h-[112px] flex flex-col justify-start cursor-pointer group"
-            >
-              <CardCurtainRevealTitle centerOffset={18} className="text-[11px] sm:text-xs font-bold text-white tracking-tight flex items-start justify-between gap-1">
-                <span className="line-clamp-2 leading-snug">{item.title}</span>
-                <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/10 text-cyan-300/80 shrink-0 group-hover:border-cyan-400/40 group-hover:text-cyan-300 transition-colors">
-                  {item.code}
-                </span>
-              </CardCurtainRevealTitle>
-              <CardCurtainRevealDescription className="text-[#a0a0aa] text-[10px] sm:text-[11px] leading-tight mt-1 line-clamp-2">
-                <p>{item.desc}</p>
-              </CardCurtainRevealDescription>
-              <CardCurtain className="bg-gradient-to-br from-cyan-500/[0.08] via-transparent to-transparent pointer-events-none" />
-            </CardCurtainReveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 4: MODEL VS REALITY (THEN MODEL AND REALITY)
-         ======================================================== */}
-      <section
-        id="section-model"
-        ref={(el) => { sectionRefs.current[4] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 py-24 max-w-7xl mx-auto"
-      >
-        <div className="space-y-4 max-w-2xl mb-12">
-          <div className="text-xs font-mono text-[#888888] uppercase tracking-widest">
-            LOCATION ASSESSMENT
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
-            Location Assessment
-          </h2>
-          <p className="text-[#888888] leading-relaxed text-base font-light">
-            Evaluate multi-source environmental conditions and determine operational safety status.
-          </p>
-        </div>
-
-        <div className="max-w-4xl p-8 rounded-2xl bg-[#0a0f18]/55 backdrop-blur-xl border border-cyan-500/25 shadow-[0_8px_32px_rgba(0,0,0,0.6)] space-y-8">
-          <div className="flex flex-wrap justify-between items-center gap-4 border-b border-white/10 pb-6">
-            <div>
-              <span className="text-xs font-mono text-cyan-400 uppercase">Location Profile</span>
-              <h3 className="text-xl font-bold text-white">Selected Ocean Location</h3>
-              <p className="text-xs text-[#aaaaaa] font-mono">Location: 15.4°N, 71.2°E | Level: {selectedDepth}m</p>
-            </div>
-
-            <div className="flex gap-2">
-              {(['temp', 'sal', 'chl'] as const).map(v => (
-                <button
-                  key={v}
-                  onClick={() => setSelectedVar(v)}
-                  className={cn(
-                    "px-4 py-1.5 rounded-xl text-xs font-mono uppercase transition-all cursor-pointer",
-                    selectedVar === v ? "bg-white text-black font-bold" : "bg-black/40 text-[#aaaaaa] hover:text-white border border-white/15"
-                  )}
-                >
-                  {v === 'temp' ? 'SST' : v === 'sal' ? 'Salinity' : 'Sea State'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
-              <div className="text-xs font-mono text-[#888888]">SST</div>
-              <div className="text-3xl font-bold text-white font-mono">
-                {modelValues[selectedVar]} {selectedVar === 'temp' ? '°C' : selectedVar === 'sal' ? 'PSU' : 'mg/m³'}
-              </div>
-              <div className="text-xs text-[#666666]">Sea Surface Temperature</div>
-            </div>
-
-            <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
-              <div className="text-xs font-mono text-[#aaaaaa]">CURRENT SPEED</div>
-              <div className="text-3xl font-bold text-white font-mono">
-                0.42 m/s
-              </div>
-              <div className="text-xs text-[#666666]">Surface Drift Vector</div>
-            </div>
-
-            <div className="p-6 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 space-y-1">
-              <div className="text-xs font-mono text-emerald-400">RISK STATUS</div>
-              <div className="text-3xl font-bold text-emerald-400 font-mono">
-                SAFE
-              </div>
-              <div className="text-xs text-[#666666]">
-                Within Operational Thresholds
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 5: PLATFORM PREVIEW WITH CENTER 3D EARTH WORKBENCH
+          OPERATIONS CONSOLE PREVIEW WITH CENTER 3D EARTH WORKBENCH
          ======================================================== */}
       <section 
         id="section-preview"
-        ref={(el) => { sectionRefs.current[5] = el; }}
+        ref={(el) => { sectionRefs.current[2] = el; }}
         className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-12 z-20 py-20 max-w-7xl mx-auto"
       >
         <div className="space-y-4 max-w-2xl mb-8">
@@ -1465,10 +1098,10 @@ export default function LeherLandingPage() {
           <div className="md:col-span-3 space-y-2">
             <div className="text-xs font-mono uppercase text-[#888888]">Navigation</div>
             <ul className="space-y-1.5 text-xs text-[#888888]">
-              <li><button onClick={() => scrollToSection('section-story')} className="hover:text-white cursor-pointer">Explore</button></li>
-              <li><button onClick={() => scrollToSection('section-data')} className="hover:text-white cursor-pointer">Maritime Conditions</button></li>
-              <li><button onClick={() => scrollToSection('section-capabilities')} className="hover:text-white cursor-pointer">Capabilities</button></li>
-              <li><button onClick={() => scrollToSection('section-model')} className="hover:text-white cursor-pointer">Location Assessment</button></li>
+              <li><a href="/" className="text-white hover:text-cyan-400 cursor-pointer font-medium">Home</a></li>
+              <li><a href="/about" className="hover:text-cyan-400 cursor-pointer">About Leher</a></li>
+              <li><a href="/operations" className="hover:text-cyan-400 cursor-pointer">Explore / Platform</a></li>
+              <li className="pt-1.5 border-t border-[#1c1c1c]"><button onClick={() => scrollToSection('section-story')} className="hover:text-white cursor-pointer">How It Works</button></li>
               <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white cursor-pointer">Operations Console</button></li>
             </ul>
           </div>
@@ -1547,14 +1180,18 @@ export default function LeherLandingPage() {
                   <div className="text-sm font-bold text-white mt-0.5 font-mono">{predictionResult.summary.currentDirectionCompass}</div>
                   <div className="text-[10px] text-[#888888] font-mono">{predictionResult.summary.currentDirectionDeg}° Bearing</div>
                 </div>
-                <div className="p-3 rounded-xl bg-[#141414] border border-[#252525] text-center min-w-[120px]">
+                <div className="p-3 rounded-xl bg-[#141414] border border-[#252525] flex flex-col items-center justify-center min-w-[130px] space-y-1">
                   <div className="text-[9px] text-[#777777] font-mono uppercase">Safety Advisory</div>
-                  <div className={cn(
-                    "text-sm font-bold mt-0.5 font-mono",
-                    predictionResult.summary.riskStatus === 'SAFE' ? "text-emerald-400" : predictionResult.summary.riskStatus === 'ADVISORY' ? "text-amber-400" : "text-red-400"
-                  )}>
-                    {predictionResult.summary.riskStatus}
-                  </div>
+                  <RiskBadge
+                    level={
+                      predictionResult.summary.riskStatus === 'SAFE'
+                        ? 'SAFE'
+                        : predictionResult.summary.riskStatus === 'ADVISORY'
+                        ? 'CAUTION'
+                        : 'DANGER'
+                    }
+                    size="sm"
+                  />
                   <div className="text-[9px] text-[#888888] font-mono">Operational Tier</div>
                 </div>
               </div>

@@ -5,10 +5,14 @@ import MaritimePattern from "@/components/ui/maritime-pattern";
 import OperationsPage from "@/components/ui/operations-page";
 import DetailsPage from "@/components/ui/details-page";
 import DepthSlicePage from "@/components/ui/depth-slice-page";
+import AboutLeherPage from "@/components/ui/about-page";
 
-function getRoute(): 'home' | 'operations' | 'details' | 'depth-slice' {
+function getRoute(): 'home' | 'about' | 'operations' | 'details' | 'depth-slice' {
   const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase();
+  if (path.startsWith('/about') || hash.includes('about')) {
+    return 'about';
+  }
   if (path.startsWith('/depth-slice') || path.startsWith('/slice') || hash.includes('depth-slice') || hash.includes('slice')) {
     return 'depth-slice';
   }
@@ -22,7 +26,7 @@ function getRoute(): 'home' | 'operations' | 'details' | 'depth-slice' {
 }
 
 function App() {
-  const [route, setRoute] = useState<'home' | 'operations' | 'details' | 'depth-slice'>(getRoute);
+  const [route, setRoute] = useState<'home' | 'about' | 'operations' | 'details' | 'depth-slice'>(getRoute);
 
   useEffect(() => {
     const handleRouteChange = () => {
@@ -35,6 +39,10 @@ function App() {
       window.removeEventListener("hashchange", handleRouteChange);
     };
   }, []);
+
+  if (route === 'about') {
+    return <AboutLeherPage />;
+  }
 
   if (route === 'depth-slice') {
     return <DepthSlicePage />;

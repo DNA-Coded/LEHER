@@ -195,10 +195,27 @@ export default function OperationsPage() {
               title="Leher" 
               className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)]" 
             />
-            <span className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
-              <span>Operations &amp; Analytics Console</span>
-            </span>
           </div>
+        </div>
+
+        {/* Center Primary Navigation */}
+        <div className="hidden lg:flex items-center gap-1 text-xs font-medium">
+          <a
+            href="/"
+            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            Home
+          </a>
+          <a
+            href="/about"
+            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            About Leher
+          </a>
+          <span className="px-3 py-1.5 rounded-xl text-white bg-white/[0.08] border border-white/15 font-semibold relative">
+            <span>Explore / Platform</span>
+            <span className="absolute bottom-0.5 left-3 right-3 h-0.5 bg-cyan-400 rounded-full" />
+          </span>
         </div>
 
         <div className="flex items-center gap-3">

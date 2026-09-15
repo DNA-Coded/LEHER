@@ -23,6 +23,7 @@ import {
   type OceanPredictionVariable 
 } from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
+import RiskBadge from '@/components/ui/risk-badge';
 
 // Timezones for the status bar
 type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
@@ -233,6 +234,28 @@ export default function DetailsPage() {
           </div>
         </div>
 
+        {/* Center Primary Navigation */}
+        <div className="hidden lg:flex items-center gap-1 text-xs font-medium">
+          <a
+            href="/"
+            className="px-3 py-1.5 rounded-xl text-[#888899] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            Home
+          </a>
+          <a
+            href="/about"
+            className="px-3 py-1.5 rounded-xl text-[#888899] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            About Leher
+          </a>
+          <a
+            href="/operations"
+            className="px-3 py-1.5 rounded-xl text-[#888899] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            Explore / Platform
+          </a>
+        </div>
+
         {/* Right side controls */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Clock */}
@@ -302,21 +325,19 @@ export default function DetailsPage() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-center min-w-[100px] sm:min-w-[125px]">
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center min-w-[120px] sm:min-w-[140px] space-y-1">
               <div className="text-[10px] text-[#888899] font-mono uppercase">Safety Status</div>
-              <div className={cn(
-                "text-base sm:text-lg font-bold mt-0.5 font-mono flex items-center justify-center gap-1",
-                predictionResult.summary.riskStatus === 'SAFE' 
-                  ? "text-emerald-400" 
-                  : predictionResult.summary.riskStatus === 'ADVISORY' 
-                  ? "text-amber-400" 
-                  : "text-red-400"
-              )}>
-                {predictionResult.summary.riskStatus === 'SAFE' && <ShieldCheck className="w-4 h-4" />}
-                {predictionResult.summary.riskStatus === 'ADVISORY' && <AlertTriangle className="w-4 h-4" />}
-                <span>{predictionResult.summary.riskStatus}</span>
-              </div>
-              <div className="text-[11px] text-[#888899] font-mono">
+              <RiskBadge
+                level={
+                  predictionResult.summary.riskStatus === 'SAFE' 
+                    ? 'SAFE' 
+                    : predictionResult.summary.riskStatus === 'ADVISORY' 
+                    ? 'CAUTION' 
+                    : 'DANGER'
+                }
+                size="sm"
+              />
+              <div className="text-[10px] text-[#888899] font-mono">
                 Operational Tier
               </div>
             </div>

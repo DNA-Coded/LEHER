@@ -14,6 +14,7 @@ import {
 import { predictOceanState } from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
 import { type TimeZone } from '@/components/ui/landing-page';
+import RiskBadge from '@/components/ui/risk-badge';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -549,6 +550,28 @@ export default function DepthSlicePage() {
           </div>
         </div>
 
+        {/* Center Primary Navigation */}
+        <div className="hidden lg:flex items-center gap-1 text-xs font-medium">
+          <a
+            href="/"
+            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            Home
+          </a>
+          <a
+            href="/about"
+            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            About Leher
+          </a>
+          <a
+            href="/operations"
+            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            Explore / Platform
+          </a>
+        </div>
+
         <div className="flex items-center gap-3">
           <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
             <span>{realTimeClock}</span>
@@ -864,16 +887,16 @@ export default function DepthSlicePage() {
                     <div className="text-white font-bold text-sm">
                       {basePrediction.location.regionName}
                     </div>
-                    <span className={cn(
-                      "text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase",
-                      basePrediction.summary.riskStatus === 'SAFE' 
-                        ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
-                        : basePrediction.summary.riskStatus === 'ADVISORY'
-                        ? "bg-amber-950/60 border-amber-800/60 text-amber-400"
-                        : "bg-red-950/60 border-red-800/60 text-red-400"
-                    )}>
-                      {basePrediction.summary.riskStatus}
-                    </span>
+                    <RiskBadge
+                      level={
+                        basePrediction.summary.riskStatus === 'SAFE' 
+                          ? 'SAFE' 
+                          : basePrediction.summary.riskStatus === 'ADVISORY' 
+                          ? 'CAUTION' 
+                          : 'DANGER'
+                      }
+                      size="sm"
+                    />
                   </div>
 
                   {/* Clean Parameters Box (Identical to screenshot) */}
