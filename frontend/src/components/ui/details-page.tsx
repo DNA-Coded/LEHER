@@ -246,7 +246,7 @@ export default function DetailsPage() {
             href="/about"
             className="px-3 py-1.5 rounded-xl text-[#888899] hover:text-white hover:bg-white/[0.04] transition-colors"
           >
-            About Leher
+            About
           </a>
           <a
             href="/operations"

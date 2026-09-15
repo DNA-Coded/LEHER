@@ -1099,7 +1099,7 @@ export default function LeherLandingPage() {
             <div className="text-xs font-mono uppercase text-[#888888]">Navigation</div>
             <ul className="space-y-1.5 text-xs text-[#888888]">
               <li><a href="/" className="text-white hover:text-cyan-400 cursor-pointer font-medium">Home</a></li>
-              <li><a href="/about" className="hover:text-cyan-400 cursor-pointer">About Leher</a></li>
+              <li><a href="/about" className="hover:text-cyan-400 cursor-pointer">About</a></li>
               <li><a href="/operations" className="hover:text-cyan-400 cursor-pointer">Explore / Platform</a></li>
               <li className="pt-1.5 border-t border-[#1c1c1c]"><button onClick={() => scrollToSection('section-story')} className="hover:text-white cursor-pointer">How It Works</button></li>
               <li><button onClick={() => scrollToSection('section-preview')} className="hover:text-white cursor-pointer">Operations Console</button></li>

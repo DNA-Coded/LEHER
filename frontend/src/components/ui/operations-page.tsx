@@ -6,10 +6,28 @@ import {
   RefreshCw, 
   ArrowUpRight,
   Clock,
-  Compass
+  Compass,
+  MapPin,
+  Radio,
+  GitCompare,
+  Route,
+  Maximize2,
+  Minimize2,
+  ChevronUp,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
+import { predictOceanState } from '@/lib/api/oceanPredictionService';
+import type { LocationAssessmentData, RiskLevel } from '@/lib/types/operational-types';
+import { LocationAssessmentPanel } from '@/components/ui/location-assessment-panel';
+import { OceanObservationsPanel } from '@/components/ui/ocean-observations-panel';
+import { ModelObservationComparisonPanel } from '@/components/ui/model-observation-comparison';
+import { RoutePlanningPanel } from '@/components/ui/route-planning-panel';
+import { InteractiveMapOverlay } from '@/components/ui/interactive-map-overlay';
+import { RiskBadge } from '@/components/ui/risk-badge';
+
+type OperationalTab = 'location' | 'observations' | 'model-vs-obs' | 'route';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -19,6 +37,17 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
   JST: { name: 'JST (Japan Standard)', timeZone: 'Asia/Tokyo', offsetLabel: 'UTC+09:00' },
   SGT: { name: 'SGT (Singapore)', timeZone: 'Asia/Singapore', offsetLabel: 'UTC+08:00' },
 };
+
+const LOCATION_PRESETS = [
+  { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
+  { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
+  { label: "Equator / IO", lat: 0.0, lon: 80.5 },
+  { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
+  { label: "South IO", lat: -25.0, lon: 75.0 },
+  { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
+  { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
+  { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
+];
 
 export default function OperationsPage() {
   // Read coordinates and depth from URL query parameters (or fallback to defaults)
@@ -43,16 +72,58 @@ export default function OperationsPage() {
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
 
-  const LOCATION_PRESETS = [
-    { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
-    { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
-    { label: "Equator / IO", lat: 0.0, lon: 80.5 },
-    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
-    { label: "South IO", lat: -25.0, lon: 75.0 },
-    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
-    { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
-    { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
-  ];
+  // Operational Tabs & UI State
+  const [activeTab, setActiveTab] = useState<OperationalTab>('location');
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(true);
+  const [isMobileSheetExpanded, setIsMobileSheetExpanded] = useState<boolean>(false);
+  const [activeRouteView, setActiveRouteView] = useState<'original' | 'safer' | 'compare'>('compare');
+
+  // Dynamically compute location assessment metrics based on Copernicus Marine / CMEMS physics
+  const locationAssessmentData: LocationAssessmentData = useMemo(() => {
+    const prediction = predictOceanState(inputLat, inputLon, workbenchDepth);
+    const riskStatus: RiskLevel = 
+      prediction.summary.riskStatus === 'HAZARD' 
+        ? 'DANGER' 
+        : prediction.summary.riskStatus === 'ADVISORY' 
+        ? 'CAUTION' 
+        : 'SAFE';
+
+    const hasHazard = riskStatus !== 'SAFE';
+
+    return {
+      lat: inputLat,
+      lon: inputLon,
+      regionName: prediction.location.regionName,
+      sst: {
+        label: 'Sea Surface Temp',
+        value: prediction.variables.thetao.value,
+        unit: prediction.variables.thetao.units || '°C',
+      },
+      currentSpeed: {
+        label: 'Current Speed',
+        value: prediction.summary.currentSpeedMs,
+        knots: prediction.summary.currentSpeedKnots,
+        unit: 'm/s',
+        directionCompass: prediction.summary.currentDirectionCompass,
+        directionDeg: prediction.summary.currentDirectionDeg,
+      },
+      salinity: {
+        label: 'Salinity (so)',
+        value: prediction.variables.so.value,
+        unit: 'PSU',
+      },
+      riskStatus,
+      riskRationale: prediction.summary.riskMessage,
+      hazard: {
+        hasHazard,
+        type: hasHazard ? 'OCEAN CONDITIONS' : undefined,
+        severity: riskStatus === 'DANGER' ? 'SEVERE' : riskStatus === 'CAUTION' ? 'MODERATE' : undefined,
+        status: riskStatus === 'DANGER' ? 'WARNING IN EFFECT' : riskStatus === 'CAUTION' ? 'ACTIVE ADVISORY' : undefined,
+        probability: hasHazard ? (riskStatus === 'DANGER' ? 88 : 62) : 10,
+        details: prediction.summary.riskMessage,
+      },
+    };
+  }, [inputLat, inputLon, workbenchDepth]);
 
   // Send message to Earth iframe
   const sendToEarthIframe = useCallback((data: { action: string; projection?: string; latitude?: number; longitude?: number }) => {
@@ -174,13 +245,14 @@ export default function OperationsPage() {
 
   return (
     <div className="h-screen w-screen bg-[#050505] text-white flex flex-col overflow-hidden font-sans">
-      {/* TOP HEADER BAR */}
-      <header className="h-16 bg-[#090909] border-b border-[#222222] px-4 sm:px-6 flex justify-between items-center z-20 shrink-0">
+      {/* 1. TOP NAVIGATION HEADER */}
+      <header className="h-16 bg-[#090909] border-b border-[#222222] px-4 sm:px-6 flex justify-between items-center z-30 shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={handleBackToHome}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer shadow-sm focus:ring-2 focus:ring-cyan-400 focus:outline-none"
             title="Return to Home"
+            aria-label="Return to Home page"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Back to Home</span>
@@ -210,7 +282,7 @@ export default function OperationsPage() {
             href="/about"
             className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
           >
-            About Leher
+            About
           </a>
           <span className="px-3 py-1.5 rounded-xl text-white bg-white/[0.08] border border-white/15 font-semibold relative">
             <span>Explore / Platform</span>
@@ -218,8 +290,8 @@ export default function OperationsPage() {
           </span>
         </div>
 
+        {/* Right Section: Real-time clock & Timezone */}
         <div className="flex items-center gap-3">
-          {/* Real-time Clock */}
           <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
             <Clock className="w-3.5 h-3.5 text-cyan-400" />
             <span>{realTimeClock}</span>
@@ -227,6 +299,7 @@ export default function OperationsPage() {
               value={selectedTimeZone}
               onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
               className="bg-[#1f1f1f] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors ml-1"
+              aria-label="Select Timezone"
             >
               {Object.entries(timeZoneMap).map(([tz, info]) => (
                 <option key={tz} value={tz}>
@@ -238,9 +311,9 @@ export default function OperationsPage() {
         </div>
       </header>
 
-      {/* MAIN WORKSPACE: 3D EARTH + RIGHT MINIMAL WORKBENCH CONTROLS */}
+      {/* 2. MAIN WORKSPACE CONTAINER */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
-        {/* LEFT / CENTER: 3D EARTH IFRAME */}
+        {/* 2A. LEFT / CENTER: 3D EARTH + INTERACTIVE HUD OVERLAY */}
         <div className="flex-1 h-full relative bg-[#040404]">
           <iframe
             key={activeProjection}
@@ -256,191 +329,335 @@ export default function OperationsPage() {
             }}
           />
 
-          {/* Floating Coordinate HUD */}
-          <div className="absolute bottom-4 left-4 right-4 lg:right-auto z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
-              <Compass className="w-4 h-4 text-cyan-400" />
-              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong> @ {workbenchDepth}m</span>
-              <span className="text-cyan-400 hidden sm:inline">• Click on map to inspect</span>
-            </div>
-          </div>
+          {/* Interactive HUD Map Overlay */}
+          <InteractiveMapOverlay
+            targetLat={inputLat}
+            targetLon={inputLon}
+            targetDepth={workbenchDepth}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onSelectCoordinates={(lat, lon) => {
+              setInputLat(lat);
+              setInputLon(lon);
+            }}
+            isSidePanelOpen={isSidePanelOpen}
+            onToggleSidePanel={() => setIsSidePanelOpen(prev => !prev)}
+            activeRouteView={activeRouteView}
+          />
         </div>
 
-        {/* RIGHT: EXACT MINIMAL WORKBENCH CONTROLS & ANALYTICS */}
-        <div className="w-full sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
-          {/* Top Header */}
-          <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-              OPERATIONS &amp; ANALYTICS
-            </h3>
-            <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>OPERATIONS ACTIVE</span>
-            </div>
-          </div>
-
-          {/* 1. Globe Shape Dropdown */}
-          <div className="space-y-1.5 text-xs font-sans">
-            <div className="flex justify-between items-center text-[11px] text-[#888888]">
-              <span>Projection</span>
-              <span className="text-cyan-400 font-mono text-[10px]">{PROJECTION_METADATA[activeProjection] || activeProjection}</span>
-            </div>
-            <div className="relative">
-              <select
-                value={activeProjection}
-                onChange={(e) => handleSelectProjection(e.target.value)}
-                className="w-full bg-[#121212] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#262626] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
-              >
-                {PROJECTION_LIST.map((p) => (
-                  <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
-                <ChevronDown className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Coordinates Input */}
-          <div className="space-y-2 text-xs font-sans">
-            <div className="text-[11px] text-[#888888]">Coordinates</div>
-            
-            {/* Latitude */}
-            <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
-              <span className="text-[#888888] text-xs">Latitude</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-90"
-                  max="90"
-                  value={inputLat}
-                  onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                  placeholder="15.40"
-                />
-                <span className="text-[#666666] font-mono text-xs w-6 text-right">
-                  {inputLat >= 0 ? "°N" : "°S"}
-                </span>
-              </div>
-            </div>
-
-            {/* Longitude */}
-            <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
-              <span className="text-[#888888] text-xs">Longitude</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-180"
-                  max="180"
-                  value={inputLon}
-                  onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                  placeholder="71.20"
-                />
-                <span className="text-[#666666] font-mono text-xs w-6 text-right">
-                  {inputLon >= 0 ? "°E" : "°W"}
-                </span>
-              </div>
-            </div>
-
-            {/* Presets */}
-            <div className="grid grid-cols-4 gap-1 pt-0.5">
-              {LOCATION_PRESETS.map((loc) => {
-                const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
-                return (
+        {/* 2B. RIGHT DESKTOP OPERATIONAL DECK */}
+        {isSidePanelOpen && (
+          <aside className="hidden lg:flex w-[440px] xl:w-[480px] bg-[#0c0c0c] border-l border-[#222222] flex-col z-20 shadow-2xl shrink-0 h-full overflow-hidden">
+            {/* Top Operational Bar */}
+            <div className="p-4 border-b border-[#222222] bg-[#0e0e0e] shrink-0 space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                    Maritime Operations Deck
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono text-[#888888]">
+                    {PROJECTION_METADATA[activeProjection] || 'Concentric'}
+                  </span>
                   <button
-                    key={loc.label}
                     type="button"
-                    onClick={() => {
-                      setInputLat(loc.lat);
-                      setInputLon(loc.lon);
-                    }}
-                    className={cn(
-                      "px-1.5 py-1 rounded-lg text-[10px] border transition-all cursor-pointer text-center truncate",
-                      isSelected
-                        ? "bg-white text-black font-semibold border-white"
-                        : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
-                    )}
+                    onClick={() => setIsSidePanelOpen(false)}
+                    className="p-1 rounded hover:bg-white/10 text-[#888888] hover:text-white transition-colors cursor-pointer"
+                    title="Collapse sidebar to expand map view"
+                    aria-label="Collapse sidebar"
                   >
-                    {loc.label}
+                    <Maximize2 className="w-3.5 h-3.5" />
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* 3. Locate Yourself */}
-          <button
-            type="button"
-            onClick={handleLocateMe}
-            disabled={isLocating}
-            className="w-full py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
-          >
-            <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
-            <span>{isLocating ? "Locating..." : "Locate Yourself"}</span>
-          </button>
-
-          {/* 4. Depth Measurement */}
-          <div className="space-y-2 text-xs font-sans">
-            <div className="flex justify-between items-center text-[11px] text-[#888888]">
-              <span>Depth</span>
-              <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[11px]">
-                {workbenchDepth}m
-              </span>
-            </div>
-            <input 
-              type="range" 
-              min="0" 
-              max="2000" 
-              step="10" 
-              value={workbenchDepth} 
-              onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-              className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
-            />
-            <div className="grid grid-cols-6 gap-1 text-center">
-              {[0, 50, 150, 500, 1000, 2000].map((d) => (
+              {/* 4 OPERATIONAL MODE TABS */}
+              <nav className="grid grid-cols-4 gap-1 bg-[#161616] p-1 rounded-xl border border-[#262626]">
                 <button
-                  key={d}
                   type="button"
-                  onClick={() => setWorkbenchDepth(d)}
+                  onClick={() => setActiveTab('location')}
                   className={cn(
-                    "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
-                    workbenchDepth === d
-                      ? "bg-white text-black font-bold border-white"
-                      : "bg-[#141414] border-[#222222] text-[#666666] hover:text-white"
+                    "py-2 px-1.5 rounded-lg text-[11px] font-mono font-medium flex flex-col items-center gap-1 transition-all cursor-pointer text-center",
+                    activeTab === 'location'
+                      ? "bg-cyan-400 text-black font-bold shadow-md"
+                      : "text-[#888888] hover:text-white hover:bg-white/[0.04]"
                   )}
+                  title="Location Assessment"
                 >
-                  {d === 0 ? "0m" : `${d}m`}
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span className="truncate w-full">Location</span>
                 </button>
-              ))}
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('observations')}
+                  className={cn(
+                    "py-2 px-1.5 rounded-lg text-[11px] font-mono font-medium flex flex-col items-center gap-1 transition-all cursor-pointer text-center",
+                    activeTab === 'observations'
+                      ? "bg-cyan-400 text-black font-bold shadow-md"
+                      : "text-[#888888] hover:text-white hover:bg-white/[0.04]"
+                  )}
+                  title="Argo Floats & Underwater Gliders"
+                >
+                  <Radio className="w-3.5 h-3.5" />
+                  <span className="truncate w-full">Observations</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('model-vs-obs')}
+                  className={cn(
+                    "py-2 px-1.5 rounded-lg text-[11px] font-mono font-medium flex flex-col items-center gap-1 transition-all cursor-pointer text-center",
+                    activeTab === 'model-vs-obs'
+                      ? "bg-cyan-400 text-black font-bold shadow-md"
+                      : "text-[#888888] hover:text-white hover:bg-white/[0.04]"
+                  )}
+                  title="Model vs In-Situ Observation Verification"
+                >
+                  <GitCompare className="w-3.5 h-3.5" />
+                  <span className="truncate w-full">Validation</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('route')}
+                  className={cn(
+                    "py-2 px-1.5 rounded-lg text-[11px] font-mono font-medium flex flex-col items-center gap-1 transition-all cursor-pointer text-center",
+                    activeTab === 'route'
+                      ? "bg-cyan-400 text-black font-bold shadow-md"
+                      : "text-[#888888] hover:text-white hover:bg-white/[0.04]"
+                  )}
+                  title="Route Planning, Risk, and Safer Alternatives"
+                >
+                  <Route className="w-3.5 h-3.5" />
+                  <span className="truncate w-full">Route &amp; Risk</span>
+                </button>
+              </nav>
+            </div>
+
+            {/* Scrollable Active Mode Content */}
+            <div className="flex-1 p-5 overflow-y-auto space-y-6">
+              {/* Projection Dropdown */}
+              <div className="space-y-1.5 text-xs font-sans bg-[#121212] border border-[#222222] p-3 rounded-xl">
+                <div className="flex justify-between items-center text-[11px] text-[#888888]">
+                  <span>Globe Projection</span>
+                  <span className="text-cyan-400 font-mono text-[10px]">
+                    {PROJECTION_METADATA[activeProjection] || activeProjection}
+                  </span>
+                </div>
+                <div className="relative">
+                  <select
+                    value={activeProjection}
+                    onChange={(e) => handleSelectProjection(e.target.value)}
+                    className="w-full bg-[#181818] text-white text-xs font-mono rounded-lg px-3 py-2 border border-[#2e2e2e] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
+                    aria-label="Earth Projection"
+                  >
+                    {PROJECTION_LIST.map((p) => (
+                      <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Panel Switcher */}
+              {activeTab === 'location' && (
+                <LocationAssessmentPanel
+                  data={locationAssessmentData}
+                  workbenchDepth={workbenchDepth}
+                  onDepthChange={setWorkbenchDepth}
+                  inputLat={inputLat}
+                  inputLon={inputLon}
+                  onLatChange={setInputLat}
+                  onLonChange={setInputLon}
+                  onLocateMe={handleLocateMe}
+                  isLocating={isLocating}
+                  onPredict={handlePredict}
+                  isPredicting={isPredicting}
+                  presets={LOCATION_PRESETS}
+                />
+              )}
+
+              {activeTab === 'observations' && (
+                <OceanObservationsPanel
+                  onSelectCoordinates={(lat, lon) => {
+                    setInputLat(lat);
+                    setInputLon(lon);
+                  }}
+                />
+              )}
+
+              {activeTab === 'model-vs-obs' && (
+                <ModelObservationComparisonPanel />
+              )}
+
+              {activeTab === 'route' && (
+                <RoutePlanningPanel
+                  activeRouteView={activeRouteView}
+                  onSelectRouteView={setActiveRouteView}
+                />
+              )}
+            </div>
+          </aside>
+        )}
+
+        {/* 2C. MOBILE RESPONSIVE BOTTOM SHEET */}
+        <div className="lg:hidden absolute bottom-0 inset-x-0 z-30 pointer-events-auto">
+          {/* Collapsed Bottom Bar / Tap Handle */}
+          <div className="bg-[#0e0e0e]/95 backdrop-blur-xl border-t border-[#262626] p-3 shadow-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                type="button"
+                onClick={() => setIsMobileSheetExpanded(!isMobileSheetExpanded)}
+                className="flex items-center gap-2 text-left cursor-pointer flex-1"
+                aria-label="Toggle mobile operations deck"
+              >
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                <div className="truncate">
+                  <div className="text-xs font-mono font-bold text-white flex items-center gap-2">
+                    <span className="truncate">{locationAssessmentData.regionName}</span>
+                    <RiskBadge level={locationAssessmentData.riskStatus} size="sm" />
+                  </div>
+                  <div className="text-[10px] font-mono text-[#888888]">
+                    {inputLat.toFixed(2)}°N, {inputLon.toFixed(2)}°E @ {workbenchDepth}m
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsMobileSheetExpanded(!isMobileSheetExpanded)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white cursor-pointer ml-2"
+                aria-label={isMobileSheetExpanded ? "Collapse sheet" : "Expand sheet"}
+              >
+                {isMobileSheetExpanded ? (
+                  <ChevronDown className="w-5 h-5 text-cyan-400" />
+                ) : (
+                  <ChevronUp className="w-5 h-5 text-cyan-400" />
+                )}
+              </button>
+            </div>
+
+            {/* Mobile Tab Selector Pill */}
+            <div className="grid grid-cols-4 gap-1 bg-[#181818] p-1 rounded-xl border border-[#2a2a2a]">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('location');
+                  setIsMobileSheetExpanded(true);
+                }}
+                className={cn(
+                  "py-2 px-1 rounded-lg text-[10px] font-mono font-medium flex flex-col items-center gap-0.5 transition-colors cursor-pointer",
+                  activeTab === 'location'
+                    ? "bg-cyan-400 text-black font-bold"
+                    : "text-[#888888] hover:text-white"
+                )}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Location</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('observations');
+                  setIsMobileSheetExpanded(true);
+                }}
+                className={cn(
+                  "py-2 px-1 rounded-lg text-[10px] font-mono font-medium flex flex-col items-center gap-0.5 transition-colors cursor-pointer",
+                  activeTab === 'observations'
+                    ? "bg-cyan-400 text-black font-bold"
+                    : "text-[#888888] hover:text-white"
+                )}
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span>Observations</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('model-vs-obs');
+                  setIsMobileSheetExpanded(true);
+                }}
+                className={cn(
+                  "py-2 px-1 rounded-lg text-[10px] font-mono font-medium flex flex-col items-center gap-0.5 transition-colors cursor-pointer",
+                  activeTab === 'model-vs-obs'
+                    ? "bg-cyan-400 text-black font-bold"
+                    : "text-[#888888] hover:text-white"
+                )}
+              >
+                <GitCompare className="w-3.5 h-3.5" />
+                <span>Validation</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('route');
+                  setIsMobileSheetExpanded(true);
+                }}
+                className={cn(
+                  "py-2 px-1 rounded-lg text-[10px] font-mono font-medium flex flex-col items-center gap-0.5 transition-colors cursor-pointer",
+                  activeTab === 'route'
+                    ? "bg-cyan-400 text-black font-bold"
+                    : "text-[#888888] hover:text-white"
+                )}
+              >
+                <Route className="w-3.5 h-3.5" />
+                <span>Route</span>
+              </button>
             </div>
           </div>
 
-          {/* 5. Predict Ocean State Button */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={handlePredict}
-              disabled={isPredicting}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-white via-cyan-100 to-white hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
-            >
-              {isPredicting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                  <span>Generating 3D Depth Slice...</span>
-                </>
-              ) : (
-                <>
-                  <span>Predict Ocean State &amp; Open 3D Depth Slice</span>
-                  <ArrowUpRight className="w-4 h-4 text-black" />
-                </>
+          {/* Expanded Mobile Sheet Body */}
+          {isMobileSheetExpanded && (
+            <div className="bg-[#0c0c0c] border-t border-[#262626] max-h-[68vh] overflow-y-auto p-4 space-y-4 shadow-2xl">
+              {activeTab === 'location' && (
+                <LocationAssessmentPanel
+                  data={locationAssessmentData}
+                  workbenchDepth={workbenchDepth}
+                  onDepthChange={setWorkbenchDepth}
+                  inputLat={inputLat}
+                  inputLon={inputLon}
+                  onLatChange={setInputLat}
+                  onLonChange={setInputLon}
+                  onLocateMe={handleLocateMe}
+                  isLocating={isLocating}
+                  onPredict={handlePredict}
+                  isPredicting={isPredicting}
+                  presets={LOCATION_PRESETS}
+                />
               )}
-            </button>
-          </div>
+
+              {activeTab === 'observations' && (
+                <OceanObservationsPanel
+                  onSelectCoordinates={(lat, lon) => {
+                    setInputLat(lat);
+                    setInputLon(lon);
+                  }}
+                />
+              )}
+
+              {activeTab === 'model-vs-obs' && (
+                <ModelObservationComparisonPanel />
+              )}
+
+              {activeTab === 'route' && (
+                <RoutePlanningPanel
+                  activeRouteView={activeRouteView}
+                  onSelectRouteView={setActiveRouteView}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

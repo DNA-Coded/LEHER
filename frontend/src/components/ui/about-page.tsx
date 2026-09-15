@@ -8,7 +8,7 @@ export function AboutLeherPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans selection:bg-cyan-500/25 selection:text-cyan-200">
+    <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans selection:bg-white/20 selection:text-white">
       {/* Top Navigation */}
       <AppNavbar currentRoute="about" />
 
@@ -19,8 +19,8 @@ export function AboutLeherPage() {
             01 — INTRODUCTION
            ======================================================== */}
         <section className="pt-6 sm:pt-10 text-center max-w-3xl mx-auto space-y-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-800/40 text-cyan-400 text-xs font-mono font-medium">
-            <span>ABOUT LEHER</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-neutral-300 text-xs font-mono font-medium">
+            <span>ABOUT</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
@@ -54,7 +54,7 @@ export function AboutLeherPage() {
            ======================================================== */}
         <section className="space-y-6">
           <div className="border-b border-[#1f2430] pb-4">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block">01 / WHY LEHER</span>
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">01 / WHY LEHER</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
               Understanding Ocean Conditions Should Be Easier
             </h2>
@@ -65,7 +65,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 block">01</span>
+              <span className="text-xs font-mono text-neutral-400 block">01</span>
               <h3 className="text-base font-semibold text-white tracking-tight">
                 Complex Ocean Conditions
               </h3>
@@ -75,7 +75,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 block">02</span>
+              <span className="text-xs font-mono text-neutral-400 block">02</span>
               <h3 className="text-base font-semibold text-white tracking-tight">
                 Different Sources of Information
               </h3>
@@ -85,7 +85,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 block">03</span>
+              <span className="text-xs font-mono text-neutral-400 block">03</span>
               <h3 className="text-base font-semibold text-white tracking-tight">
                 Hard to Interpret in Isolation
               </h3>
@@ -101,7 +101,7 @@ export function AboutLeherPage() {
            ======================================================== */}
         <section className="space-y-6">
           <div className="border-b border-[#1f2430] pb-4">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block">02 / EXPLORE</span>
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">02 / EXPLORE</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
               Explore the Ocean in One Place
             </h2>
@@ -112,7 +112,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-cyan-400/80 block">01</span>
+              <span className="text-xs font-mono text-neutral-400 block">01</span>
               <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                 3D Ocean View
               </h3>
@@ -122,7 +122,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-cyan-400/80 block">02</span>
+              <span className="text-xs font-mono text-neutral-400 block">02</span>
               <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                 Ocean Conditions
               </h3>
@@ -132,7 +132,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-cyan-400/80 block">03</span>
+              <span className="text-xs font-mono text-neutral-400 block">03</span>
               <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                 Depth &amp; Time
               </h3>
@@ -142,7 +142,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-cyan-400/80 block">04</span>
+              <span className="text-xs font-mono text-neutral-400 block">04</span>
               <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                 Ocean Observations
               </h3>
@@ -152,7 +152,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-cyan-400/80 block">05</span>
+              <span className="text-xs font-mono text-neutral-400 block">05</span>
               <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                 Location Assessment
               </h3>
@@ -162,7 +162,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-              <span className="text-xs font-mono text-cyan-400/80 block">06</span>
+              <span className="text-xs font-mono text-neutral-400 block">06</span>
               <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                 Model &amp; Observation View
               </h3>
@@ -178,12 +178,12 @@ export function AboutLeherPage() {
            ======================================================== */}
         <section className="space-y-6">
           <div className="border-b border-[#1f2430] pb-4">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block">03 / MARITIME RISK</span>
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">03 / MARITIME RISK</span>
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mt-1">
               <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                 See Where Conditions Become a Risk
               </h2>
-              <div className="text-xs font-mono text-cyan-400/90 font-medium tracking-wide">
+              <div className="text-xs font-mono text-neutral-400 font-medium tracking-wide">
                 SAFE → CAUTION → DANGER
               </div>
             </div>
@@ -239,7 +239,7 @@ export function AboutLeherPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-                <span className="text-xs font-mono text-cyan-400/80 block">01</span>
+                <span className="text-xs font-mono text-neutral-400 block">01</span>
                 <h4 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                   CYCLONE / STORM
                 </h4>
@@ -249,7 +249,7 @@ export function AboutLeherPage() {
               </div>
 
               <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-                <span className="text-xs font-mono text-cyan-400/80 block">02</span>
+                <span className="text-xs font-mono text-neutral-400 block">02</span>
                 <h4 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                   STORM SURGE
                 </h4>
@@ -259,7 +259,7 @@ export function AboutLeherPage() {
               </div>
 
               <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2">
-                <span className="text-xs font-mono text-cyan-400/80 block">03</span>
+                <span className="text-xs font-mono text-neutral-400 block">03</span>
                 <h4 className="text-sm sm:text-base font-semibold text-white tracking-tight">
                   OCEAN CONDITIONS
                 </h4>
@@ -276,12 +276,12 @@ export function AboutLeherPage() {
            ======================================================== */}
         <section className="space-y-6">
           <div className="border-b border-[#1f2430] pb-3">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block">04 / USER FLOW</span>
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">04 / USER FLOW</span>
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mt-1">
               <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                 From Ocean Data to Action
               </h2>
-              <div className="text-xs font-mono text-cyan-400/90 font-medium tracking-wide">
+              <div className="text-xs font-mono text-neutral-400 font-medium tracking-wide">
                 SEE → CLICK → UNDERSTAND → ACT
               </div>
             </div>
@@ -289,7 +289,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 01</span>
+              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 01</span>
               <h3 className="text-base font-bold text-white tracking-tight">SEE</h3>
               <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
                 Explore the 3D ocean and identify an area of interest.
@@ -297,7 +297,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 02</span>
+              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 02</span>
               <h3 className="text-base font-bold text-white tracking-tight">CLICK</h3>
               <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
                 Select a location or hazard on the map.
@@ -305,7 +305,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 03</span>
+              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 03</span>
               <h3 className="text-base font-bold text-white tracking-tight">UNDERSTAND</h3>
               <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
                 Review ocean conditions, observations and risk for that location.
@@ -313,7 +313,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 04</span>
+              <span className="text-xs font-mono text-neutral-400 font-bold block">STEP 04</span>
               <h3 className="text-base font-bold text-white tracking-tight">ACT</h3>
               <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
                 Use the information to respond to hazards or choose a safer route.
@@ -327,7 +327,7 @@ export function AboutLeherPage() {
            ======================================================== */}
         <section className="space-y-6">
           <div className="border-b border-[#1f2430] pb-3">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block">05 / USERS</span>
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">05 / USERS</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
               Built for Maritime Users
             </h2>
@@ -335,7 +335,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-6 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Operational User</div>
+              <div className="text-xs font-mono text-neutral-400 uppercase tracking-wider">Operational User</div>
               <h3 className="text-lg font-bold text-white tracking-tight">
                 Fishermen
               </h3>
@@ -345,7 +345,7 @@ export function AboutLeherPage() {
             </div>
 
             <div className="p-6 rounded-2xl bg-[#0e1117] border border-[#1f2430] space-y-2.5">
-              <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Command &amp; Surveillance</div>
+              <div className="text-xs font-mono text-neutral-400 uppercase tracking-wider">Command &amp; Surveillance</div>
               <h3 className="text-lg font-bold text-white tracking-tight">
                 Coast Guard
               </h3>
@@ -392,7 +392,7 @@ export function AboutLeherPage() {
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => navigateTo('/')} className="hover:text-white cursor-pointer transition-colors">Home</button>
-            <button onClick={() => navigateTo('/about')} className="text-cyan-400 cursor-pointer">About Leher</button>
+            <button onClick={() => navigateTo('/about')} className="text-neutral-200 hover:text-white cursor-pointer transition-colors">About</button>
             <button onClick={() => navigateTo('/operations')} className="hover:text-white cursor-pointer transition-colors">Explore / Platform</button>
           </div>
         </div>

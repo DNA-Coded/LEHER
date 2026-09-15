@@ -134,11 +134,6 @@ const Card = ({
           <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed tracking-tight">
             {description}
           </p>
-
-          <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-cyan-400/80">
-            <span>Hover for intel</span>
-            <span className="text-xs transition-transform group-hover:translate-x-1">→</span>
-          </div>
         </div>
       </div>
 
@@ -161,18 +156,6 @@ const Card = ({
           />
 
           <div className="space-y-2 text-left">
-            <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 uppercase tracking-wider">
-                {popup.tag}
-              </span>
-              {popup.statusText && (
-                <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {popup.statusText}
-                </span>
-              )}
-            </div>
-
             <h4 className="text-sm font-bold text-white tracking-tight">
               {popup.headline}
             </h4>
