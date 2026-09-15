@@ -193,11 +193,28 @@
       }, { passive: true });
 
       window.addEventListener("pointerup", function (e) {
-        // Allow user to temporarily hold/inspect, then automatically resume revolving
-        if (resumeDebounceTimer) clearTimeout(resumeDebounceTimer);
-        resumeDebounceTimer = setTimeout(function () {
-          resumeAndResetState();
-        }, 1200);
+        const dt = Date.now() - pointerDownTime;
+        const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+        
+        // If it is a tap or click (short duration and minimal displacement)
+        if (dt < 500 && dist < 12) {
+          isPaused = !isPaused;
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              type: "LEHER_GLOBE_PAUSED_STATE",
+              isPaused: isPaused
+            }, "*");
+          }
+        } else if (dist >= 12) {
+          // If user dragged to touch/rotate the globe to inspect, keep it paused where they left it
+          isPaused = true;
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              type: "LEHER_GLOBE_PAUSED_STATE",
+              isPaused: true
+            }, "*");
+          }
+        }
       }, { passive: true });
 
       function checkAndRestoreCamera() {
@@ -276,31 +293,18 @@
         }
       }, { passive: true });
 
-      let rotating = false;
-      function startRotation() {
-        if (rotating) return;
-        rotating = true;
-        rotate();
-      }
-
       view.when(function () {
         if (view.container) {
           view.container.style.filter = "none";
         }
-        // Start immediately upon view ready
-        startRotation();
-        if (watchUtils && watchUtils.whenFalseOnce) {
-          watchUtils.whenFalseOnce(view, "updating", startRotation);
-        }
+        watchUtils.whenFalseOnce(view, "updating", rotate);
       });
 
       function rotate() {
         if (!view.interacting && !isPaused && !isRestoring) {
-          try {
-            const camera = view.camera.clone();
-            camera.position.longitude += 0.25;
-            view.goTo(camera, { animate: false }).catch(function () {});
-          } catch (e) {}
+          const camera = view.camera.clone();
+          camera.position.longitude += 0.2;
+          view.goTo(camera, { animate: false });
         }
         requestAnimationFrame(rotate);
       }

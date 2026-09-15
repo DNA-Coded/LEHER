@@ -51,27 +51,16 @@ export interface OceanPredictionResult {
  * Identify approximate maritime geographical basin for context
  */
 function getRegionName(lat: number, lon: number): string {
-  // Specific Indian Ocean straits, gulfs and sub-basins
-  if (lat >= 21.5 && lat <= 24.0 && lon >= 68.0 && lon <= 70.8) return "Gulf of Kutch";
-  if (lat >= 7.5 && lat <= 10.2 && lon >= 78.0 && lon <= 80.5) return "Gulf of Mannar & Palk Strait";
-  if (lat >= 8.0 && lat <= 13.5 && lon >= 71.0 && lon <= 74.5) return "Lakshadweep Sea";
-  if (lat >= 8.5 && lat <= 15.5 && lon >= 91.5 && lon <= 98.0) return "Andaman Sea";
-  if (lat >= 1.0 && lat <= 6.5 && lon >= 98.0 && lon <= 104.5) return "Malacca Strait";
-  if (lat >= 10.5 && lat <= 15.5 && lon >= 43.0 && lon <= 51.5) return "Gulf of Aden";
-  if (lat >= 22.0 && lat <= 26.5 && lon >= 56.0 && lon <= 60.5) return "Gulf of Oman";
-  if (lat >= -2.0 && lat <= 9.0 && lon >= 48.0 && lon <= 56.0) return "Somali Basin";
-  if (lat >= 4.5 && lat <= 7.5 && lon >= 79.5 && lon <= 82.5) return "Dondra Head Shipping Corridor";
-  if (lat >= -26.0 && lat <= -10.0 && lon >= 35.0 && lon <= 46.0) return "Mozambique Channel";
-
-  // Broader basins
-  if (lat >= 0 && lat <= 30 && lon >= 50 && lon <= 78) return "Arabian Sea";
-  if (lat >= 0 && lat <= 25 && lon > 78 && lon <= 96) return "Bay of Bengal";
-  if (lat >= -20 && lat < 5 && lon >= 60 && lon <= 95) return "Central Indian Ocean Basin";
-  if (lat < -20 && lat >= -45 && lon >= 20 && lon <= 120) return "South Indian Ocean";
+  if (lat >= 0 && lat <= 30 && lon >= 45 && lon <= 78) return "Arabian Sea";
+  if (lat >= 0 && lat <= 25 && lon > 78 && lon <= 100) return "Bay of Bengal";
+  if (lat < 0 && lat >= -40 && lon >= 20 && lon <= 120) return "South Indian Ocean";
+  if (lat >= -10 && lat <= 15 && lon >= 95 && lon <= 110) return "Malacca Strait & Andaman Sea";
+  if (lat >= 10 && lat <= 32 && lon >= 32 && lon <= 45) return "Red Sea & Gulf of Aden";
+  if (lat >= 20 && lat <= 32 && lon >= 48 && lon <= 58) return "Persian Gulf & Gulf of Oman";
   if (Math.abs(lat) > 60) return lat > 0 ? "Arctic Waters" : "Southern Ocean (Antarctic)";
   if (lon > 100 && lon < 180) return "Indo-Pacific Gateway";
   if (lon >= -80 && lon <= 20) return "Atlantic Ocean";
-  return "Indian Ocean Open Waters";
+  return "Open Ocean Waters";
 }
 
 /**
