@@ -1,15 +1,21 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  ArrowLeft, 
-  ChevronDown, 
-  Locate, 
-  RefreshCw, 
+import {
+  ArrowLeft,
+  ChevronDown,
+  Locate,
+  RefreshCw,
   ArrowUpRight,
   Clock,
-  Compass
+  Compass,
+  Layers,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
+import { predictOceanState } from '@/lib/api/oceanPredictionService';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -20,8 +26,22 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
   SGT: { name: 'SGT (Singapore)', timeZone: 'Asia/Singapore', offsetLabel: 'UTC+08:00' },
 };
 
+const LOCATION_PRESETS = [
+  { label: 'Arabian Sea',    lat: 15.4,  lon: 71.2,  kind: 'SEA',     sst: '28.4°C', speed: '0.42 m/s' },
+  { label: 'Bay of Bengal',  lat: 14.0,  lon: 86.5,  kind: 'BAY',     sst: '27.8°C', speed: '0.31 m/s' },
+  { label: 'Gulf of Kutch',  lat: 22.5,  lon: 69.2,  kind: 'GULF',    sst: '27.1°C', speed: '0.68 m/s' },
+  { label: 'Gulf of Mannar', lat: 8.8,   lon: 79.1,  kind: 'GULF',    sst: '29.3°C', speed: '0.45 m/s' },
+  { label: 'Lakshadweep',    lat: 10.5,  lon: 72.6,  kind: 'ISLAND',  sst: '28.9°C', speed: '0.29 m/s' },
+  { label: 'Andaman Sea',    lat: 11.7,  lon: 93.0,  kind: 'SEA',     sst: '28.2°C', speed: '0.35 m/s' },
+  { label: 'Malacca Strait', lat: 3.5,   lon: 100.2, kind: 'STRAIT',  sst: '29.5°C', speed: '0.55 m/s' },
+  { label: 'Gulf of Aden',   lat: 12.5,  lon: 48.0,  kind: 'GULF',    sst: '26.0°C', speed: '0.47 m/s' },
+  { label: 'Gulf of Oman',   lat: 24.5,  lon: 58.5,  kind: 'GULF',    sst: '26.8°C', speed: '0.39 m/s' },
+  { label: 'Somali Basin',   lat: 4.5,   lon: 51.0,  kind: 'BASIN',   sst: '25.6°C', speed: '0.82 m/s' },
+  { label: 'Dondra Head',    lat: 5.8,   lon: 80.5,  kind: 'COAST',   sst: '29.0°C', speed: '0.41 m/s' },
+  { label: 'Mozambique Ch.', lat: -18.0, lon: 41.0,  kind: 'CHANNEL', sst: '26.2°C', speed: '0.58 m/s' },
+];
+
 export default function OperationsPage() {
-  // Read coordinates and depth from URL query parameters (or fallback to defaults)
   const [params] = useState(() => {
     const search = new URLSearchParams(window.location.search);
     const lat = parseFloat(search.get('lat') || '15.4');
@@ -34,6 +54,12 @@ export default function OperationsPage() {
     };
   });
 
+  // Find initial preset index
+  const initPresetIdx = LOCATION_PRESETS.findIndex(
+    (p) => Math.abs(p.lat - params.lat) < 0.1 && Math.abs(p.lon - params.lon) < 0.1
+  );
+
+  const [selectedPresetIdx, setSelectedPresetIdx] = useState(initPresetIdx >= 0 ? initPresetIdx : 0);
   const [inputLat, setInputLat] = useState<number>(params.lat);
   const [inputLon, setInputLon] = useState<number>(params.lon);
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
@@ -42,57 +68,47 @@ export default function OperationsPage() {
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'parameters' | 'summary'>('parameters');
 
-  const LOCATION_PRESETS = [
-    { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
-    { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
-    { label: "Equator / IO", lat: 0.0, lon: 80.5 },
-    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
-    { label: "South IO", lat: -25.0, lon: 75.0 },
-    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
-    { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
-    { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
-  ];
+  const predictionResult = useMemo(
+    () => predictOceanState(inputLat, inputLon, workbenchDepth),
+    [inputLat, inputLon, workbenchDepth]
+  );
 
-  // Send message to Earth iframe
-  const sendToEarthIframe = useCallback((data: { action: string; projection?: string; latitude?: number; longitude?: number }) => {
-    const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[title*="Earth"]');
-    iframes.forEach((iframe) => {
-      try {
-        iframe.contentWindow?.postMessage(data, "*");
-      } catch (err) {
-        console.warn("Unable to postMessage to Earth iframe", err);
-      }
-    });
-  }, []);
+  const riskStatus = predictionResult.summary.riskStatus === 'SAFE' ? 'SAFE'
+    : predictionResult.summary.riskStatus === 'ADVISORY' ? 'CAUTION' : 'DANGER';
 
-  // Listen for coordinates from Earth iframe inspection
+  const sendToEarthIframe = useCallback(
+    (data: { action: string; projection?: string; latitude?: number; longitude?: number }) => {
+      const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[title*="Earth"]');
+      iframes.forEach((iframe) => {
+        try { iframe.contentWindow?.postMessage(data, '*'); }
+        catch (err) { console.warn('Unable to postMessage to Earth iframe', err); }
+      });
+    },
+    []
+  );
+
   useEffect(() => {
     const handleEarthMessage = (e: MessageEvent) => {
-      if (!e.data || typeof e.data !== "object") return;
-      if (e.data.type === "earth:location") {
-        const lat = typeof e.data.latitude === "number" ? e.data.latitude : 0;
-        const lon = typeof e.data.longitude === "number" ? e.data.longitude : 0;
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === 'earth:location') {
+        const lat = typeof e.data.latitude === 'number' ? e.data.latitude : 0;
+        const lon = typeof e.data.longitude === 'number' ? e.data.longitude : 0;
         setInputLat(parseFloat(lat.toFixed(4)));
         setInputLon(parseFloat(lon.toFixed(4)));
       }
     };
-    window.addEventListener("message", handleEarthMessage);
-    return () => window.removeEventListener("message", handleEarthMessage);
+    window.addEventListener('message', handleEarthMessage);
+    return () => window.removeEventListener('message', handleEarthMessage);
   }, []);
 
-  // Sync coordinates with Earth iframe whenever inputLat or inputLon changes
   useEffect(() => {
-    if (typeof inputLat === "number" && typeof inputLon === "number") {
-      sendToEarthIframe({
-        action: "setLocation",
-        latitude: inputLat,
-        longitude: inputLon,
-      });
+    if (typeof inputLat === 'number' && typeof inputLon === 'number') {
+      sendToEarthIframe({ action: 'setLocation', latitude: inputLat, longitude: inputLon });
     }
   }, [inputLat, inputLon, sendToEarthIframe]);
 
-  // Handle Predict & Open Depth Slice Page
   const handlePredict = useCallback(() => {
     setIsPredicting(true);
     const targetUrl = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`;
@@ -102,50 +118,52 @@ export default function OperationsPage() {
     }, 280);
   }, [inputLat, inputLon, workbenchDepth]);
 
-  // Locate yourself via Geolocation
   const handleLocateMe = useCallback(() => {
     setIsLocating(true);
-    if ("geolocation" in navigator) {
+    if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const lat = parseFloat(pos.coords.latitude.toFixed(4));
           const lon = parseFloat(pos.coords.longitude.toFixed(4));
           setInputLat(lat);
           setInputLon(lon);
-          sendToEarthIframe({ action: "locateMe" });
+          sendToEarthIframe({ action: 'locateMe' });
           setIsLocating(false);
         },
         () => {
-          sendToEarthIframe({ action: "locateMe" });
+          sendToEarthIframe({ action: 'locateMe' });
           setIsLocating(false);
         },
         { timeout: 6000 }
       );
     } else {
-      sendToEarthIframe({ action: "locateMe" });
+      sendToEarthIframe({ action: 'locateMe' });
       setIsLocating(false);
     }
   }, [sendToEarthIframe]);
 
-  const handleSelectProjection = useCallback((projKey: string) => {
-    setActiveProjection(projKey);
-    sendToEarthIframe({ action: "setProjection", projection: projKey });
-  }, [sendToEarthIframe]);
+  const handleSelectProjection = useCallback(
+    (projKey: string) => {
+      setActiveProjection(projKey);
+      sendToEarthIframe({ action: 'setProjection', projection: projKey });
+    },
+    [sendToEarthIframe]
+  );
 
-  // Real-time clock
+  const handleSelectPreset = (idx: number) => {
+    setSelectedPresetIdx(idx);
+    setInputLat(LOCATION_PRESETS[idx].lat);
+    setInputLon(LOCATION_PRESETS[idx].lon);
+  };
+
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       try {
         const options: Intl.DateTimeFormatOptions = {
           timeZone: timeZoneMap[selectedTimeZone].timeZone,
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
         };
         const formatter = new Intl.DateTimeFormat('en-CA', options);
         const formatted = formatter.format(now).replace(', ', ' ');
@@ -160,11 +178,8 @@ export default function OperationsPage() {
   }, [selectedTimeZone]);
 
   const handleBackToHome = () => {
-    if (window.history.length > 1 && window.opener) {
-      window.close();
-    } else {
-      window.location.href = '/';
-    }
+    if (window.history.length > 1 && window.opener) window.close();
+    else window.location.href = '/';
   };
 
   const earthIframeUrl = useMemo(() => {
@@ -172,272 +187,356 @@ export default function OperationsPage() {
     return `/earth/index.html#current/ocean/surface/currents/overlay=ocean/${projName}`;
   }, [activeProjection]);
 
+  const selectedPreset = LOCATION_PRESETS[selectedPresetIdx];
+
+  // Risk color helper
+  const riskColor = riskStatus === 'SAFE'
+    ? 'rgb(var(--long))'
+    : riskStatus === 'CAUTION'
+    ? 'rgb(var(--warn))'
+    : 'rgb(var(--short))';
+
+  const riskBg = riskStatus === 'SAFE'
+    ? 'rgb(var(--long) / 0.08)'
+    : riskStatus === 'CAUTION'
+    ? 'rgb(var(--warn) / 0.08)'
+    : 'rgb(var(--short) / 0.08)';
+
+  const RiskIcon = riskStatus === 'SAFE' ? CheckCircle : riskStatus === 'CAUTION' ? AlertTriangle : XCircle;
+
   return (
-    <div className="h-screen w-screen bg-[#050505] text-white flex flex-col overflow-hidden font-sans">
-      {/* TOP HEADER BAR */}
-      <header className="h-16 bg-[#090909] border-b border-[#222222] px-4 sm:px-6 flex justify-between items-center z-20 shrink-0">
+    <div
+      className="h-screen w-screen flex flex-col overflow-hidden font-sans"
+      style={{ backgroundColor: 'rgb(var(--canvas))', color: 'rgb(var(--ink))' }}
+    >
+      {/* ── TOPBAR ────────────────────────────────────────────── */}
+      <header
+        className="h-16 flex items-center justify-between gap-3 px-4 sm:px-6 shrink-0"
+        style={{ backgroundColor: 'rgb(var(--surface))', borderBottom: '1px solid rgb(var(--hairline))' }}
+      >
+        {/* Left: Back + Logo */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleBackToHome}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer shadow-sm"
-            title="Return to Home"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs tnum cursor-pointer transition-all hover-lift"
+            style={{ backgroundColor: 'rgb(var(--elevated))', color: 'rgb(var(--ink-muted))', border: '1px solid rgb(var(--hairline))' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Home</span>
+            <span className="hidden sm:inline">Back</span>
           </button>
-
-          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
-
-          <div className="flex items-center gap-2.5">
-            <img 
-              src="/logo.png" 
-              alt="Leher Logo" 
-              title="Leher" 
-              className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)]" 
-            />
+          <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: 'rgb(var(--hairline))' }} />
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Leher" className="h-7 w-auto object-contain" style={{ filter: 'drop-shadow(0 0 6px rgb(var(--brand) / 0.4))' }} />
+            <span className="font-display text-base hidden sm:block" style={{ color: 'rgb(var(--ink))' }}>Leher</span>
           </div>
         </div>
 
-        {/* Center Primary Navigation */}
-        <div className="hidden lg:flex items-center gap-1 text-xs font-medium">
-          <a
-            href="/"
-            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            Home
-          </a>
-          <a
-            href="/about"
-            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            About Leher
-          </a>
-          <span className="px-3 py-1.5 rounded-xl text-white bg-white/[0.08] border border-white/15 font-semibold relative">
-            <span>Explore / Platform</span>
-            <span className="absolute bottom-0.5 left-3 right-3 h-0.5 bg-cyan-400 rounded-full" />
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Real-time Clock */}
-          <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{realTimeClock}</span>
-            <select
-              value={selectedTimeZone}
-              onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
-              className="bg-[#1f1f1f] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors ml-1"
+        {/* Center nav */}
+        <div className="hidden lg:flex items-center gap-1 text-xs">
+          {[
+            { label: 'Home', href: '/' },
+            { label: 'About', href: '/about' },
+            { label: 'Platform', href: '/operations', active: true },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="px-3 py-1.5 rounded transition-colors relative"
+              style={{
+                color: item.active ? 'rgb(var(--ink))' : 'rgb(var(--ink-muted))',
+                backgroundColor: item.active ? 'rgb(var(--elevated))' : 'transparent',
+              }}
             >
-              {Object.entries(timeZoneMap).map(([tz, info]) => (
-                <option key={tz} value={tz}>
-                  {tz} ({info.offsetLabel})
-                </option>
-              ))}
-            </select>
-          </div>
+              {item.label}
+              {item.active && (
+                <span className="absolute bottom-0 left-2 right-2 h-px rounded-full" style={{ backgroundColor: 'rgb(var(--brand))' }} />
+              )}
+            </a>
+          ))}
+        </div>
+
+        {/* Right: Clock */}
+        <div className="hidden md:flex items-center gap-2 tnum text-xs px-3 py-1.5 rounded" style={{ backgroundColor: 'rgb(var(--elevated))', color: 'rgb(var(--ink-muted))', border: '1px solid rgb(var(--hairline))' }}>
+          <Clock className="w-3.5 h-3.5" style={{ color: 'rgb(var(--brand))' }} />
+          <span>{realTimeClock}</span>
+          <select
+            value={selectedTimeZone}
+            onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
+            className="text-xs tnum rounded px-1.5 py-0.5 cursor-pointer focus:outline-none transition-colors"
+            style={{ backgroundColor: 'rgb(var(--surface))', color: 'rgb(var(--ink))', border: '1px solid rgb(var(--hairline))' }}
+          >
+            {Object.entries(timeZoneMap).map(([tz, info]) => (
+              <option key={tz} value={tz}>{tz} ({info.offsetLabel})</option>
+            ))}
+          </select>
         </div>
       </header>
 
-      {/* MAIN WORKSPACE: 3D EARTH + RIGHT MINIMAL WORKBENCH CONTROLS */}
-      <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
-        {/* LEFT / CENTER: 3D EARTH IFRAME */}
-        <div className="flex-1 h-full relative bg-[#040404]">
+      {/* ── LOCATION PRESET SELECTOR (like Helix market tabs) ─ */}
+      <div
+        className="shrink-0 flex gap-2 overflow-x-auto pb-0 px-4 sm:px-6 pt-3"
+        style={{ backgroundColor: 'rgb(var(--surface))', borderBottom: '1px solid rgb(var(--hairline))' }}
+      >
+        {LOCATION_PRESETS.map((loc, idx) => {
+          const active = idx === selectedPresetIdx;
+          return (
+            <button
+              key={loc.label}
+              onClick={() => handleSelectPreset(idx)}
+              className="focus-ring flex min-w-[140px] flex-col items-start gap-1 rounded-t-xl px-4 py-3 text-left transition-colors cursor-pointer shrink-0"
+              style={{
+                border: '1px solid',
+                borderBottom: 'none',
+                borderColor: active ? 'rgb(var(--line))' : 'rgb(var(--hairline))',
+                backgroundColor: active ? 'rgb(var(--elevated))' : 'rgb(var(--surface))',
+              }}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span className="text-sm font-semibold tracking-tight" style={{ color: active ? 'rgb(var(--ink))' : 'rgb(var(--ink-muted))' }}>
+                  {loc.label}
+                </span>
+                <span
+                  className="tnum rounded px-1.5 py-0.5"
+                  style={{
+                    fontSize: '10px',
+                    backgroundColor: active ? 'rgb(var(--elevated))' : 'rgb(var(--surface))',
+                    color: 'rgb(var(--ink-faint))',
+                    border: '1px solid rgb(var(--hairline))',
+                  }}
+                >
+                  {loc.kind}
+                </span>
+              </div>
+              <div className="flex w-full items-center justify-between">
+                <span className="tnum text-sm" style={{ color: 'rgb(var(--ink-muted))' }}>{loc.sst}</span>
+                <span className="tnum" style={{ fontSize: '0.6875rem', color: 'rgb(var(--long))' }}>
+                  {loc.speed}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+
+      {/* ── MAIN GRID (mirrors Helix trade page lg:grid-cols-3) ─ */}
+      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+
+        {/* LEFT 2/3: 3D Earth iframe (chart area) */}
+        <div className="flex-1 lg:col-span-2 relative overflow-hidden" style={{ backgroundColor: '#040404' }}>
           <iframe
             key={activeProjection}
             src={earthIframeUrl}
             title="Leher Fullscreen 3D Earth"
             className="w-full h-full border-0 absolute inset-0"
-            onLoad={() => {
-              sendToEarthIframe({
-                action: "setLocation",
-                latitude: inputLat,
-                longitude: inputLon,
-              });
-            }}
+            onLoad={() => sendToEarthIframe({ action: 'setLocation', latitude: inputLat, longitude: inputLon })}
           />
 
-          {/* Floating Coordinate HUD */}
+          {/* Floating coordinate HUD */}
           <div className="absolute bottom-4 left-4 right-4 lg:right-auto z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
-              <Compass className="w-4 h-4 text-cyan-400" />
-              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong> @ {workbenchDepth}m</span>
-              <span className="text-cyan-400 hidden sm:inline">• Click on map to inspect</span>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT: EXACT MINIMAL WORKBENCH CONTROLS & ANALYTICS */}
-        <div className="w-full sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-6 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
-          {/* Top Header */}
-          <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-              OPERATIONS &amp; ANALYTICS
-            </h3>
-            <div className="flex items-center gap-1.5 font-mono text-[10px] text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-800/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>OPERATIONS ACTIVE</span>
-            </div>
-          </div>
-
-          {/* 1. Globe Shape Dropdown */}
-          <div className="space-y-1.5 text-xs font-sans">
-            <div className="flex justify-between items-center text-[11px] text-[#888888]">
-              <span>Projection</span>
-              <span className="text-cyan-400 font-mono text-[10px]">{PROJECTION_METADATA[activeProjection] || activeProjection}</span>
-            </div>
-            <div className="relative">
-              <select
-                value={activeProjection}
-                onChange={(e) => handleSelectProjection(e.target.value)}
-                className="w-full bg-[#121212] text-white text-xs font-mono rounded-xl px-3 py-2.5 border border-[#262626] hover:border-[#444444] focus:border-cyan-400 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
-              >
-                {PROJECTION_LIST.map((p) => (
-                  <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
-                <ChevronDown className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Coordinates Input */}
-          <div className="space-y-2 text-xs font-sans">
-            <div className="text-[11px] text-[#888888]">Coordinates</div>
-            
-            {/* Latitude */}
-            <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
-              <span className="text-[#888888] text-xs">Latitude</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-90"
-                  max="90"
-                  value={inputLat}
-                  onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                  placeholder="15.40"
-                />
-                <span className="text-[#666666] font-mono text-xs w-6 text-right">
-                  {inputLat >= 0 ? "°N" : "°S"}
-                </span>
-              </div>
-            </div>
-
-            {/* Longitude */}
-            <div className="bg-[#121212] border border-[#262626] rounded-xl px-3 py-2 flex items-center justify-between focus-within:border-cyan-400/80 transition-colors">
-              <span className="text-[#888888] text-xs">Longitude</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-180"
-                  max="180"
-                  value={inputLon}
-                  onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                  placeholder="71.20"
-                />
-                <span className="text-[#666666] font-mono text-xs w-6 text-right">
-                  {inputLon >= 0 ? "°E" : "°W"}
-                </span>
-              </div>
-            </div>
-
-            {/* Presets */}
-            <div className="grid grid-cols-4 gap-1 pt-0.5">
-              {LOCATION_PRESETS.map((loc) => {
-                const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
-                return (
-                  <button
-                    key={loc.label}
-                    type="button"
-                    onClick={() => {
-                      setInputLat(loc.lat);
-                      setInputLon(loc.lon);
-                    }}
-                    className={cn(
-                      "px-1.5 py-1 rounded-lg text-[10px] border transition-all cursor-pointer text-center truncate",
-                      isSelected
-                        ? "bg-white text-black font-semibold border-white"
-                        : "bg-[#141414] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
-                    )}
-                  >
-                    {loc.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 3. Locate Yourself */}
-          <button
-            type="button"
-            onClick={handleLocateMe}
-            disabled={isLocating}
-            className="w-full py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
-          >
-            <Locate className={cn("w-3.5 h-3.5", isLocating && "animate-spin")} />
-            <span>{isLocating ? "Locating..." : "Locate Yourself"}</span>
-          </button>
-
-          {/* 4. Depth Measurement */}
-          <div className="space-y-2 text-xs font-sans">
-            <div className="flex justify-between items-center text-[11px] text-[#888888]">
-              <span>Depth</span>
-              <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[11px]">
-                {workbenchDepth}m
+            <div
+              className="px-4 py-2 rounded-lg flex items-center gap-3 pointer-events-auto"
+              style={{ backgroundColor: 'rgb(0 0 0 / 0.8)', backdropFilter: 'blur(12px)', border: '1px solid rgb(255 255 255 / 0.08)' }}
+            >
+              <Compass className="w-4 h-4 shrink-0" style={{ color: 'rgb(var(--brand))' }} />
+              <span className="tnum text-xs" style={{ color: 'rgb(var(--ink-muted))' }}>
+                Target: <strong style={{ color: 'rgb(var(--ink))' }}>
+                  {inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}
+                </strong> @ {workbenchDepth}m
               </span>
+              <span className="hidden sm:inline text-xs" style={{ color: 'rgb(var(--brand))' }}>· Click map to inspect</span>
             </div>
-            <input 
-              type="range" 
-              min="0" 
-              max="2000" 
-              step="10" 
-              value={workbenchDepth} 
-              onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
-              className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
-            />
-            <div className="grid grid-cols-6 gap-1 text-center">
-              {[0, 50, 150, 500, 1000, 2000].map((d) => (
+          </div>
+
+          {/* Tab bar below map (parameters / summary) */}
+          <div
+            className="absolute bottom-0 left-0 right-0 z-10 hidden lg:block"
+            style={{ borderTop: '1px solid rgb(var(--hairline))' }}
+          >
+            <div className="flex" style={{ backgroundColor: 'rgb(var(--surface) / 0.95)', backdropFilter: 'blur(12px)' }}>
+              {(['parameters', 'summary'] as const).map((tab) => (
                 <button
-                  key={d}
-                  type="button"
-                  onClick={() => setWorkbenchDepth(d)}
-                  className={cn(
-                    "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
-                    workbenchDepth === d
-                      ? "bg-white text-black font-bold border-white"
-                      : "bg-[#141414] border-[#222222] text-[#666666] hover:text-white"
-                  )}
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className="px-5 py-3 text-xs font-medium transition-colors cursor-pointer capitalize"
+                  style={{
+                    color: activeTab === tab ? 'rgb(var(--ink))' : 'rgb(var(--ink-faint))',
+                    borderBottom: activeTab === tab ? `2px solid rgb(var(--brand))` : '2px solid transparent',
+                  }}
                 >
-                  {d === 0 ? "0m" : `${d}m`}
+                  {tab === 'parameters' ? 'Ocean Parameters' : 'Route Summary'}
                 </button>
               ))}
             </div>
+
+            {activeTab === 'parameters' && (
+              <div className="p-4 grid grid-cols-3 gap-3 max-h-40 overflow-y-auto" style={{ backgroundColor: 'rgb(var(--surface) / 0.95)' }}>
+                {Object.values(predictionResult.variables).slice(0, 6).map((v) => (
+                  <div key={v.variable} className="flex justify-between items-center text-xs px-3 py-2 rounded" style={{ backgroundColor: 'rgb(var(--elevated))', border: '1px solid rgb(var(--hairline))' }}>
+                    <span style={{ color: 'rgb(var(--ink-muted))' }}>{v.commonName}</span>
+                    <span className="tnum font-bold ml-2" style={{ color: 'rgb(var(--ink))' }}>{v.formattedValue}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'summary' && (
+              <div className="p-4 flex items-center gap-6" style={{ backgroundColor: 'rgb(var(--surface) / 0.95)' }}>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded tnum text-xs" style={{ backgroundColor: riskBg, color: riskColor, border: `1px solid ${riskColor.replace(')', ' / 0.25)')}` }}>
+                  <RiskIcon className="w-4 h-4" />
+                  <span className="font-bold">{riskStatus}</span>
+                </div>
+                <span className="text-xs" style={{ color: 'rgb(var(--ink-muted))' }}>
+                  {predictionResult.location.regionName} · {predictionResult.summary.currentSpeedMs} m/s current · {workbenchDepth}m depth
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT 1/3: Sticky Order-Ticket Panel */}
+        <div
+          className="w-full lg:w-80 xl:w-96 shrink-0 flex flex-col overflow-y-auto max-h-[50vh] lg:max-h-full z-20"
+          style={{ backgroundColor: 'rgb(var(--surface))', borderLeft: '1px solid rgb(var(--hairline))' }}
+        >
+          {/* Panel header */}
+          <div
+            className="px-5 py-4 shrink-0 sticky top-0 z-10"
+            style={{ backgroundColor: 'rgb(var(--surface))', borderBottom: '1px solid rgb(var(--hairline))' }}
+          >
+            <div className="flex justify-between items-center">
+              <h3 className="eyebrow" style={{ color: 'rgb(var(--ink))' }}>Ocean Inspector</h3>
+              <div className="flex items-center gap-1.5 tnum px-2.5 py-0.5 rounded-full" style={{ fontSize: '10px', color: 'rgb(var(--brand))', backgroundColor: 'rgb(var(--brand) / 0.08)', border: '1px solid rgb(var(--brand) / 0.25)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse-soft" style={{ backgroundColor: 'rgb(var(--brand))' }} />
+                <span>LIVE</span>
+              </div>
+            </div>
+            <p className="text-xs mt-1" style={{ color: 'rgb(var(--ink-faint))' }}>{selectedPreset.label}</p>
           </div>
 
-          {/* 5. Predict Ocean State Button */}
-          <div className="pt-2">
+          {/* Controls */}
+          <div className="flex-1 p-5 space-y-5">
+            {/* Projection */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center" style={{ color: 'rgb(var(--ink-faint))', fontSize: '11px' }}>
+                <span>Map Projection</span>
+                <span className="tnum" style={{ color: 'rgb(var(--brand))', fontSize: '10px' }}>{PROJECTION_METADATA[activeProjection]?.split(' ')[0] || activeProjection}</span>
+              </div>
+              <div className="relative">
+                <select
+                  value={activeProjection}
+                  onChange={(e) => handleSelectProjection(e.target.value)}
+                  className="w-full text-xs tnum rounded px-3 py-2.5 appearance-none pr-8 cursor-pointer transition-all focus:outline-none"
+                  style={{ backgroundColor: 'rgb(var(--elevated))', color: 'rgb(var(--ink))', border: '1px solid rgb(var(--hairline))' }}
+                >
+                  {PROJECTION_LIST.map((p) => (
+                    <option key={p.key} value={p.key} style={{ backgroundColor: 'rgb(var(--surface))' }}>{p.name}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: 'rgb(var(--ink-faint))' }}>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </div>
+
+            {/* Coordinates */}
+            <div className="space-y-2">
+              <div className="text-xs" style={{ color: 'rgb(var(--ink-faint))' }}>Coordinates</div>
+              {[
+                { label: 'Latitude', value: inputLat, setter: setInputLat, min: -90, max: 90, suffix: inputLat >= 0 ? '°N' : '°S' },
+                { label: 'Longitude', value: inputLon, setter: setInputLon, min: -180, max: 180, suffix: inputLon >= 0 ? '°E' : '°W' },
+              ].map((field) => (
+                <div
+                  key={field.label}
+                  className="rounded px-3 py-2.5 flex items-center justify-between"
+                  style={{ backgroundColor: 'rgb(var(--elevated))', border: '1px solid rgb(var(--hairline))' }}
+                >
+                  <span className="text-xs" style={{ color: 'rgb(var(--ink-muted))' }}>{field.label}</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number" step="0.01" min={field.min} max={field.max}
+                      value={field.value}
+                      onChange={(e) => field.setter(parseFloat(e.target.value) || 0)}
+                      className="w-20 bg-transparent font-bold text-xs text-right focus:outline-none tnum"
+                      style={{ color: 'rgb(var(--ink))' }}
+                    />
+                    <span className="tnum text-xs w-6 text-right" style={{ color: 'rgb(var(--ink-faint))' }}>{field.suffix}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* GPS Locate */}
             <button
-              type="button"
-              onClick={handlePredict}
-              disabled={isPredicting}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-white via-cyan-100 to-white hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99] disabled:opacity-75"
+              type="button" onClick={handleLocateMe} disabled={isLocating}
+              className="w-full py-2.5 px-3 rounded text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60 hover-lift"
+              style={{ backgroundColor: 'rgb(var(--elevated))', color: 'rgb(var(--ink))', border: '1px solid rgb(var(--hairline))' }}
+            >
+              <Locate className={cn('w-3.5 h-3.5', isLocating && 'animate-spin')} style={{ color: 'rgb(var(--brand))' }} />
+              <span>{isLocating ? 'Locating...' : 'Detect My Location'}</span>
+            </button>
+
+            {/* Depth slider */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center" style={{ color: 'rgb(var(--ink-faint))', fontSize: '11px' }}>
+                <span>Analysis Depth</span>
+                <span className="tnum font-bold px-2 py-0.5 rounded" style={{ color: 'rgb(var(--ink))', backgroundColor: 'rgb(var(--elevated))', border: '1px solid rgb(var(--hairline))' }}>{workbenchDepth}m</span>
+              </div>
+              <input
+                type="range" min="0" max="2000" step="10" value={workbenchDepth}
+                onChange={(e) => setWorkbenchDepth(Number(e.target.value))}
+                className="w-full h-1 rounded appearance-none cursor-pointer"
+                style={{ accentColor: 'rgb(var(--brand))' }}
+              />
+              <div className="grid grid-cols-6 gap-1">
+                {[0, 50, 150, 500, 1000, 2000].map((d) => (
+                  <button
+                    key={d} type="button" onClick={() => setWorkbenchDepth(d)}
+                    className="py-1 rounded cursor-pointer transition-all hover-lift"
+                    style={{
+                      fontSize: '10px',
+                      fontFamily: 'var(--font-mono)',
+                      backgroundColor: workbenchDepth === d ? 'rgb(var(--brand))' : 'rgb(var(--elevated))',
+                      color: workbenchDepth === d ? '#000' : 'rgb(var(--ink-muted))',
+                      border: `1px solid ${workbenchDepth === d ? 'rgb(var(--brand))' : 'rgb(var(--hairline))'}`,
+                      fontWeight: workbenchDepth === d ? '700' : '400',
+                    }}
+                  >
+                    {d === 0 ? '0m' : `${d}m`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Prediction data summary */}
+            <div className="rounded p-4 space-y-2" style={{ backgroundColor: 'rgb(var(--elevated))', border: '1px solid rgb(var(--hairline))' }}>
+              <div className="flex justify-between items-center pb-2" style={{ borderBottom: '1px solid rgb(var(--hairline))' }}>
+                <span className="eyebrow" style={{ color: 'rgb(var(--ink))' }}>{predictionResult.location.regionName}</span>
+                <div className="flex items-center gap-1.5 tnum px-2 py-0.5 rounded" style={{ fontSize: '10px', backgroundColor: riskBg, color: riskColor, border: `1px solid ${riskColor.replace(')', ' / 0.25)')}` }}>
+                  <RiskIcon className="w-3 h-3" />
+                  <span className="font-bold">{riskStatus}</span>
+                </div>
+              </div>
+              {[
+                { label: 'Current speed', value: `${predictionResult.summary.currentSpeedMs} m s⁻¹` },
+                { label: 'Direction', value: `${predictionResult.summary.currentDirectionCompass} (${predictionResult.summary.currentDirectionDeg}°)` },
+              ].map((row, i, arr) => (
+                <div key={row.label} className={cn('flex justify-between text-xs pb-1.5', i < arr.length - 1 && 'border-b')} style={{ borderColor: 'rgb(var(--hairline))' }}>
+                  <span style={{ color: 'rgb(var(--ink-muted))' }}>{row.label}</span>
+                  <span className="tnum font-bold" style={{ color: 'rgb(var(--ink))' }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Primary CTA */}
+            <button
+              type="button" onClick={handlePredict} disabled={isPredicting}
+              className="w-full py-3.5 px-4 rounded brand-fill glow-brand text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-75 hover-lift"
             >
               {isPredicting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                  <span>Generating 3D Depth Slice...</span>
-                </>
+                <><RefreshCw className="w-4 h-4 animate-spin" /><span>Generating Depth Slice...</span></>
               ) : (
-                <>
-                  <span>Predict Ocean State &amp; Open 3D Depth Slice</span>
-                  <ArrowUpRight className="w-4 h-4 text-black" />
-                </>
+                <><span>Predict Ocean State & Open 3D Depth Slice</span><ArrowUpRight className="w-4 h-4" /></>
               )}
             </button>
           </div>
