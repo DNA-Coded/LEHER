@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Compass, Waves, Radio, MapPin, ShieldAlert, AlertTriangle, ShieldCheck, Wind, CloudRain } from 'lucide-react';
+import { ArrowRight, Compass, AlertTriangle, ShieldCheck, Wind, CloudRain } from 'lucide-react';
 import AppNavbar from '@/components/ui/app-navbar';
 import { ShinyButton } from '@/components/ui/shiny-button';
 import { SpinningBorderButton } from '@/components/ui/spinning-border-button';
@@ -120,11 +120,10 @@ export function AboutLeherPage() {
           {/* Connected Flow: OCEAN -> OBSERVATIONS -> LOCATION -> DECISION */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
             {/* Block 01 */}
-            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-all">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-cyan-400 font-semibold">01 — OCEAN</span>
-                  <Waves className="w-4 h-4 text-neutral-500" />
+                <div>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">01 — OCEAN</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Ocean Conditions
@@ -140,11 +139,10 @@ export function AboutLeherPage() {
             </div>
 
             {/* Block 02 */}
-            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-all">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-cyan-400 font-semibold">02 — OBSERVATIONS</span>
-                  <Radio className="w-4 h-4 text-neutral-500" />
+                <div>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">02 — OBSERVATIONS</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Ocean Observations
@@ -160,11 +158,10 @@ export function AboutLeherPage() {
             </div>
 
             {/* Block 03 */}
-            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-all">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-cyan-400 font-semibold">03 — LOCATION</span>
-                  <MapPin className="w-4 h-4 text-neutral-500" />
+                <div>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">03 — LOCATION</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Location Assessment
@@ -180,11 +177,10 @@ export function AboutLeherPage() {
             </div>
 
             {/* Block 04 */}
-            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-cyan-500/30 transition-all">
+            <div className="p-5 rounded-2xl bg-[#111111] border border-[#222222] flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-all">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-cyan-400 font-semibold">04 — DECISION</span>
-                  <ShieldAlert className="w-4 h-4 text-neutral-500" />
+                <div>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">04 — DECISION</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Maritime Decision Support
@@ -193,7 +189,7 @@ export function AboutLeherPage() {
                   Use the available information to identify hazards, understand risk and support safer maritime decisions.
                 </p>
               </div>
-              <div className="pt-2 text-[11px] font-mono text-cyan-400 flex items-center gap-1.5">
+              <div className="pt-2 text-[11px] font-mono text-neutral-400 flex items-center gap-1.5">
                 <span>Outcome</span>
                 <span className="text-white font-medium">→ Safer Decisions</span>
               </div>
