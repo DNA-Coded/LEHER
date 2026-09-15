@@ -15,6 +15,7 @@ import { predictOceanState } from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
 import { type TimeZone } from '@/components/ui/landing-page';
 import RiskBadge from '@/components/ui/risk-badge';
+import HorizonStrataShader from '@/components/ui/horizon-strata-shader';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -70,6 +71,7 @@ export default function DepthSlicePage() {
   const [panelCollapsed, setPanelCollapsed] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [showStrataBg, setShowStrataBg] = useState<boolean>(true);
 
   // Generate scientifically grounded water column data using predictOceanState
   const waterColumn = useMemo<WaterColumnLayer[]>(() => {
@@ -605,7 +607,13 @@ export default function DepthSlicePage() {
       <div className="flex-1 flex relative overflow-hidden bg-[#040404]">
         {/* 3D Visualizer Area */}
         <div ref={mountRef} className="flex-1 h-full relative overflow-hidden">
-          <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
+          {/* Luminous Horizon Strata Shader Background */}
+          {showStrataBg && (
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-25 transition-opacity">
+              <HorizonStrataShader fill />
+            </div>
+          )}
+          <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing relative z-1" />
 
           {/* Top Left: Coordinates Badge */}
           <div className="absolute top-4 left-4 z-10 pointer-events-none">
@@ -620,6 +628,20 @@ export default function DepthSlicePage() {
           {/* Top Right: Geometry & Variable Controls */}
           <div className="absolute top-4 right-4 z-10 pointer-events-none">
             <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl p-1.5 shadow-xl flex items-center gap-2">
+              {/* Strata Toggle */}
+              <button
+                onClick={() => setShowStrataBg((p) => !p)}
+                className={cn(
+                  "px-2 py-1 text-xs font-mono rounded-md transition-all cursor-pointer border",
+                  showStrataBg
+                    ? "bg-[#dfc58d]/15 text-[#dfc58d] border-[#dfc58d]/30 hover:bg-[#dfc58d]/25"
+                    : "bg-[#141414] text-[#888888] border-[#262626] hover:text-white"
+                )}
+                title="Toggle Horizon Strata Shader Background"
+              >
+                STRATA {showStrataBg ? "ON" : "OFF"}
+              </button>
+
               {/* Geometry Toggle */}
               <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626]">
                 <button

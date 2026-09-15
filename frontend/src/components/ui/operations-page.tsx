@@ -6,10 +6,14 @@ import {
   RefreshCw, 
   ArrowUpRight,
   Clock,
-  Compass
+  Compass,
+  Crosshair,
+  Terminal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
+import { TargetingUI } from '@/components/ui/animated-hud-targeting-ui';
+import { TerminalControlDeck } from '@/components/ui/terminal-cli-control-deck';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -42,6 +46,8 @@ export default function OperationsPage() {
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [showHudTargeting, setShowHudTargeting] = useState<boolean>(true);
+  const [showCliDeck, setShowCliDeck] = useState<boolean>(false);
 
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
@@ -256,12 +262,61 @@ export default function OperationsPage() {
             }}
           />
 
+          {/* HUD Reticle Crosshair from animated-hud-targeting-ui */}
+          {showHudTargeting && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10">
+              <div className="relative opacity-70 transform scale-90 sm:scale-100">
+                <TargetingUI
+                  className="w-48 h-48 sm:w-56 sm:h-56 drop-shadow-[0_0_14px_rgba(223,197,141,0.3)]"
+                  pathColors={{ light: "rgb(223, 197, 141)", dark: "rgb(223, 197, 141)" }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#dfc58d] animate-ping" />
+                  <span className="w-1 h-1 rounded-full bg-white absolute" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Collapsible Telemetry CLI Deck */}
+          {showCliDeck && (
+            <div className="absolute bottom-16 left-4 right-4 sm:right-auto sm:w-[560px] z-30 shadow-2xl">
+              <TerminalControlDeck onClose={() => setShowCliDeck(false)} />
+            </div>
+          )}
+
           {/* Floating Coordinate HUD */}
           <div className="absolute bottom-4 left-4 right-4 lg:right-auto z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
+            <div className="bg-[#000000]/85 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
               <Compass className="w-4 h-4 text-cyan-400" />
               <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong> @ {workbenchDepth}m</span>
               <span className="text-cyan-400 hidden sm:inline">• Click on map to inspect</span>
+              <button
+                onClick={() => setShowHudTargeting((prev) => !prev)}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider transition-colors cursor-pointer border ml-auto sm:ml-2",
+                  showHudTargeting
+                    ? "bg-[#dfc58d]/15 text-[#dfc58d] border-[#dfc58d]/30 hover:bg-[#dfc58d]/25"
+                    : "bg-white/5 text-[#777777] border-white/10 hover:text-white"
+                )}
+                title="Toggle HUD Reticle"
+              >
+                <Crosshair className="w-3 h-3" />
+                <span>HUD {showHudTargeting ? "LOCKED" : "OFF"}</span>
+              </button>
+              <button
+                onClick={() => setShowCliDeck((prev) => !prev)}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider transition-colors cursor-pointer border",
+                  showCliDeck
+                    ? "bg-[#dfc58d]/25 text-[#dfc58d] border-[#dfc58d]/40 shadow-[0_0_10px_rgba(223,197,141,0.2)]"
+                    : "bg-white/5 text-[#888888] border-white/10 hover:text-white"
+                )}
+                title="Toggle Telemetry CLI Control Deck"
+              >
+                <Terminal className="w-3 h-3 text-[#dfc58d]" />
+                <span>CLI DECK</span>
+              </button>
             </div>
           </div>
         </div>
