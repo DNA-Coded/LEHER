@@ -3,8 +3,6 @@ import Globe from "@/components/ui/globe";
 import { cn } from "@/lib/utils";
 import { 
   X, 
-  Play, 
-  Pause, 
   Maximize2,
   Menu,
   Locate,
@@ -389,7 +387,7 @@ export default function LeherLandingPage() {
     setActiveProjection(projKey);
     sendToEarthIframe({ action: "setProjection", projection: projKey });
   }, [sendToEarthIframe]);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+
   const [activeLayers, setActiveLayers] = useState({
     model: true,
     argo: true,
@@ -996,18 +994,7 @@ export default function LeherLandingPage() {
 
             {/* Column 2: Center 3D Earth Display */}
             <div className="col-span-12 lg:col-span-4 bg-[#040404] relative flex flex-col justify-between overflow-hidden border-b lg:border-b-0 min-h-[480px]">
-              <div className="absolute top-3 left-4 right-4 z-10 flex justify-between items-center gap-2 pointer-events-none">
-                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc] pointer-events-auto shadow-md">
-                  Domain: <span className="text-white uppercase font-bold">{PROJECTION_METADATA[activeProjection] ? "BOUNDED" : activeProjection}</span> @ {workbenchDepth}m
-                </div>
 
-                <div className="bg-[#080808]/85 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] flex items-center gap-2 text-[11px] font-mono text-[#888888] pointer-events-auto shadow-md">
-                  <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white flex items-center gap-1.5 cursor-pointer">
-                    {isPlaying ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3 text-white" />}
-                    <span className="font-semibold text-[#e0e0e0]">{isPlaying ? "LIVE" : "PAUSED"}</span>
-                  </button>
-                </div>
-              </div>
 
               {/* CENTER 3D EARTH IFRAME */}
               <div className="w-full h-full min-h-[500px] relative">
