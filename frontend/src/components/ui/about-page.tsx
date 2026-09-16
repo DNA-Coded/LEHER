@@ -16,11 +16,11 @@ export function AboutLeherPage() {
       {/* Dynamic Ethereal Ocean Blue Shadow Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <EtherealShadow
-          color="rgba(14, 165, 233, 0.9)"
-          animation={{ scale: 100, speed: 80 }}
-          noise={{ opacity: 0.6, scale: 1.2 }}
+          color="rgba(14, 165, 233, 0.65)"
+          animation={{ scale: 90, speed: 75 }}
+          noise={{ opacity: 0.5, scale: 1.2 }}
           sizing="fill"
-          className="w-full h-full opacity-85"
+          className="w-full h-full opacity-80"
         />
         {/* Ambient deep ocean blue radial aura */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_25%,rgba(14,165,233,0.14),transparent_75%)] pointer-events-none" />

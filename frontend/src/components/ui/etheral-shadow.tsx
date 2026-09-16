@@ -121,13 +121,16 @@ export function Component({
                 style={{
                     position: "absolute",
                     inset: -displacementScale,
-                    filter: animationEnabled ? `url(#${id}) blur(4px)` : "none"
+                    filter: animationEnabled ? `url(#${id}) blur(8px)` : "none"
                 }}
             >
                 {animationEnabled && (
-                    <svg style={{ position: "absolute" }}>
+                    <svg
+                        style={{ position: "absolute", width: 0, height: 0 }}
+                        aria-hidden="true"
+                    >
                         <defs>
-                            <filter id={id}>
+                            <filter id={id} x="-20%" y="-20%" width="140%" height="140%">
                                 <feTurbulence
                                     result="undulation"
                                     numOctaves="2"
@@ -138,11 +141,12 @@ export function Component({
                                 <feColorMatrix
                                     ref={feColorMatrixRef}
                                     in="undulation"
+                                    result="rotatedUndulation"
                                     type="hueRotate"
                                     values="180"
                                 />
                                 <feColorMatrix
-                                    in="dist"
+                                    in="rotatedUndulation"
                                     result="circulation"
                                     type="matrix"
                                     values="4 0 0 0 1  4 0 0 0 1  4 0 0 0 1  1 0 0 0 0"
@@ -155,8 +159,8 @@ export function Component({
                                 />
                                 <feDisplacementMap
                                     in="dist"
-                                    in2="undulation"
-                                    scale={displacementScale}
+                                    in2="rotatedUndulation"
+                                    scale={displacementScale * 0.6}
                                     result="output"
                                 />
                             </filter>
@@ -166,9 +170,13 @@ export function Component({
                 <div
                     style={{
                         backgroundColor: color,
-                        maskImage: `url('https://cdn.21st.dev/assets/mirror/bc/bc6c1564cdc919adb04a692b11e2f19299dd414e5eb45e298c0054cb232b8c3a.png')`,
+                        WebkitMaskImage: `radial-gradient(ellipse 75% 65% at 50% 40%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.3) 75%, transparent 90%)`,
+                        maskImage: `radial-gradient(ellipse 75% 65% at 50% 40%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.3) 75%, transparent 90%)`,
+                        WebkitMaskSize: sizing === "stretch" ? "100% 100%" : "cover",
                         maskSize: sizing === "stretch" ? "100% 100%" : "cover",
+                        WebkitMaskRepeat: "no-repeat",
                         maskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
                         maskPosition: "center",
                         width: "100%",
                         height: "100%"
@@ -204,10 +212,10 @@ export function Component({
                     style={{
                         position: "absolute",
                         inset: 0,
-                        backgroundImage: `url("https://cdn.21st.dev/assets/mirror/a7/a7723ec07acdbbcdda4e9de1d47d65cd28991ed00a3de07aa3720589bc9683f7.png")`,
-                        backgroundSize: noise.scale * 200,
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")`,
+                        backgroundSize: noise.scale * 150,
                         backgroundRepeat: "repeat",
-                        opacity: noise.opacity / 2,
+                        opacity: noise.opacity * 0.15,
                         pointerEvents: "none"
                     }}
                 />

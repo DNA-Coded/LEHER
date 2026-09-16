@@ -173,11 +173,7 @@ export default function OperationsPage() {
   }, [workbenchDepth]);
 
   const handleBackToHome = () => {
-    if (window.history.length > 1 && window.opener) {
-      window.close();
-    } else {
-      window.location.href = '/';
-    }
+    window.location.href = '/';
   };
 
   const earthIframeUrl = useMemo(() => {

@@ -905,8 +905,8 @@ export default function LeherLandingPage() {
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <ShinyButton 
-              onClick={() => scrollToSection('section-story')}
-              className="py-3 px-7 text-sm font-semibold shadow-lg"
+              onClick={() => { window.location.href = '/operations'; }}
+              className="py-3 px-7 text-sm font-semibold shadow-lg cursor-pointer"
             >
               Open Operations
             </ShinyButton>
@@ -1063,8 +1063,8 @@ export default function LeherLandingPage() {
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <ShinyButton 
-              onClick={() => window.open('/operations', '_blank')}
-              className="py-3.5 px-8 text-sm font-semibold shadow-xl"
+              onClick={() => { window.location.href = '/operations'; }}
+              className="py-3.5 px-8 text-sm font-semibold shadow-xl cursor-pointer"
             >
               <Compass className="w-4 h-4 text-cyan-400 inline mr-2" />
               <span>Open Operations &amp; Direction Console</span>
