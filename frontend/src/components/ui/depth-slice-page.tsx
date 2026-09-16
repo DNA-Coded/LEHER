@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { 
@@ -14,7 +14,6 @@ import {
 import { predictOceanState } from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
 import { type TimeZone } from '@/components/ui/landing-page';
-import RiskBadge from '@/components/ui/risk-badge';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -47,6 +46,79 @@ function getZoneLabel(d: number): string {
   return 'Bathypelagic Abyss';
 }
 
+// ─── Scientifically Calibrated Oceanographic Multi-Stop Color Scales ───────────
+type ColorStop = [number, string];
+
+const TEMP_STOPS: ColorStop[] = [
+  [1.5,  '#090526'], // Extreme abyssal depth frigid void
+  [3.5,  '#001a5e'], // Abyssal cold (2000m)
+  [6.5,  '#0038a8'], // Deep cold layer (750m)
+  [10.0, '#0066ee'], // Lower thermocline (300m)
+  [14.0, '#00a8ff'], // Mid thermocline (200m)
+  [18.0, '#00e5d4'], // Upper thermocline transition (100m)
+  [22.0, '#76ff03'], // Mixed layer threshold (22°C) - electric lime
+  [25.0, '#ffd000'], // Warm sub-surface (25°C) - bright golden yellow
+  [28.0, '#ff7a00'], // Warm photic layer (28°C) - vivid ocean orange
+  [31.0, '#ff2e1f'], // Hot tropical surface (31°C) - vibrant flame red
+  [35.0, '#d60036'], // Scorching tropical basin (35°C) - intense crimson
+];
+
+const SALINITY_STOPS: ColorStop[] = [
+  [33.0, '#050a33'], // Fresh monsoonal plume / river runoff
+  [34.2, '#003db3'], // Low salinity coastal
+  [34.6, '#0088ff'], // Mild low salinity
+  [35.0, '#00e5c0'], // Standard marine background
+  [35.3, '#00f576'], // Typical Arabian Sea / open ocean emerald
+  [35.7, '#bdf000'], // Elevated salinity (evaporative transition)
+  [36.0, '#ffaa00'], // High salinity surface (warm amber-orange)
+  [36.4, '#ff3b30'], // Very high salinity (coral red)
+  [36.8, '#ff1a88'], // Hypersaline core (radiant magenta)
+];
+
+const CURRENT_STOPS: ColorStop[] = [
+  [0.002, '#0a0e29'], // Stagnant abyssal drift
+  [0.015, '#122475'], // Sluggish deep current
+  [0.040, '#0055d4'], // Gentle mid-depth drift
+  [0.080, '#00b8ff'], // Moderate subsurface flow
+  [0.130, '#00e5b8'], // Active upper layer current
+  [0.180, '#00e676'], // Strong current flow (bright spring green)
+  [0.240, '#76ff03'], // High-velocity surface jet (neon lime)
+  [0.320, '#ffff00'], // Intense current jet core (electric yellow)
+];
+
+const CHLOROPHYLL_STOPS: ColorStop[] = [
+  [0.001, '#06081c'], // Deep aphotic depletion (2000m)
+  [0.015, '#1e164d'], // Oligotrophic twilight zone (500m)
+  [0.050, '#004c9e'], // Deep photic boundary (150m)
+  [0.150, '#00a8ff'], // Lower euphotic layer (100m)
+  [0.350, '#00e5bb'], // Moderate phytoplankton (75m)
+  [0.600, '#00c853'], // Productive photic peak (surface-30m) - rich emerald
+  [1.100, '#76ff03'], // Active phytoplankton bloom - neon lime
+  [1.800, '#00ff55'], // High-density eutrophic bloom - intense green
+];
+
+function interpolateColorRamp(value: number, stops: ColorStop[]): THREE.Color {
+  if (value <= stops[0][0]) return new THREE.Color(stops[0][1]);
+  if (value >= stops[stops.length - 1][0]) return new THREE.Color(stops[stops.length - 1][1]);
+
+  for (let i = 0; i < stops.length - 1; i++) {
+    const [v0, c0] = stops[i];
+    const [v1, c1] = stops[i + 1];
+    if (value >= v0 && value <= v1) {
+      const t = (value - v0) / (v1 - v0);
+      return new THREE.Color(c0).lerp(new THREE.Color(c1), t);
+    }
+  }
+  return new THREE.Color(stops[stops.length - 1][1]);
+}
+
+function getLayerColor(val: number, variable: 'temperature' | 'salinity' | 'currents' | 'chlorophyll'): THREE.Color {
+  if (variable === 'salinity') return interpolateColorRamp(val, SALINITY_STOPS);
+  if (variable === 'currents') return interpolateColorRamp(val, CURRENT_STOPS);
+  if (variable === 'chlorophyll') return interpolateColorRamp(val, CHLOROPHYLL_STOPS);
+  return interpolateColorRamp(val, TEMP_STOPS);
+}
+
 export default function DepthSlicePage() {
   // Read lat, lon, depth from query params
   const [queryParams] = useState(() => {
@@ -66,12 +138,12 @@ export default function DepthSlicePage() {
   const [selectedDepth, setSelectedDepth] = useState<number>(queryParams.depth);
   const [activeTab, setActiveTab] = useState<'telemetry' | 'layers' | 'profile'>('telemetry');
   const [geometryType, setGeometryType] = useState<'cylinder' | 'cuboid'>('cylinder');
-  const [activeVariable, setActiveVariable] = useState<'temperature' | 'salinity' | 'currents'>('temperature');
+  const [activeVariable, setActiveVariable] = useState<'temperature' | 'salinity' | 'currents' | 'chlorophyll'>('temperature');
   const [panelCollapsed, setPanelCollapsed] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
 
-  // Generate scientifically grounded water column data using predictOceanState
+  // Generate water column data using predictOceanState
   const waterColumn = useMemo<WaterColumnLayer[]>(() => {
     return STANDARD_DEPTHS.map((d) => {
       const res = predictOceanState(lat, lon, d);
@@ -98,22 +170,6 @@ export default function DepthSlicePage() {
     });
   }, [lat, lon]);
 
-  // Derived stratification calculations
-  const derivedMetrics = useMemo(() => {
-    const thermoclineIdx = waterColumn.findIndex((w) => w.thetao <= 20.0);
-    const thermocline_depth = thermoclineIdx >= 0 ? waterColumn[thermoclineIdx].depth : 85;
-    const mixed_layer_depth = 42;
-    const pycnocline_strength = 3.42;
-    const mean_column_speed = waterColumn.reduce((acc, cur) => acc + cur.current_speed, 0) / waterColumn.length;
-
-    return {
-      thermocline_depth,
-      mixed_layer_depth,
-      pycnocline_strength,
-      mean_column_speed: parseFloat(mean_column_speed.toFixed(3)),
-    };
-  }, [waterColumn]);
-
   // Find closest layer index to selectedDepth
   const selectedIndex = useMemo(() => {
     let bestIdx = 0;
@@ -130,10 +186,10 @@ export default function DepthSlicePage() {
 
   const activeLayer = waterColumn[selectedIndex] || waterColumn[0];
 
-  // Prediction at active location for region name and status
+  // Base prediction for region name and telemetry stats
   const basePrediction = useMemo(() => predictOceanState(lat, lon, selectedDepth), [lat, lon, selectedDepth]);
 
-  // Three.js Canvas Reference
+  // Three.js References
   const mountRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -141,7 +197,34 @@ export default function DepthSlicePage() {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const waterGroupRef = useRef<THREE.Group | null>(null);
-  const layerGroupsRef = useRef<{ grp: THREE.Group; discMat: THREE.MeshStandardMaterial; idx: number }[]>([]);
+
+  // 3D Elements references
+  const waveMeshRef = useRef<THREE.Mesh | null>(null);
+  const meniscusMeshRef = useRef<THREE.Mesh | THREE.LineSegments | null>(null);
+  const particlesMeshRef = useRef<THREE.Points | null>(null);
+  const particleVelocitiesRef = useRef<{ vx: number; vz: number; bobFreq: number; bobAmp: number }[]>([]);
+  const layerGroupsRef = useRef<{
+    grp: THREE.Group;
+    sliceWaveMesh: THREE.Mesh;
+    slabMat: THREE.MeshPhysicalMaterial;
+    idx: number;
+    baseY: number;
+    curX: number;
+    curZ: number;
+    curLift: number;
+    targetX: number;
+    targetZ: number;
+    targetLift: number;
+    curScale: number;
+    targetScale: number;
+  }[]>([]);
+
+  const tetherLineRef = useRef<THREE.Line | null>(null);
+  const tetherPointerLineRef = useRef<THREE.Line | null>(null);
+  const extractionSocketRef = useRef<THREE.Mesh | THREE.LineSegments | null>(null);
+  const hudSpriteRef = useRef<THREE.Sprite | null>(null);
+  const hudCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const hudTextureRef = useRef<THREE.CanvasTexture | null>(null);
 
   // Real-time clock
   useEffect(() => {
@@ -173,26 +256,104 @@ export default function DepthSlicePage() {
     return () => clearInterval(timer);
   }, [selectedTimeZone]);
 
-  // Color mapping function
-  const getLayerColor = useCallback((val: number, variable: 'temperature' | 'salinity' | 'currents') => {
-    if (variable === 'salinity') {
-      const t = Math.max(0, Math.min(1, (val - 34.2) / 2.0));
-      return new THREE.Color().lerpColors(new THREE.Color('#00e5ff'), new THREE.Color('#ffaa00'), t);
+  // Update Floating Holographic HUD Card
+  const updateExtractedHud = useCallback((idx: number) => {
+    if (!hudCanvasRef.current || !hudTextureRef.current) return;
+    const layer = waterColumn[idx];
+    if (!layer) return;
+
+    const canvas = hudCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Cybernetic dark glass background
+    ctx.fillStyle = 'rgba(2, 12, 28, 0.94)';
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.85)';
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.roundRect(8, 8, w - 16, h - 16, 16);
+    ctx.fill();
+    ctx.stroke();
+
+    // Header banner
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.18)';
+    ctx.fillRect(8, 8, w - 16, 44);
+
+    // Tech corners
+    ctx.strokeStyle = '#00f5a0';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(8, 28); ctx.lineTo(8, 8); ctx.lineTo(28, 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w - 28, h - 8); ctx.lineTo(w - 8, h - 8); ctx.lineTo(w - 8, h - 28); ctx.stroke();
+
+    // Header texts
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText(`EXTRACTED SLICE: -${layer.depth}m`, 22, 38);
+
+    ctx.fillStyle = '#00f5a0';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('LIVE TELEMETRY', w - 24, 36);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = '#7aa0c4';
+    ctx.font = '500 14px sans-serif';
+    ctx.fillText(getZoneLabel(layer.depth), 22, 74);
+
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(22, 86); ctx.lineTo(w - 22, 86); ctx.stroke();
+
+    // Metrics with active variable highlight
+    ctx.font = '600 16px monospace';
+
+    // Temp
+    if (activeVariable === 'temperature') {
+      ctx.fillStyle = 'rgba(255, 122, 54, 0.24)';
+      ctx.fillRect(16, 98, w - 32, 26);
     }
-    if (variable === 'currents') {
-      const t = Math.max(0, Math.min(1, val / 0.25));
-      return new THREE.Color().lerpColors(new THREE.Color('#0088ff'), new THREE.Color('#00f5a0'), t);
+    ctx.fillStyle = '#ff7a36';
+    ctx.fillText(`θ₀ Temp:`, 24, 118);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`${layer.thetao.toFixed(2)} °C`, 140, 118);
+
+    // Salinity
+    if (activeVariable === 'salinity') {
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.24)';
+      ctx.fillRect(16, 130, w - 32, 26);
     }
-    // Temperature gradient
-    const t = Math.max(0, Math.min(1, (val - 2.0) / 28.0));
-    const deepCold = new THREE.Color('#002244');
-    const thermocline = new THREE.Color('#0088ff');
-    const surfaceWarm = new THREE.Color('#00f0ff');
-    const surfaceHot = new THREE.Color('#ff7700');
-    if (t < 0.3) return new THREE.Color().lerpColors(deepCold, thermocline, t / 0.3);
-    if (t < 0.75) return new THREE.Color().lerpColors(thermocline, surfaceWarm, (t - 0.3) / 0.45);
-    return new THREE.Color().lerpColors(surfaceWarm, surfaceHot, (t - 0.75) / 0.25);
-  }, []);
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillText(`S₀ Salinity:`, 24, 150);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`${layer.so.toFixed(2)} PSU`, 140, 150);
+
+    // Current
+    if (activeVariable === 'currents') {
+      ctx.fillStyle = 'rgba(0, 245, 160, 0.24)';
+      ctx.fillRect(16, 162, w - 32, 26);
+    }
+    ctx.fillStyle = '#00f5a0';
+    ctx.fillText(`Current:`, 24, 182);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`${layer.current_speed.toFixed(3)} m/s (${Math.round(layer.dirDeg)}°)`, 140, 182);
+
+    // Chlorophyll
+    if (activeVariable === 'chlorophyll') {
+      ctx.fillStyle = 'rgba(192, 132, 252, 0.24)';
+      ctx.fillRect(16, 194, w - 32, 26);
+    }
+    ctx.fillStyle = '#c084fc';
+    ctx.fillText(`Chl-a:`, 24, 214);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`${layer.chlorophyll.toFixed(3)} mg/m³`, 140, 214);
+
+    hudTextureRef.current.needsUpdate = true;
+  }, [waterColumn, activeVariable]);
 
   // Initialize Three.js scene once
   useEffect(() => {
@@ -209,15 +370,15 @@ export default function DepthSlicePage() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(5.0, 3.0, 5.4);
+    camera.position.set(5.2, 3.8, 6.4);
     cameraRef.current = camera;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(0, 0, 0);
+    controls.target.set(-0.9, 0, 0);
     controls.minDistance = 2.5;
-    controls.maxDistance = 16;
+    controls.maxDistance = 18;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
     controlsRef.current = controls;
 
@@ -229,26 +390,179 @@ export default function DepthSlicePage() {
     const dirLight2 = new THREE.DirectionalLight(0x0055ff, 0.6);
     dirLight2.position.set(-10, -5, -8);
     scene.add(dirLight2);
+
     const pointLight = new THREE.PointLight(0x00e5ff, 1.3, 10);
     scene.add(pointLight);
 
+    const sunCausticLight = new THREE.PointLight(0xd0f8ff, 2.0, 12);
+    sunCausticLight.position.set(-0.9, 6.0, 1.0);
+    scene.add(sunCausticLight);
+
     const waterGroup = new THREE.Group();
-    waterGroup.position.set(0, 0, 0);
+    waterGroup.position.set(-0.9, 0, 0);
     scene.add(waterGroup);
     waterGroupRef.current = waterGroup;
 
-    // Animation Loop
+    // ── HUD Canvas Setup ──
+    const hCanvas = document.createElement('canvas');
+    hCanvas.width = 512;
+    hCanvas.height = 256;
+    hudCanvasRef.current = hCanvas;
+    const hTex = new THREE.CanvasTexture(hCanvas);
+    hTex.minFilter = THREE.LinearFilter;
+    hudTextureRef.current = hTex;
+
+    const spriteMat = new THREE.SpriteMaterial({
+      map: hTex,
+      transparent: true,
+      opacity: 0,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const hudSprite = new THREE.Sprite(spriteMat);
+    hudSprite.scale.set(2.6, 1.3, 1);
+    waterGroup.add(hudSprite);
+    hudSpriteRef.current = hudSprite;
+
+    // ── Animation Loop ──
     let animationFrameId: number;
     let time = 0;
+    const BLOCK_HEIGHT = 5.8;
+    const BLOCK_RADIUS = 1.6;
+    const BLOCK_WIDTH = 3.0;
+
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       time += 0.016;
       controls.update();
 
-      // Gentle wave bobbing for layers
+      // 1. Dynamic Ocean Surface Waves Calculation
+      const waveMesh = waveMeshRef.current;
+      if (waveMesh && waveMesh.geometry.userData.origX) {
+        const posAttr = waveMesh.geometry.attributes.position;
+        const origX = waveMesh.geometry.userData.origX;
+        const origY = waveMesh.geometry.userData.origY;
+        const count = posAttr.count;
+
+        for (let i = 0; i < count; i++) {
+          const ox = origX[i];
+          const oy = origY[i];
+          const w1 = Math.sin(ox * 2.2 + oy * 1.5 + time * 2.4) * 0.055;
+          const w2 = Math.cos(ox * 3.1 - oy * 2.0 + time * 1.9) * 0.035;
+          const w3 = Math.sin((ox + oy) * 4.6 + time * 3.4) * 0.018;
+          const dist = Math.hypot(ox, oy);
+          const w4 = Math.cos(dist * 4.0 - time * 2.7) * 0.016;
+          posAttr.array[i * 3 + 2] = w1 + w2 + w3 + w4;
+        }
+        posAttr.needsUpdate = true;
+        waveMesh.geometry.computeVertexNormals();
+        (waveMesh.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.42 + Math.sin(time * 2.5) * 0.08;
+      }
+
+      // 2. Meniscus bobbing
+      const meniscus = meniscusMeshRef.current;
+      if (meniscus) {
+        meniscus.position.y = BLOCK_HEIGHT / 2 + 0.018 + Math.sin(time * 2.2) * 0.012;
+      }
+
+      // 3. Sun caustic light ray bob
+      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0 - 0.9;
+      sunCausticLight.position.z = Math.cos(time * 0.9) * 2.0;
+
+      // 4. Suspended Marine Snow & Plankton Drift
+      const particles = particlesMeshRef.current;
+      const vels = particleVelocitiesRef.current;
+      if (particles && vels.length > 0) {
+        const pArray = particles.geometry.attributes.position.array as Float32Array;
+        for (let i = 0; i < vels.length; i++) {
+          const vel = vels[i];
+          pArray[i * 3] += vel.vx;
+          pArray[i * 3 + 2] += vel.vz;
+          pArray[i * 3 + 1] += Math.sin(time * vel.bobFreq) * vel.bobAmp;
+
+          // Wrap boundaries
+          const dSq = pArray[i * 3] * pArray[i * 3] + pArray[i * 3 + 2] * pArray[i * 3 + 2];
+          if (dSq > BLOCK_RADIUS * BLOCK_RADIUS * 0.85) {
+            pArray[i * 3] *= -0.92;
+            pArray[i * 3 + 2] *= -0.92;
+          }
+        }
+        particles.geometry.attributes.position.needsUpdate = true;
+      }
+
+      // 5. Lateral Slide-out Physics Animation & Wave Dynamics for Extracted Slices
       layerGroupsRef.current.forEach((item) => {
-        item.grp.position.y += Math.sin(time * 0.8 + item.idx * 0.5) * 0.00015;
+        item.curX += (item.targetX - item.curX) * 0.085;
+        item.curZ += (item.targetZ - item.curZ) * 0.085;
+        item.curLift += (item.targetLift - item.curLift) * 0.085;
+        item.curScale += (item.targetScale - item.curScale) * 0.085;
+
+        item.grp.position.x = item.curX;
+        item.grp.position.z = item.curZ;
+        item.grp.scale.setScalar(item.curScale);
+        item.grp.position.y = item.baseY + item.curLift + Math.sin(time * 1.3 + item.idx * 0.45) * 0.012;
+
+        // Dynamic 3D undulating waves on the extracted slice top
+        const sliceWave = item.sliceWaveMesh;
+        if (sliceWave && sliceWave.geometry.userData.origX) {
+          const isExtracted = item.curX > 0.15;
+          const slideProgress = Math.min(1.0, item.curX / 3.0);
+          const sPos = sliceWave.geometry.attributes.position;
+          const sOrigX = sliceWave.geometry.userData.origX;
+          const sOrigY = sliceWave.geometry.userData.origY;
+          const sCount = sPos.count;
+          const sAmp = (isExtracted ? 1.35 : 0.2) * Math.max(0.15, slideProgress);
+
+          for (let j = 0; j < sCount; j++) {
+            const ox = sOrigX[j];
+            const oy = sOrigY[j];
+            const sw1 = Math.sin(ox * 3.0 + oy * 2.2 + time * 3.0) * (0.045 * sAmp);
+            const sw2 = Math.cos(ox * 3.8 - oy * 2.6 + time * 2.3) * (0.032 * sAmp);
+            sPos.array[j * 3 + 2] = sw1 + sw2;
+          }
+          sPos.needsUpdate = true;
+          sliceWave.geometry.computeVertexNormals();
+
+          if (isExtracted) {
+            (sliceWave.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.55 + Math.sin(time * 2.8) * 0.15;
+          }
+        }
       });
+
+      // 6. Update Tether & Laser Pointer Line to HUD Card
+      const currentSelectedIdx = (controls as any).userData?.selectedIndex ?? 0;
+      const activeItem = layerGroupsRef.current[currentSelectedIdx];
+      if (activeItem) {
+        const { curX, curZ, baseY } = activeItem;
+        const curY = activeItem.grp.position.y;
+
+        if (tetherLineRef.current) {
+          const tPos = tetherLineRef.current.geometry.attributes.position.array as Float32Array;
+          tPos[0] = 0;    tPos[1] = baseY; tPos[2] = 0;
+          tPos[3] = curX; tPos[4] = curY;  tPos[5] = curZ;
+          tetherLineRef.current.geometry.attributes.position.needsUpdate = true;
+          (tetherLineRef.current.material as THREE.LineBasicMaterial).opacity = Math.min(0.85, Math.max(0, curX / 2.5));
+        }
+
+        if (tetherPointerLineRef.current) {
+          const pPos = tetherPointerLineRef.current.geometry.attributes.position.array as Float32Array;
+          pPos[0] = curX; pPos[1] = curY + 0.65; pPos[2] = curZ;
+          pPos[3] = curX; pPos[4] = curY + 0.15; pPos[5] = curZ;
+          tetherPointerLineRef.current.geometry.attributes.position.needsUpdate = true;
+          (tetherPointerLineRef.current.material as THREE.LineBasicMaterial).opacity = Math.min(0.75, Math.max(0, (curX - 0.5) / 2.0));
+        }
+
+        if (extractionSocketRef.current) {
+          extractionSocketRef.current.position.y = baseY;
+          const sMat = (extractionSocketRef.current as any).material;
+          if (sMat) sMat.opacity = Math.min(0.75, Math.max(0, curX / 2.5));
+        }
+
+        if (hudSpriteRef.current) {
+          hudSpriteRef.current.position.set(curX, curY + 1.25, curZ);
+          hudSpriteRef.current.material.opacity = Math.min(1.0, Math.max(0, (curX - 0.4) / 2.0));
+        }
+      }
 
       renderer.render(scene, camera);
     };
@@ -273,75 +587,216 @@ export default function DepthSlicePage() {
       ro.observe(mountRef.current);
     }
 
+    // ── 3D Raycasting Slice Selection ──
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const handleCanvasClick = (e: MouseEvent) => {
+      if (!canvas || !camera) return;
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const meshes: THREE.Mesh[] = [];
+      layerGroupsRef.current.forEach((item) => {
+        item.grp.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            child.userData.parentIdx = item.idx;
+            meshes.push(child as THREE.Mesh);
+          }
+        });
+      });
+
+      const hits = raycaster.intersectObjects(meshes, false);
+      if (hits.length > 0) {
+        const hitIdx = hits[0].object.userData.parentIdx;
+        if (typeof hitIdx === 'number' && waterColumn[hitIdx]) {
+          setSelectedDepth(waterColumn[hitIdx].depth);
+        }
+      }
+    };
+    canvas.addEventListener('click', handleCanvasClick);
+
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      canvas.removeEventListener('click', handleCanvasClick);
       ro.disconnect();
       renderer.dispose();
       controls.dispose();
     };
-  }, []);
+  }, [waterColumn]);
 
-  // Rebuild 3D Volumetric Mesh whenever geometry, variable, or waterColumn changes
+  // Keep control's userData updated with selectedIndex for animation loop
+  useEffect(() => {
+    if (controlsRef.current) {
+      (controlsRef.current as any).userData = { selectedIndex };
+    }
+  }, [selectedIndex]);
+
+  // Rebuild 3D Volumetric Water Column whenever geometryType, activeVariable, or waterColumn changes
   useEffect(() => {
     const waterGroup = waterGroupRef.current;
     if (!waterGroup) return;
 
-    // Clear previous children
-    while (waterGroup.children.length > 0) {
-      waterGroup.remove(waterGroup.children[0]);
-    }
-    layerGroupsRef.current = [];
+    // Clear previous children except HUD sprite
+    const hud = hudSpriteRef.current;
+    const toRemove = waterGroup.children.filter((c) => c !== hud);
+    toRemove.forEach((c) => waterGroup.remove(c));
 
-    const BLOCK_HEIGHT = 4.8;
-    const BLOCK_RADIUS = 3.0;
-    const BLOCK_WIDTH = 5.6;
+    layerGroupsRef.current = [];
+    particleVelocitiesRef.current = [];
+
+    const BLOCK_HEIGHT = 5.8;
+    const BLOCK_RADIUS = 1.6;
+    const BLOCK_WIDTH = 3.0;
     const maxDepth = waterColumn[waterColumn.length - 1]?.depth || 2000;
 
-    // Outer translucent ocean block
+    // 1. Outer Translucent Water Column
     const outerGeo =
       geometryType === 'cylinder'
         ? new THREE.CylinderGeometry(BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_HEIGHT, 64, 32, false)
-        : new THREE.BoxGeometry(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_WIDTH, 20, 32, 20);
+        : new THREE.BoxGeometry(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_WIDTH, 24, 32, 24);
 
     const outerMat = new THREE.MeshPhysicalMaterial({
-      color: 0x004488,
-      emissive: 0x001a33,
-      emissiveIntensity: 0.25,
-      transmission: 0.68,
-      opacity: 0.75,
+      color: 0x004c8c,
+      emissive: 0x001428,
+      emissiveIntensity: 0.28,
+      transmission: 0.84,
+      opacity: 0.82,
       transparent: true,
-      roughness: 0.08,
-      metalness: 0.05,
+      roughness: 0.05,
+      metalness: 0.03,
       ior: 1.333,
-      reflectivity: 0.5,
-      clearcoat: 0.3,
-      clearcoatRoughness: 0.1,
+      reflectivity: 0.65,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.05,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
     const outerMesh = new THREE.Mesh(outerGeo, outerMat);
     waterGroup.add(outerMesh);
 
-    // Surface water cap
+    // 2. Realistic 3D Dynamic Ocean Water Surface with Waves (Main Column Cap)
     const capGeo =
       geometryType === 'cylinder'
-        ? new THREE.CircleGeometry(BLOCK_RADIUS - 0.02, 64)
-        : new THREE.PlaneGeometry(BLOCK_WIDTH - 0.04, BLOCK_WIDTH - 0.04);
-    const capMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00aacc,
-      emissiveIntensity: 0.5,
-      roughness: 0.15,
+        ? new THREE.RingGeometry(0.001, BLOCK_RADIUS - 0.015, 64, 32)
+        : new THREE.PlaneGeometry(BLOCK_WIDTH - 0.03, BLOCK_WIDTH - 0.03, 56, 56);
+
+    const vCount = capGeo.attributes.position.count;
+    const origX = new Float32Array(vCount);
+    const origY = new Float32Array(vCount);
+    const posArr = capGeo.attributes.position.array;
+    for (let i = 0; i < vCount; i++) {
+      origX[i] = posArr[i * 3];
+      origY[i] = posArr[i * 3 + 1];
+    }
+    capGeo.userData = { origX, origY };
+
+    const surfaceVal =
+      activeVariable === 'salinity'
+        ? waterColumn[0].so
+        : activeVariable === 'currents'
+        ? waterColumn[0].current_speed
+        : activeVariable === 'chlorophyll'
+        ? waterColumn[0].chlorophyll
+        : waterColumn[0].thetao;
+    const surfaceColor = getLayerColor(surfaceVal, activeVariable);
+
+    const capMat = new THREE.MeshPhysicalMaterial({
+      color: surfaceColor,
+      emissive: surfaceColor,
+      emissiveIntensity: 0.45,
+      roughness: 0.08,
+      metalness: 0.1,
+      transmission: 0.62,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.88,
+      ior: 1.333,
+      reflectivity: 0.85,
+      clearcoat: 0.95,
+      clearcoatRoughness: 0.06,
+      side: THREE.DoubleSide,
+      depthWrite: false,
     });
     const capMesh = new THREE.Mesh(capGeo, capMat);
-    capMesh.position.set(0, BLOCK_HEIGHT / 2 + 0.01, 0);
+    capMesh.position.set(0, BLOCK_HEIGHT / 2 + 0.015, 0);
     capMesh.rotation.x = -Math.PI / 2;
     waterGroup.add(capMesh);
+    waveMeshRef.current = capMesh;
 
-    // Slices for each depth
+    // Meniscus Ring
+    if (geometryType === 'cylinder') {
+      const ringGeo = new THREE.RingGeometry(BLOCK_RADIUS - 0.04, BLOCK_RADIUS + 0.02, 64);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+      const meniscus = new THREE.Mesh(ringGeo, ringMat);
+      meniscus.position.set(0, BLOCK_HEIGHT / 2 + 0.02, 0);
+      meniscus.rotation.x = -Math.PI / 2;
+      waterGroup.add(meniscus);
+      meniscusMeshRef.current = meniscus;
+    } else {
+      const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(BLOCK_WIDTH * 0.99, 0.02, BLOCK_WIDTH * 0.99));
+      const edgeMat = new THREE.LineBasicMaterial({ color: 0x00f5a0, transparent: true, opacity: 0.65 });
+      const meniscus = new THREE.LineSegments(edgeGeo, edgeMat);
+      meniscus.position.set(0, BLOCK_HEIGHT / 2 + 0.01, 0);
+      waterGroup.add(meniscus);
+      meniscusMeshRef.current = meniscus;
+    }
+
+    // 3. Suspended Marine Snow & Plankton Particles
+    const pCount = 280;
+    const pGeo = new THREE.BufferGeometry();
+    const pPositions = new Float32Array(pCount * 3);
+    const pColors = new Float32Array(pCount * 3);
+    const vels: { vx: number; vz: number; bobFreq: number; bobAmp: number }[] = [];
+
+    for (let i = 0; i < pCount; i++) {
+      const y = (Math.random() - 0.5) * (BLOCK_HEIGHT * 0.92);
+      const r = Math.sqrt(Math.random()) * (BLOCK_RADIUS * 0.88);
+      const theta = Math.random() * Math.PI * 2;
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+      pPositions[i * 3] = x;
+      pPositions[i * 3 + 1] = y;
+      pPositions[i * 3 + 2] = z;
+
+      const depthRatio = (BLOCK_HEIGHT / 2 - y) / BLOCK_HEIGHT;
+      if (depthRatio < 0.22) {
+        pColors[i * 3] = 0.1; pColors[i * 3 + 1] = 0.95; pColors[i * 3 + 2] = 0.85;
+      } else {
+        pColors[i * 3] = 0.65; pColors[i * 3 + 1] = 0.85; pColors[i * 3 + 2] = 1.0;
+      }
+
+      const decay = Math.exp(-depthRatio * 3.2);
+      vels.push({
+        vx: (0.16 * decay + (Math.random() - 0.5) * 0.03) * 0.007,
+        vz: (-0.10 * decay + (Math.random() - 0.5) * 0.03) * 0.007,
+        bobFreq: 1.2 + Math.random() * 2.2,
+        bobAmp: 0.001 + Math.random() * 0.0025,
+      });
+    }
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
+    particleVelocitiesRef.current = vels;
+
+    const pMat = new THREE.PointsMaterial({
+      size: 0.065,
+      transparent: true,
+      opacity: 0.8,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const particles = new THREE.Points(pGeo, pMat);
+    waterGroup.add(particles);
+    particlesMeshRef.current = particles;
+
+    // 4. Layer Slices with Dynamic 3D Waves & Lateral Slide Extraction
+    const SLIDE_FAR_X = 4.2;
+    const SLIDE_FAR_Z = 1.25;
+    const SLIDE_LIFT_Y = 0.28;
+
     waterColumn.forEach((layer, idx) => {
       const ratio = layer.depth / maxDepth;
       const y = BLOCK_HEIGHT / 2 - ratio * BLOCK_HEIGHT;
@@ -350,166 +805,262 @@ export default function DepthSlicePage() {
           ? layer.so
           : activeVariable === 'currents'
           ? layer.current_speed
+          : activeVariable === 'chlorophyll'
+          ? layer.chlorophyll
           : layer.thetao;
       const color = getLayerColor(val, activeVariable);
       const isHighlight = selectedIndex === idx;
 
       const grp = new THREE.Group();
-      grp.position.set(0, y, 0);
+      grp.position.set(isHighlight ? SLIDE_FAR_X : 0, y + (isHighlight ? SLIDE_LIFT_Y : 0), isHighlight ? SLIDE_FAR_Z : 0);
 
-      // Disc / Plate
-      const discGeo =
+      // A. Physical Slab Thickness
+      const sliceThickness = 0.26;
+      const slabGeo =
         geometryType === 'cylinder'
-          ? new THREE.CircleGeometry(BLOCK_RADIUS * 0.96, 64)
-          : new THREE.PlaneGeometry(BLOCK_WIDTH * 0.96, BLOCK_WIDTH * 0.96);
-      const discMat = new THREE.MeshStandardMaterial({
+          ? new THREE.CylinderGeometry(BLOCK_RADIUS * 0.98, BLOCK_RADIUS * 0.98, sliceThickness, 48, 1, false)
+          : new THREE.BoxGeometry(BLOCK_WIDTH * 0.98, sliceThickness, BLOCK_WIDTH * 0.98);
+
+      const slabMat = new THREE.MeshPhysicalMaterial({
         color,
         emissive: color,
-        emissiveIntensity: isHighlight ? 0.9 : 0.28,
+        emissiveIntensity: isHighlight ? 0.42 : 0.08,
+        transmission: 0.78,
         transparent: true,
-        opacity: isHighlight ? 0.9 : 0.4,
+        opacity: isHighlight ? 0.94 : 0.22,
+        roughness: 0.06,
+        metalness: 0.04,
+        ior: 1.333,
+        clearcoat: 0.88,
+        clearcoatRoughness: 0.06,
+        side: THREE.DoubleSide,
         depthWrite: false,
       });
-      const disc = new THREE.Mesh(discGeo, discMat);
-      disc.rotation.x = -Math.PI / 2;
-      grp.add(disc);
+      const slabMesh = new THREE.Mesh(slabGeo, slabMat);
+      grp.add(slabMesh);
 
-      // Glowing Rim Ring
+      // B. Dynamic Undulating 3D Water Wave Surface on Top of Extracted Slice
+      const sliceWaveGeo =
+        geometryType === 'cylinder'
+          ? new THREE.RingGeometry(0.001, BLOCK_RADIUS * 0.97, 48, 22)
+          : new THREE.PlaneGeometry(BLOCK_WIDTH * 0.97, BLOCK_WIDTH * 0.97, 40, 40);
+
+      const sCount = sliceWaveGeo.attributes.position.count;
+      const sOrigX = new Float32Array(sCount);
+      const sOrigY = new Float32Array(sCount);
+      const sPosArr = sliceWaveGeo.attributes.position.array;
+      for (let j = 0; j < sCount; j++) {
+        sOrigX[j] = sPosArr[j * 3];
+        sOrigY[j] = sPosArr[j * 3 + 1];
+      }
+      sliceWaveGeo.userData = { origX: sOrigX, origY: sOrigY };
+
+      const sliceWaveMat = new THREE.MeshPhysicalMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: isHighlight ? 0.68 : 0.25,
+        roughness: 0.08,
+        metalness: 0.08,
+        transmission: 0.65,
+        transparent: true,
+        opacity: isHighlight ? 0.94 : 0.42,
+        ior: 1.333,
+        reflectivity: 0.85,
+        clearcoat: 0.95,
+        clearcoatRoughness: 0.06,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const sliceWaveMesh = new THREE.Mesh(sliceWaveGeo, sliceWaveMat);
+      sliceWaveMesh.rotation.x = -Math.PI / 2;
+      sliceWaveMesh.position.y = sliceThickness / 2 + 0.005;
+      grp.add(sliceWaveMesh);
+
+      // C. Meniscus Rim Edge
       if (geometryType === 'cylinder') {
-        const ringGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.95, BLOCK_RADIUS * 0.99, 64);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color,
-          transparent: true,
-          opacity: isHighlight ? 0.95 : 0.5,
-        });
+        const ringGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.95, BLOCK_RADIUS * 0.99, 48);
+        const ringMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: isHighlight ? 0.95 : 0.55 });
         const ring = new THREE.Mesh(ringGeo, ringMat);
         ring.rotation.x = -Math.PI / 2;
+        ring.position.y = sliceThickness / 2 + 0.01;
         grp.add(ring);
       } else {
-        const edgeGeo = new THREE.EdgesGeometry(
-          new THREE.BoxGeometry(BLOCK_WIDTH * 0.98, 0.02, BLOCK_WIDTH * 0.98)
-        );
-        const edgeMat = new THREE.LineBasicMaterial({
-          color,
-          transparent: true,
-          opacity: isHighlight ? 0.95 : 0.45,
-        });
-        grp.add(new THREE.LineSegments(edgeGeo, edgeMat));
+        const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(BLOCK_WIDTH * 0.98, 0.02, BLOCK_WIDTH * 0.98));
+        const edgeMat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: isHighlight ? 0.95 : 0.5 });
+        const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+        edges.position.y = sliceThickness / 2 + 0.01;
+        grp.add(edges);
       }
 
-      // Current Velocity 3D Arrow
-      const arrowLength = Math.max(0.5, Math.min(1.8, layer.current_speed * 7.5));
+      // D. Current Velocity 3D Arrow
+      const arrowLength = Math.max(0.35, Math.min(1.3, layer.current_speed * 5.2));
       const angle = Math.atan2(layer.vo, layer.uo);
       const arrowGrp = new THREE.Group();
       arrowGrp.rotation.y = -angle;
-      arrowGrp.position.y = 0.04;
+      arrowGrp.position.y = sliceThickness / 2 + 0.04;
 
-      const shaftGeo = new THREE.CylinderGeometry(0.022, 0.022, arrowLength, 8);
-      const shaftMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
-      const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+      const shaft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.025, arrowLength, 8),
+        new THREE.MeshBasicMaterial({ color: 0x00ffcc })
+      );
       shaft.position.set(arrowLength / 2, 0, 0);
       shaft.rotation.z = Math.PI / 2;
       arrowGrp.add(shaft);
 
-      const coneGeo = new THREE.ConeGeometry(0.08, 0.22, 10);
-      const coneMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const cone = new THREE.Mesh(coneGeo, coneMat);
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(0.08, 0.22, 10),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      );
       cone.position.set(arrowLength, 0, 0);
       cone.rotation.z = -Math.PI / 2;
       arrowGrp.add(cone);
-
       grp.add(arrowGrp);
 
-      layerGroupsRef.current.push({ grp, discMat, idx });
+      layerGroupsRef.current.push({
+        grp,
+        sliceWaveMesh,
+        slabMat,
+        idx,
+        baseY: y,
+        curX: isHighlight ? SLIDE_FAR_X : 0,
+        curZ: isHighlight ? SLIDE_FAR_Z : 0,
+        curLift: isHighlight ? SLIDE_LIFT_Y : 0,
+        targetX: isHighlight ? SLIDE_FAR_X : 0,
+        targetZ: isHighlight ? SLIDE_FAR_Z : 0,
+        targetLift: isHighlight ? SLIDE_LIFT_Y : 0,
+        curScale: isHighlight ? 1.08 : 1.0,
+        targetScale: isHighlight ? 1.08 : 1.0,
+      });
+
       waterGroup.add(grp);
     });
 
-    // Seabed Base
+    // 5. Holographic Extraction Tether & Socket
+    const tetherGeo = new THREE.BufferGeometry();
+    tetherGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+    const tetherMat = new THREE.LineBasicMaterial({ color: 0x00f5a0, transparent: true, opacity: 0 });
+    const tether = new THREE.Line(tetherGeo, tetherMat);
+    waterGroup.add(tether);
+    tetherLineRef.current = tether;
+
+    const pointerGeo = new THREE.BufferGeometry();
+    pointerGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+    const pointerMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0 });
+    const pointer = new THREE.Line(pointerGeo, pointerMat);
+    waterGroup.add(pointer);
+    tetherPointerLineRef.current = pointer;
+
+    if (geometryType === 'cylinder') {
+      const socketGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.96, BLOCK_RADIUS * 1.01, 48);
+      const socketMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0, side: THREE.DoubleSide });
+      const socket = new THREE.Mesh(socketGeo, socketMat);
+      socket.rotation.x = -Math.PI / 2;
+      waterGroup.add(socket);
+      extractionSocketRef.current = socket;
+    } else {
+      const socketGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(BLOCK_WIDTH * 0.99, 0.04, BLOCK_WIDTH * 0.99));
+      const socketMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0 });
+      const socket = new THREE.LineSegments(socketGeo, socketMat);
+      waterGroup.add(socket);
+      extractionSocketRef.current = socket;
+    }
+
+    // Seabed base
     const baseGeo =
       geometryType === 'cylinder'
-        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.12, 64)
-        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.25, BLOCK_WIDTH + 0.25);
-    const baseMat = new THREE.MeshStandardMaterial({
-      color: 0x001428,
-      roughness: 0.9,
-      metalness: 0.2,
-    });
+        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.08, 48)
+        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.15, BLOCK_WIDTH + 0.15);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x001428, roughness: 0.92, metalness: 0.2 });
     const baseMesh = new THREE.Mesh(baseGeo, baseMat);
     baseMesh.position.set(0, -BLOCK_HEIGHT / 2 - 0.02, 0);
     baseMesh.rotation.x = Math.PI / 2;
     waterGroup.add(baseMesh);
 
-    // Left Depth Ruler
-    const rulerGrp = new THREE.Group();
-    const rulerOffset = geometryType === 'cylinder' ? BLOCK_RADIUS + 0.75 : BLOCK_WIDTH / 2 + 0.75;
-    rulerGrp.position.set(-rulerOffset, 0, 0);
+    // Initial HUD update
+    updateExtractedHud(selectedIndex);
+  }, [geometryType, activeVariable, waterColumn, updateExtractedHud]);
 
-    const spineGeo = new THREE.CylinderGeometry(0.015, 0.015, BLOCK_HEIGHT, 8);
-    const spineMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.35 });
-    rulerGrp.add(new THREE.Mesh(spineGeo, spineMat));
+  // Handle Depth Selection Updates (Slide target interpolation trigger)
+  useEffect(() => {
+    const SLIDE_FAR_X = 4.2;
+    const SLIDE_FAR_Z = 1.25;
+    const SLIDE_LIFT_Y = 0.28;
 
-    [0, 100, 500, 1000, 2000].forEach((d) => {
-      const ratio = d / maxDepth;
-      const y = BLOCK_HEIGHT / 2 - ratio * BLOCK_HEIGHT;
-      const tickGeo = new THREE.BoxGeometry(0.25, 0.015, 0.015);
-      const tickMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff });
-      const tick = new THREE.Mesh(tickGeo, tickMat);
-      tick.position.set(0.12, y, 0);
-      rulerGrp.add(tick);
+    layerGroupsRef.current.forEach((item) => {
+      const isHighlight = selectedIndex === item.idx;
+      item.targetX = isHighlight ? SLIDE_FAR_X : 0;
+      item.targetZ = isHighlight ? SLIDE_FAR_Z : 0;
+      item.targetLift = isHighlight ? SLIDE_LIFT_Y : 0;
+      item.targetScale = isHighlight ? 1.08 : 1.0;
 
-      const labelCanvas = document.createElement('canvas');
-      labelCanvas.width = 128;
-      labelCanvas.height = 48;
-      const ctx = labelCanvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#b0e0ff';
-        ctx.font = 'bold 26px Inter, sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(`-${d}m`, 120, 34);
-        const tex = new THREE.CanvasTexture(labelCanvas);
-        const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-        const sprite = new THREE.Sprite(spriteMat);
-        sprite.position.set(-0.45, y, 0);
-        sprite.scale.set(0.75, 0.28, 1);
-        rulerGrp.add(sprite);
+      if (item.sliceWaveMesh) {
+        (item.sliceWaveMesh.material as THREE.MeshPhysicalMaterial).emissiveIntensity = isHighlight ? 0.68 : 0.25;
+        (item.sliceWaveMesh.material as THREE.MeshPhysicalMaterial).opacity = isHighlight ? 0.94 : 0.42;
+      }
+      if (item.slabMat) {
+        item.slabMat.opacity = isHighlight ? 0.94 : 0.22;
+        item.slabMat.emissiveIntensity = isHighlight ? 0.42 : 0.08;
       }
     });
 
-    waterGroup.add(rulerGrp);
-  }, [geometryType, activeVariable, waterColumn, getLayerColor, selectedIndex]);
+    updateExtractedHud(selectedIndex);
+  }, [selectedIndex, updateExtractedHud]);
 
-  // Update highlight on depth change without full rebuild
-  useEffect(() => {
-    layerGroupsRef.current.forEach((item) => {
-      const isHighlight = item.idx === selectedIndex;
-      item.discMat.emissiveIntensity = isHighlight ? 0.9 : 0.28;
-      item.discMat.opacity = isHighlight ? 0.9 : 0.4;
-    });
-  }, [selectedIndex]);
-
+  // Handle camera reset
   const handleResetCamera = useCallback(() => {
-    if (!controlsRef.current || !cameraRef.current) return;
-    controlsRef.current.target.set(0, 0, 0);
-    cameraRef.current.position.set(5.0, 3.0, 5.4);
-    controlsRef.current.update();
+    if (controlsRef.current && cameraRef.current) {
+      controlsRef.current.target.set(-0.9, 0, 0);
+      cameraRef.current.position.set(5.2, 3.8, 6.4);
+      controlsRef.current.update();
+    }
   }, []);
 
-  // Update canvas on panel expand/collapse
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!mountRef.current || !rendererRef.current || !cameraRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
-      rendererRef.current.setSize(w, h);
-      cameraRef.current.aspect = w / h;
-      cameraRef.current.updateProjectionMatrix();
-    }, 320);
-    return () => clearTimeout(timer);
-  }, [panelCollapsed]);
+  // Compute Color Scale Legend values
+  const legendConfig = useMemo(() => {
+    let title = 'θ₀ Temperature';
+    let valStr = `${activeLayer.thetao.toFixed(2)} °C`;
+    let stops = TEMP_STOPS;
+    let curVal = activeLayer.thetao;
+    let ticks = ['1.5°C', '12°C', '22°C', '35°C'];
+
+    if (activeVariable === 'salinity') {
+      title = 'S₀ Salinity';
+      valStr = `${activeLayer.so.toFixed(2)} PSU`;
+      stops = SALINITY_STOPS;
+      curVal = activeLayer.so;
+      ticks = ['33.0', '34.8', '35.7', '36.8 PSU'];
+    } else if (activeVariable === 'currents') {
+      title = 'Current Velocity';
+      valStr = `${activeLayer.current_speed.toFixed(3)} m/s`;
+      stops = CURRENT_STOPS;
+      curVal = activeLayer.current_speed;
+      ticks = ['0.00', '0.08', '0.18', '0.32 m/s'];
+    } else if (activeVariable === 'chlorophyll') {
+      title = '🌿 Chlorophyll-a';
+      valStr = `${activeLayer.chlorophyll.toFixed(3)} mg/m³`;
+      stops = CHLOROPHYLL_STOPS;
+      curVal = activeLayer.chlorophyll;
+      ticks = ['0.00', '0.15', '0.60', '1.80 mg/m³'];
+    }
+
+    const minV = stops[0][0];
+    const maxV = stops[stops.length - 1][0];
+    const pct = Math.max(0, Math.min(100, ((curVal - minV) / (maxV - minV)) * 100));
+
+    const gradParts = stops.map(([v, c]) => {
+      const p = ((v - minV) / (maxV - minV) * 100).toFixed(1);
+      return `${c} ${p}%`;
+    });
+    const gradCss = `linear-gradient(to right, ${gradParts.join(', ')})`;
+    const layerCol = getLayerColor(curVal, activeVariable);
+    const hexCol = '#' + layerCol.getHexString();
+
+    return { title, valStr, gradCss, pct, ticks, hexCol };
+  }, [activeLayer, activeVariable]);
 
   return (
     <div className="min-h-screen w-full bg-[#080808] text-white flex flex-col overflow-hidden font-sans select-none">
-      {/* ── TOP NAVIGATION BAR ── */}
+      {/* ── TOP NAVIGATION BAR (Exact Main Repo Layout) ── */}
       <header className="h-16 bg-[#090909]/95 backdrop-blur-xl border-b border-[#222222] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-md">
         <div className="flex items-center gap-3.5">
           <button
@@ -541,7 +1092,7 @@ export default function DepthSlicePage() {
                 <span>3D Volumetric Depth Slice</span>
               </div>
               <div className="text-[11px] text-[#888888] font-mono hidden md:block">
-                {basePrediction.location.regionName} ({lat >= 0 ? `${lat}°N` : `${Math.abs(lat)}°S`}, {lon >= 0 ? `${lon}°E` : `${Math.abs(lon)}°W`}) @ {selectedDepth}m
+                {basePrediction.location.regionName} ({lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`}, {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}) @ {selectedDepth}m
               </div>
             </div>
           </div>
@@ -649,7 +1200,7 @@ export default function DepthSlicePage() {
                   className={cn(
                     "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
                     activeVariable === 'temperature'
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
                       : "text-[#888888] hover:text-white"
                   )}
                 >
@@ -660,7 +1211,7 @@ export default function DepthSlicePage() {
                   className={cn(
                     "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
                     activeVariable === 'salinity'
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
                       : "text-[#888888] hover:text-white"
                   )}
                 >
@@ -671,11 +1222,22 @@ export default function DepthSlicePage() {
                   className={cn(
                     "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
                     activeVariable === 'currents'
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
                       : "text-[#888888] hover:text-white"
                   )}
                 >
                   Velocity
+                </button>
+                <button
+                  onClick={() => setActiveVariable('chlorophyll')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                    activeVariable === 'chlorophyll'
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  🌿 Chl-a
                 </button>
               </div>
 
@@ -687,6 +1249,37 @@ export default function DepthSlicePage() {
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
+            </div>
+          </div>
+
+          {/* Floating Dynamic Color Scale Legend Widget (Bottom Left) */}
+          <div className="absolute bottom-16 left-4 z-10 pointer-events-none">
+            <div className="pointer-events-auto bg-[#090909]/92 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-3 shadow-2xl w-60 font-mono text-xs flex flex-col gap-1.5">
+              <div className="flex justify-between items-center text-[11px] font-bold text-white">
+                <span>{legendConfig.title}</span>
+                <span className="flex items-center gap-1.5 text-cyan-300">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full inline-block border border-white/40 shadow-sm"
+                    style={{ backgroundColor: legendConfig.hexCol }}
+                  />
+                  <span>{legendConfig.valStr}</span>
+                </span>
+              </div>
+              <div className="relative w-full h-2.5 rounded-full border border-white/20 overflow-visible my-0.5">
+                <div
+                  className="w-full h-full rounded-full"
+                  style={{ background: legendConfig.gradCss }}
+                />
+                <div
+                  className="absolute -top-1 w-1.5 h-4.5 bg-white rounded-full shadow-[0_0_8px_#ffffff] -translate-x-1/2 pointer-events-none transition-all duration-300"
+                  style={{ left: `${legendConfig.pct}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[9px] text-[#888888]">
+                {legendConfig.ticks.map((t) => (
+                  <span key={t}>{t}</span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -733,7 +1326,7 @@ export default function DepthSlicePage() {
           )}
         </div>
 
-        {/* ── SIDE TELEMETRY DATA PANEL ── */}
+        {/* ── SIDE TELEMETRY DATA PANEL (Exact Main Repo Layout) ── */}
         <aside
           className={cn(
             "w-88 sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-l border-[#222222] flex flex-col z-20 shadow-2xl transition-all duration-300 shrink-0",
@@ -873,35 +1466,15 @@ export default function DepthSlicePage() {
                   </div>
                 </div>
 
-                {/* 2. Operations Page Output Section (Image 1 Exact Layout) */}
+                {/* 2. Operations Page Output Section */}
                 <div className="space-y-4 text-xs font-sans pt-2 border-t border-[#222222]">
-                  {/* Top Header: Region & Status */}
                   <div className="flex justify-between items-center pb-1">
                     <div className="text-white font-bold text-sm">
                       {basePrediction.location.regionName}
                     </div>
-                    <RiskBadge
-                      level={
-                        basePrediction.summary.riskStatus === 'SAFE' 
-                          ? 'SAFE' 
-                          : basePrediction.summary.riskStatus === 'ADVISORY' 
-                          ? 'CAUTION' 
-                          : 'DANGER'
-                      }
-                      size="sm"
-                    />
                   </div>
 
-                  {/* Clean Parameters Box (Identical to screenshot) */}
-                  <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 space-y-2.5 shadow-inner">
-                    <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
-                      <span className="text-[#888888]">Current speed</span>
-                      <span className="font-bold text-white font-mono">{basePrediction.summary.currentSpeedMs} m s⁻¹</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs pb-1.5 border-b border-[#181818]">
-                      <span className="text-[#888888]">Current bearing</span>
-                      <span className="font-bold text-white font-mono">{basePrediction.summary.currentDirectionCompass} ({basePrediction.summary.currentDirectionDeg}°)</span>
-                    </div>
+                  <div className="space-y-2">
                     {Object.values(basePrediction.variables).map((v) => (
                       <div key={v.variable} className="flex justify-between items-center text-xs">
                         <span className="text-[#888888]">
@@ -914,7 +1487,7 @@ export default function DepthSlicePage() {
                     ))}
                   </div>
 
-                  {/* Actions: Open 3D Depth Slice & View Parameter Dossier */}
+                  {/* Actions: Reset View & Parameter Dossier */}
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <button
                       type="button"
