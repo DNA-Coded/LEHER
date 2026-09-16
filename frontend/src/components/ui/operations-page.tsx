@@ -4,8 +4,7 @@ import {
   ChevronDown, 
   RefreshCw, 
   ArrowUpRight,
-  Clock,
-  ExternalLink
+  Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
@@ -360,32 +359,6 @@ export default function OperationsPage() {
             </div>
           </div>
 
-          {/* Card 4: Networks & Action Links */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">OBSERVATION NETWORKS</span>
-            </div>
-
-            <div className="space-y-1.5 pt-0.5">
-              <button
-                type="button"
-                onClick={handlePredict}
-                disabled={isPredicting}
-                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99]"
-              >
-                <span>Open 3D Depth Slice ({workbenchDepth}m)</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-black" />
-              </button>
-
-              <a
-                href={`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`}
-                className="w-full py-1.5 px-3 rounded-lg bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] text-neutral-300 hover:text-white text-[10px] font-mono flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
-              >
-                <span>Inspect Copernicus Variable Matrix</span>
-                <ExternalLink className="w-3 h-3 text-neutral-500" />
-              </a>
-            </div>
-          </div>
         </div>
 
         {/* CENTER COLUMN: 3D EARTH MAP (CENTERED IN THE PAGE) */}
@@ -403,14 +376,6 @@ export default function OperationsPage() {
               });
             }}
           />
-
-          {/* Center Floating Coordinate HUD */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-2 pointer-events-auto shadow-xl">
-              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}</strong> @ {workbenchDepth}m</span>
-              <span className="text-neutral-500 hidden md:inline">• Click on map to inspect</span>
-            </div>
-          </div>
         </div>
 
         {/* RIGHT DOCKED PANEL: OPERATIONS & ANALYTICS WORKBENCH (EXACT SAME WIDTH & MATCHING CARDS) */}
