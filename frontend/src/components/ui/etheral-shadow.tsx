@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useRef, useId, useEffect, CSSProperties } from 'react';
-import { animate, useMotionValue } from 'framer-motion';
-type AnimationPlaybackControls = ReturnType<typeof animate>;
 
 // Type definitions
 interface ResponsiveImage {
@@ -73,39 +71,32 @@ export function Component({
     const id = useInstanceId();
     const animationEnabled = animation && animation.scale > 0;
     const feColorMatrixRef = useRef<SVGFEColorMatrixElement>(null);
-    const hueRotateMotionValue = useMotionValue(180);
-    const hueRotateAnimation = useRef<AnimationPlaybackControls | null>(null);
 
     const displacementScale = animation ? mapRange(animation.scale, 1, 100, 20, 100) : 0;
     const animationDuration = animation ? mapRange(animation.speed, 1, 100, 1000, 50) : 1;
 
     useEffect(() => {
-        if (feColorMatrixRef.current && animationEnabled) {
-            if (hueRotateAnimation.current) {
-                hueRotateAnimation.current.stop();
-            }
-            hueRotateMotionValue.set(0);
-            hueRotateAnimation.current = animate(hueRotateMotionValue, 360, {
-                duration: animationDuration / 25,
-                repeat: Infinity,
-                repeatType: "loop",
-                repeatDelay: 0,
-                ease: "linear",
-                delay: 0,
-                onUpdate: (value: number) => {
-                    if (feColorMatrixRef.current) {
-                        feColorMatrixRef.current.setAttribute("values", String(value));
-                    }
-                }
-            });
+        if (!feColorMatrixRef.current || !animationEnabled) return;
+        let animationFrameId: number;
+        let startTime: number | null = null;
+        const totalDuration = (animationDuration / 25) * 1000;
 
-            return () => {
-                if (hueRotateAnimation.current) {
-                    hueRotateAnimation.current.stop();
-                }
-            };
-        }
-    }, [animationEnabled, animationDuration, hueRotateMotionValue]);
+        const loop = (time: number) => {
+            if (startTime === null) startTime = time;
+            const elapsed = time - startTime;
+            const progress = (elapsed % totalDuration) / totalDuration;
+            const value = progress * 360;
+            if (feColorMatrixRef.current) {
+                feColorMatrixRef.current.setAttribute("values", String(value));
+            }
+            animationFrameId = requestAnimationFrame(loop);
+        };
+
+        animationFrameId = requestAnimationFrame(loop);
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [animationEnabled, animationDuration]);
 
     const maskUrl = customImage?.src || 'https://cdn.21st.dev/assets/mirror/bc/bc6c1564cdc919adb04a692b11e2f19299dd414e5eb45e298c0054cb232b8c3a.png';
     const noiseUrl = 'https://cdn.21st.dev/assets/mirror/a7/a7723ec07acdbbcdda4e9de1d47d65cd28991ed00a3de07aa3720589bc9683f7.png';
