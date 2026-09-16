@@ -38,6 +38,16 @@ export function RayCard({
       onPointerLeave={handlePointerLeave}
       {...props}
     >
+      {/* Invisible natural flow spacer: container automatically adapts height to children text */}
+      {children && (
+        <div
+          className={cn("invisible pointer-events-none select-none p-5 flex flex-col justify-between w-full h-full", innerClassName)}
+          aria-hidden="true"
+        >
+          {children}
+        </div>
+      )}
+
       <div className="cyber-canvas">
         {/* 25 3D Tracking Sectors for smooth tilt physics */}
         {Array.from({ length: 25 }, (_, i) => (

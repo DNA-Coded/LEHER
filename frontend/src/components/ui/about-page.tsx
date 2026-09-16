@@ -137,7 +137,7 @@ export function AboutLeherPage() {
           {/* Connected Flow: OCEAN -> OBSERVATIONS -> LOCATION -> DECISION */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
             {/* Block 01 */}
-            <RayCard>
+            <RayCard className="min-h-[240px]">
               <div className="space-y-2.5">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">01 — OCEAN</span>
@@ -156,7 +156,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             {/* Block 02 */}
-            <RayCard>
+            <RayCard className="min-h-[240px]">
               <div className="space-y-2.5">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">02 — OBSERVATIONS</span>
@@ -175,7 +175,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             {/* Block 03 */}
-            <RayCard>
+            <RayCard className="min-h-[240px]">
               <div className="space-y-2.5">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">03 — LOCATION</span>
@@ -194,7 +194,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             {/* Block 04 */}
-            <RayCard>
+            <RayCard className="min-h-[240px]">
               <div className="space-y-2.5">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">04 — DECISION</span>
