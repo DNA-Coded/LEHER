@@ -51,6 +51,15 @@ export interface OceanPredictionResult {
  * Identify approximate maritime geographical basin for context
  */
 function getRegionName(lat: number, lon: number): string {
+  if (lat >= -1 && lat <= 1 && lon >= 70 && lon <= 90) return "Equatorial Indian Ocean";
+  if (lat >= 0 && lat <= 8 && lon >= 71 && lon <= 75) return "Maldives Archipelago";
+  if (lat >= 7 && lat <= 10 && lon >= 78 && lon <= 80) return "Gulf of Mannar";
+  if (lat >= 4 && lat <= 7 && lon >= 79 && lon <= 82) return "South Sri Lanka Basin";
+  if (lat >= -10 && lat <= -3 && lon >= 68 && lon <= 75) return "Chagos-Laccadive Ridge";
+  if (lat >= -8 && lat <= -2 && lon >= 52 && lon <= 58) return "Seychelles Bank";
+  if (lat >= -25 && lat <= -10 && lon >= 38 && lon <= 46) return "Mozambique Channel";
+  if (lat >= 22 && lat <= 26 && lon >= 56 && lon <= 61) return "Gulf of Oman";
+  if (lat >= 2 && lat <= 10 && lon >= 48 && lon <= 55) return "Somali Current Basin";
   if (lat >= 0 && lat <= 30 && lon >= 45 && lon <= 78) return "Arabian Sea";
   if (lat >= 0 && lat <= 25 && lon > 78 && lon <= 100) return "Bay of Bengal";
   if (lat < 0 && lat >= -40 && lon >= 20 && lon <= 120) return "South Indian Ocean";

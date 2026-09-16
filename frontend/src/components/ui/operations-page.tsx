@@ -47,11 +47,19 @@ export default function OperationsPage() {
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
     { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
     { label: "Equator / IO", lat: 0.0, lon: 80.5 },
-    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
-    { label: "South IO", lat: -25.0, lon: 75.0 },
-    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
     { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
     { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
+    { label: "Gulf of Mannar", lat: 8.8, lon: 79.0 },
+    { label: "Maldives", lat: 3.2, lon: 73.2 },
+    { label: "South Sri Lanka", lat: 5.5, lon: 80.5 },
+    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
+    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
+    { label: "Gulf of Oman", lat: 24.5, lon: 58.5 },
+    { label: "Chagos Trench", lat: -6.0, lon: 72.0 },
+    { label: "Somali Basin", lat: 5.5, lon: 52.0 },
+    { label: "Seychelles", lat: -4.6, lon: 55.5 },
+    { label: "Mozambique", lat: -17.5, lon: 42.0 },
+    { label: "South IO", lat: -25.0, lon: 75.0 },
   ];
 
   // Send message to Earth iframe
