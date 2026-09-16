@@ -690,7 +690,7 @@ export default function LeherLandingPage() {
       <div className="space-y-2">
         <div className="flex justify-between items-center text-[11px] text-[#888888]">
           <span>Depth</span>
-          <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[11px]">
+          <span className="text-white font-mono font-bold text-[11px]">
             {workbenchDepth}m
           </span>
         </div>
@@ -1043,9 +1043,6 @@ export default function LeherLandingPage() {
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                   PREDICTION ANSWERS
                 </span>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
-                  Standardized CMEMS
-                </span>
               </div>
               {renderPredictionAnswerSection()}
             </div>
@@ -1136,9 +1133,6 @@ export default function LeherLandingPage() {
               <div>
                 <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
                   <span>Copernicus Marine Oceanographic Dossier</span>
-                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-                    10 PARAMETERS
-                  </span>
                 </div>
                 <div className="text-[11px] text-[#888888] font-mono">
                   {predictionResult.location.regionName} ({predictionResult.location.lat >= 0 ? `${predictionResult.location.lat}°N` : `${Math.abs(predictionResult.location.lat)}°S`}, {predictionResult.location.lon >= 0 ? `${predictionResult.location.lon}°E` : `${Math.abs(predictionResult.location.lon)}°W`}) @ {predictionResult.location.depth}m Depth
@@ -1215,15 +1209,6 @@ export default function LeherLandingPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-white">
                           {v.commonName}
-                        </span>
-                        <span className={cn(
-                          "px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider font-mono",
-                          v.category === 'physical' ? "bg-cyan-950/60 border-cyan-800/60 text-cyan-300"
-                          : v.category === 'dynamic' ? "bg-amber-950/60 border-amber-800/60 text-amber-300"
-                          : v.category === 'biogeochemical' ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-300"
-                          : "bg-purple-950/60 border-purple-800/60 text-purple-300"
-                        )}>
-                          {v.category}
                         </span>
                       </div>
                       <div className="text-[10px] text-[#666666] font-mono mt-0.5">

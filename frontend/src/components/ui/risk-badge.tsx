@@ -58,26 +58,7 @@ export function RiskBadge({
     lg: 'w-4 h-4',
   }[size];
 
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full border font-mono font-bold tracking-wider uppercase transition-colors',
-        config.classes,
-        sizeStyles,
-        className
-      )}
-      role="status"
-      aria-label={`Maritime Risk Level: ${displayLabel}`}
-    >
-      <IconComponent className={cn(iconSizes, 'shrink-0')} aria-hidden="true" />
-      <span>{displayLabel}</span>
-      {subtext && (
-        <span className="font-normal opacity-80 border-l border-current/30 pl-1.5 ml-0.5 normal-case">
-          {subtext}
-        </span>
-      )}
-    </span>
-  );
+  return null;
 }
 
 export default RiskBadge;

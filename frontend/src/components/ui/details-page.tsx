@@ -226,9 +226,6 @@ export default function DetailsPage() {
             <div>
               <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
                 <span>Oceanographic Parameter Dossier</span>
-                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-                  10 CMEMS PARAMETERS
-                </span>
               </div>
             </div>
           </div>
@@ -370,15 +367,6 @@ export default function DetailsPage() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm sm:text-base font-bold text-white tracking-tight">
                             {v.commonName}
-                          </span>
-                          <span className={cn(
-                            "px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider font-mono",
-                            v.category === 'physical' ? "bg-cyan-950/60 border-cyan-800/60 text-cyan-300"
-                            : v.category === 'dynamic' ? "bg-amber-950/60 border-amber-800/60 text-amber-300"
-                            : v.category === 'biogeochemical' ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-300"
-                            : "bg-purple-950/60 border-purple-800/60 text-purple-300"
-                          )}>
-                            {v.category}
                           </span>
                         </div>
                         <div className="text-[10px] text-[#777788] font-mono mt-0.5">

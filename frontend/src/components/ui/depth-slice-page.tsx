@@ -539,9 +539,6 @@ export default function DepthSlicePage() {
             <div>
               <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
                 <span>3D Volumetric Depth Slice</span>
-                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-                  ML WATER COLUMN
-                </span>
               </div>
               <div className="text-[11px] text-[#888888] font-mono hidden md:block">
                 {basePrediction.location.regionName} ({lat >= 0 ? `${lat}°N` : `${Math.abs(lat)}°S`}, {lon >= 0 ? `${lon}°E` : `${Math.abs(lon)}°W`}) @ {selectedDepth}m
@@ -747,9 +744,6 @@ export default function DepthSlicePage() {
           <div className="p-4 border-b border-[#222222] flex justify-between items-center shrink-0">
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10px] font-mono uppercase font-bold text-[#aaaaaa] bg-white/10 px-2 py-0.5 rounded border border-white/10">
-                  ML Telemetry
-                </span>
                 <span className="text-xs text-[#888888] font-medium">{basePrediction.location.regionName}</span>
               </div>
               <h3 className="text-sm sm:text-base font-bold text-white">Water Column Intelligence</h3>
@@ -816,7 +810,7 @@ export default function DepthSlicePage() {
                       <Sliders className="w-3.5 h-3.5 text-cyan-400" />
                       Depth Slice Selector
                     </span>
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#141414] border border-[#262626] text-white">
+                    <span className="text-xs font-mono text-neutral-400 font-bold">
                       {activeLayer.depth === 0 ? '0m (Surface)' : `${activeLayer.depth} meters`}
                     </span>
                   </div>

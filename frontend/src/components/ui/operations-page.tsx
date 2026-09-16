@@ -2,24 +2,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ArrowLeft, 
   ChevronDown, 
-  Locate, 
   RefreshCw, 
   ArrowUpRight,
   Clock,
-  Compass,
-  Waves,
-  Thermometer,
-  Droplets,
-  Activity,
-  Layers,
-  ChevronLeft,
-  ChevronRight,
-  Radio,
-  Satellite,
-  ExternalLink,
-  ShieldCheck,
-  Ship,
-  Navigation
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
@@ -257,9 +243,6 @@ export default function OperationsPage() {
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
               <span>MARITIME INTELLIGENCE HUD</span>
             </h3>
-            <span className="font-mono text-[10px] text-neutral-400 bg-[#141414] px-2 py-0.5 rounded border border-[#262626]">
-              INCOIS • CMEMS
-            </span>
           </div>
 
           {/* Card 1: Tactical Basin & Depth Profile */}
@@ -270,8 +253,7 @@ export default function OperationsPage() {
                 {inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}
               </span>
             </div>
-            <div className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-              <Ship className="w-4 h-4 text-neutral-400 shrink-0" />
+            <div className="text-sm font-bold text-white tracking-tight">
               <span className="truncate">{prediction.location.regionName}</span>
             </div>
             <div className="pt-1.5 border-t border-[#1c1c1c] flex items-center justify-between text-[11px] text-neutral-400">
@@ -284,26 +266,12 @@ export default function OperationsPage() {
 
           {/* Card 2: Operational Assessment & Safety Advisory */}
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wide">
-                OPERATIONAL ASSESSMENT
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-wider font-bold text-neutral-200 bg-[#181818] px-2 py-0.5 rounded border border-[#2a2a2a] flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
-                {prediction.summary.riskStatus === 'HAZARD' ? 'DANGER' : prediction.summary.riskStatus === 'ADVISORY' ? 'CAUTION' : 'SAFE'}
-              </span>
+            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+              <span className="uppercase tracking-wide">OPERATIONAL ASSESSMENT</span>
             </div>
-            <p className="text-[11px] text-neutral-300 leading-relaxed line-clamp-2">
+            <p className="text-[11px] text-neutral-300 leading-relaxed line-clamp-3">
               {prediction.summary.riskMessage}
             </p>
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5 text-[10px] font-mono">
-              <div className="bg-[#181818] border border-[#262626] rounded-lg px-2 py-1 text-neutral-400">
-                Acoustics: <span className="text-white">{workbenchDepth < 100 ? 'Surface Duct' : 'SOFAR Channel'}</span>
-              </div>
-              <div className="bg-[#181818] border border-[#262626] rounded-lg px-2 py-1 text-neutral-400">
-                Fairway: <span className="text-white">Clear</span>
-              </div>
-            </div>
           </div>
 
           {/* Card 3: Hydrodynamic Telemetry Matrix */}
@@ -316,33 +284,23 @@ export default function OperationsPage() {
             <div className="grid grid-cols-2 gap-2">
               {/* Current Velocity & Drift */}
               <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span className="flex items-center gap-1">
-                    <Waves className="w-3 h-3 text-neutral-400" />
-                    <span>Current Drift</span>
-                  </span>
+                <div className="text-[10px] text-neutral-400">
+                  <span>Current Drift</span>
                 </div>
                 <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
                   <span>{prediction.summary.currentSpeedKnots}</span>
                   <span className="text-[10px] font-normal text-neutral-400">kts</span>
                   <span className="text-[9px] font-mono text-neutral-500">({prediction.summary.currentSpeedMs} m/s)</span>
                 </div>
-                <div className="flex items-center gap-1 text-[9px] font-mono text-neutral-300">
-                  <Navigation 
-                    className="w-2.5 h-2.5 text-neutral-400 shrink-0" 
-                    style={{ transform: `rotate(${prediction.summary.currentDirectionDeg}deg)` }} 
-                  />
+                <div className="text-[9px] font-mono text-neutral-300">
                   <span>{prediction.summary.currentDirectionCompass} ({prediction.summary.currentDirectionDeg}°)</span>
                 </div>
               </div>
 
               {/* Water Temp */}
               <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span className="flex items-center gap-1">
-                    <Thermometer className="w-3 h-3 text-neutral-400" />
-                    <span>Water Temp (θ)</span>
-                  </span>
+                <div className="text-[10px] text-neutral-400">
+                  <span>Water Temp (θ)</span>
                 </div>
                 <div className="text-xs font-bold font-mono text-white">
                   {prediction.variables.thetao.formattedValue}
@@ -354,11 +312,8 @@ export default function OperationsPage() {
 
               {/* Salinity */}
               <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span className="flex items-center gap-1">
-                    <Droplets className="w-3 h-3 text-neutral-400" />
-                    <span>Salinity (Sp)</span>
-                  </span>
+                <div className="text-[10px] text-neutral-400">
+                  <span>Salinity (Sp)</span>
                 </div>
                 <div className="text-xs font-bold font-mono text-white">
                   {prediction.variables.so.formattedValue}
@@ -370,11 +325,8 @@ export default function OperationsPage() {
 
               {/* Mixed Layer */}
               <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span className="flex items-center gap-1">
-                    <Activity className="w-3 h-3 text-neutral-400" />
-                    <span>Mixed Layer</span>
-                  </span>
+                <div className="text-[10px] text-neutral-400">
+                  <span>Mixed Layer</span>
                 </div>
                 <div className="text-xs font-bold font-mono text-white">
                   {prediction.variables.mlotst.formattedValue}
@@ -386,11 +338,8 @@ export default function OperationsPage() {
 
               {/* Dynamic Height */}
               <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span className="flex items-center gap-1">
-                    <Layers className="w-3 h-3 text-neutral-400" />
-                    <span>Dynamic Height</span>
-                  </span>
+                <div className="text-[10px] text-neutral-400">
+                  <span>Dynamic Height</span>
                 </div>
                 <div className="text-xs font-bold font-mono text-white">
                   {prediction.variables.zos.formattedValue}
@@ -402,11 +351,8 @@ export default function OperationsPage() {
 
               {/* Benthic Temp */}
               <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span className="flex items-center gap-1">
-                    <Compass className="w-3 h-3 text-neutral-400" />
-                    <span>Benthic Temp</span>
-                  </span>
+                <div className="text-[10px] text-neutral-400">
+                  <span>Benthic Temp</span>
                 </div>
                 <div className="text-xs font-bold font-mono text-white">
                   {prediction.variables.bottomT.formattedValue}
@@ -419,22 +365,9 @@ export default function OperationsPage() {
           </div>
 
           {/* Card 4: Networks & Action Links */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
+          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span>OBSERVATION NETWORKS</span>
-              <span className="text-neutral-400">SYNCHRONIZED</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-1 text-[9px] font-mono text-center">
-              <div className="bg-[#181818] border border-[#222222] rounded px-1 py-1 text-neutral-400 truncate">
-                INCOIS 0.05°
-              </div>
-              <div className="bg-[#181818] border border-[#222222] rounded px-1 py-1 text-neutral-400 truncate">
-                Copernicus PHY
-              </div>
-              <div className="bg-[#181818] border border-[#222222] rounded px-1 py-1 text-neutral-400 truncate">
-                Argo IO Active
-              </div>
+              <span className="uppercase tracking-wide">OBSERVATION NETWORKS</span>
             </div>
 
             <div className="space-y-1.5 pt-0.5">
@@ -442,9 +375,8 @@ export default function OperationsPage() {
                 type="button"
                 onClick={handlePredict}
                 disabled={isPredicting}
-                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99]"
               >
-                <Layers className="w-3.5 h-3.5 text-black" />
                 <span>Open 3D Depth Slice ({workbenchDepth}m)</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-black" />
               </button>
@@ -478,8 +410,7 @@ export default function OperationsPage() {
 
           {/* Center Floating Coordinate HUD */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-3 pointer-events-auto shadow-xl">
-              <Compass className="w-3.5 h-3.5 text-neutral-400" />
+            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-2 pointer-events-auto shadow-xl">
               <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}</strong> @ {workbenchDepth}m</span>
               <span className="text-neutral-500 hidden md:inline">• Click on map to inspect</span>
             </div>
@@ -493,9 +424,6 @@ export default function OperationsPage() {
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
               <span>OPERATIONS &amp; ANALYTICS</span>
             </h3>
-            <span className="font-mono text-[10px] text-neutral-400 bg-[#141414] px-2 py-0.5 rounded border border-[#262626]">
-              WORKBENCH
-            </span>
           </div>
 
           {/* Card 1: Projection & Display */}
@@ -532,46 +460,44 @@ export default function OperationsPage() {
               <span className="uppercase tracking-wide">TARGET COORDINATES</span>
               <span>GEO-DATUM WGS84</span>
             </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              {/* Latitude */}
-              <div className="bg-[#161616] border border-[#262626] rounded-lg px-2.5 py-1.5 flex items-center justify-between focus-within:border-white/80 transition-colors">
-                <span className="text-neutral-500 text-xs">Lat</span>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="-90"
-                    max="90"
-                    value={inputLat}
-                    onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-                    className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                    placeholder="15.40"
-                  />
-                  <span className="text-neutral-400 font-mono text-xs">
-                    {inputLat >= 0 ? "°N" : "°S"}
-                  </span>
-                </div>
-              </div>
 
-              {/* Longitude */}
-              <div className="bg-[#161616] border border-[#262626] rounded-lg px-2.5 py-1.5 flex items-center justify-between focus-within:border-white/80 transition-colors">
-                <span className="text-neutral-500 text-xs">Lon</span>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="-180"
-                    max="180"
-                    value={inputLon}
-                    onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-                    className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
-                    placeholder="71.20"
-                  />
-                  <span className="text-neutral-400 font-mono text-xs">
-                    {inputLon >= 0 ? "°E" : "°W"}
-                  </span>
-                </div>
+            {/* Latitude */}
+            <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/80 transition-colors">
+              <span className="text-[#888888] text-xs">Latitude</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="-90"
+                  max="90"
+                  value={inputLat}
+                  onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
+                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  placeholder="15.40"
+                />
+                <span className="text-[#666666] font-mono text-xs w-6 text-right">
+                  {inputLat >= 0 ? "°N" : "°S"}
+                </span>
+              </div>
+            </div>
+
+            {/* Longitude */}
+            <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/80 transition-colors">
+              <span className="text-[#888888] text-xs">Longitude</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="-180"
+                  max="180"
+                  value={inputLon}
+                  onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
+                  className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  placeholder="71.20"
+                />
+                <span className="text-[#666666] font-mono text-xs w-6 text-right">
+                  {inputLon >= 0 ? "°E" : "°W"}
+                </span>
               </div>
             </div>
 
@@ -588,10 +514,10 @@ export default function OperationsPage() {
                       setInputLon(loc.lon);
                     }}
                     className={cn(
-                      "px-1 py-1 rounded text-[10px] border transition-all cursor-pointer text-center truncate font-mono",
+                      "px-1.5 py-1 rounded-lg text-[10px] border transition-all cursor-pointer text-center truncate font-sans",
                       isSelected
                         ? "bg-white text-black font-semibold border-white"
-                        : "bg-[#161616] border-[#222222] text-neutral-400 hover:text-white hover:border-[#333333]"
+                        : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
                     )}
                   >
                     {loc.label}
@@ -605,9 +531,6 @@ export default function OperationsPage() {
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
             <div className="flex justify-between items-center text-[10px] font-mono text-neutral-500">
               <span className="uppercase tracking-wide">DEPTH PROFILE</span>
-              <span className="text-white font-mono font-bold bg-[#181818] px-2 py-0.5 rounded border border-[#282828] text-[10px]">
-                {workbenchDepth}m Level
-              </span>
             </div>
             
             <input 
@@ -650,9 +573,8 @@ export default function OperationsPage() {
               type="button"
               onClick={handleLocateMe}
               disabled={isLocating}
-              className="w-full py-1.5 px-3 rounded-lg bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] hover:border-[#3a3a3a] text-neutral-200 text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+              className="w-full py-2 px-3 rounded-lg bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] hover:border-[#3a3a3a] text-neutral-200 text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
             >
-              <Locate className={cn("w-3.5 h-3.5 text-neutral-400", isLocating && "animate-spin")} />
               <span>{isLocating ? "Acquiring GPS Fix..." : "Locate My Coordinates"}</span>
             </button>
 
@@ -661,7 +583,7 @@ export default function OperationsPage() {
                 type="button"
                 onClick={handlePredict}
                 disabled={isPredicting}
-                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-75"
+                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-75"
               >
                 {isPredicting ? (
                   <>
@@ -670,7 +592,6 @@ export default function OperationsPage() {
                   </>
                 ) : (
                   <>
-                    <Layers className="w-3.5 h-3.5 text-black" />
                     <span>Predict Ocean State &amp; Open 3D Slice</span>
                     <ArrowUpRight className="w-3.5 h-3.5 text-black" />
                   </>
