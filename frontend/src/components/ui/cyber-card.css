@@ -1,4 +1,4 @@
-/* From Uiverse.io by 00Kubi - Cyber Card 3D */
+/* From Uiverse.io by 00Kubi - Cyber Card 3D with Ocean Dark Blue Theme */
 
 .cyber-container {
   position: relative;
@@ -21,12 +21,12 @@
   align-items: center;
   border-radius: 20px;
   transition: 700ms;
-  background: linear-gradient(45deg, #141414, #222222);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(45deg, #0a1118, #111a24);
+  border: 2px solid rgba(2, 132, 199, 0.2);
   overflow: hidden;
   box-shadow:
-    0 0 20px rgba(0, 0, 0, 0.4),
-    inset 0 0 20px rgba(0, 0, 0, 0.3);
+    0 0 25px rgba(2, 132, 199, 0.15),
+    inset 0 0 25px rgba(2, 132, 199, 0.08);
 }
 
 .cyber-card-content {
@@ -47,7 +47,7 @@
   position: absolute;
   text-align: center;
   color: rgba(255, 255, 255, 0.7);
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 10px rgba(2, 132, 199, 0.5);
 }
 
 .cyber-title {
@@ -60,13 +60,13 @@
   text-align: center;
   width: 100%;
   padding-top: 20px;
-  background: linear-gradient(45deg, #00ffaa, #00a2ff);
+  background: linear-gradient(45deg, #38bdf8, #0284c7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(0, 255, 170, 0.3));
+  filter: drop-shadow(0 0 15px rgba(2, 132, 199, 0.4));
   text-shadow:
-    0 0 10px rgba(92, 103, 255, 0.5),
-    0 0 20px rgba(92, 103, 255, 0.3);
+    0 0 10px rgba(2, 132, 199, 0.5),
+    0 0 20px rgba(3, 105, 161, 0.3);
 }
 
 .cyber-subtitle {
@@ -81,9 +81,9 @@
 }
 
 .cyber-highlight {
-  color: #00ffaa;
+  color: #38bdf8;
   margin-left: 5px;
-  background: linear-gradient(90deg, #5c67ff, #ad51ff);
+  background: linear-gradient(90deg, #0284c7, #0ea5e9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: bold;
@@ -114,6 +114,16 @@
 }
 
 /* Particle positions */
+.cyber-card-particles span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #38bdf8;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 .cyber-card-particles span:nth-child(1) {
   --x: 1;
   --y: -1;
@@ -155,8 +165,8 @@
   content: "";
   background: radial-gradient(
     circle at center,
-    rgba(0, 255, 170, 0.12) 0%,
-    rgba(0, 162, 255, 0.06) 50%,
+    rgba(2, 132, 199, 0.16) 0%,
+    rgba(3, 105, 161, 0.08) 50%,
     transparent 100%
   );
   filter: blur(20px);
@@ -187,14 +197,21 @@
   opacity: 0;
 }
 
-.cyber-tracker:hover ~ .cyber-card {
-  transition: 300ms;
-  filter: brightness(1.1);
+.cyber-tracker:hover ~ .cyber-card,
+.cyber-container:hover .cyber-card {
+  transition: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: linear-gradient(135deg, #031527 0%, #082442 50%, #051930 100%);
+  border-color: rgba(2, 132, 199, 0.75);
+  box-shadow:
+    0 0 35px rgba(2, 132, 199, 0.4),
+    0 0 70px rgba(3, 105, 161, 0.25),
+    inset 0 0 25px rgba(2, 132, 199, 0.2);
+  filter: brightness(1.15);
 }
 
 .cyber-container:hover .cyber-card::before {
   transition: 200ms;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .cyber-canvas {
@@ -355,9 +372,9 @@
   background: linear-gradient(
     125deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.05) 45%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 55%,
+    rgba(2, 132, 199, 0.05) 45%,
+    rgba(56, 189, 248, 0.12) 50%,
+    rgba(2, 132, 199, 0.05) 55%,
     rgba(255, 255, 255, 0) 100%
   );
   opacity: 0;
@@ -370,7 +387,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(92, 103, 255, 0.3),
+    rgba(2, 132, 199, 0.35),
     transparent
   );
   pointer-events: none;
@@ -420,7 +437,7 @@
   position: absolute;
   width: 15px;
   height: 15px;
-  border: 2px solid rgba(92, 103, 255, 0.3);
+  border: 2px solid rgba(2, 132, 199, 0.35);
   transition: all 0.3s ease;
   pointer-events: none;
 }
@@ -453,18 +470,30 @@
   border-top: 0;
 }
 
+/* Moving Dark Blue Scanline */
 .cyber-scan-line {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    transparent,
-    rgba(92, 103, 255, 0.1),
-    transparent
+    transparent 0%,
+    rgba(2, 132, 199, 0.1) 32%,
+    rgba(3, 105, 161, 0.45) 48%,
+    rgba(56, 189, 248, 0.4) 50%,
+    rgba(2, 132, 199, 0.25) 54%,
+    transparent 100%
   );
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
   transform: translateY(-100%);
-  animation: cyberScanMove 2.5s linear infinite;
+  animation: cyberScanMove 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-tracker:hover ~ .cyber-card .cyber-scan-line,
+.cyber-container:hover .cyber-card .cyber-scan-line {
+  opacity: 1;
 }
 
 @keyframes cyberLineGrow {
@@ -496,6 +525,6 @@
 }
 
 .cyber-tracker:hover ~ .cyber-card .cyber-corner-elements span {
-  border-color: rgba(92, 103, 255, 0.8);
-  box-shadow: 0 0 10px rgba(92, 103, 255, 0.5);
+  border-color: rgba(56, 189, 248, 0.9);
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.7);
 }

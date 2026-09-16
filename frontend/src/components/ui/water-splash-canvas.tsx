@@ -5,42 +5,32 @@ export interface WaterSplashCanvasRef {
   handleLeave: () => void;
 }
 
-interface SplashPoint {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  width: number;
+interface FoamBubble {
+  angleOffset: number;
+  distOffset: number;
+  size: number;
   alpha: number;
-  life: number;
-  maxLife: number;
-}
-
-interface SplashDroplet {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  length: number;
-  angle: number;
-  alpha: number;
-  decay: number;
-  hue: number;
   wobble: number;
+  speed: number;
 }
 
-interface WaveRing {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radiusX: number;
-  radiusY: number;
-  maxRadius: number;
-  angle: number;
-  alpha: number;
-  decay: number;
+interface RollingWave {
+  id: number;
+  startX: number;        // Origin X (where cursor was/is)
+  startY: number;        // Origin Y (where cursor was/is)
+  radius: number;        // Expanding radius
+  maxRadius: number;     // Full distance to furthest boundary/corner of the card (unrestricted)
+  speed: number;         // Propagation speed across card
+  angle: number;         // Main direction angle
+  spread: number;        // Arc spread in radians
+  wavelength: number;    // Crest thickness
+  amplitude: number;     // Undulation height
+  freq: number;          // Undulation frequency
+  phase: number;         // Phase offset
+  phaseSpeed: number;    // Wave oscillation speed
+  alpha: number;         // Overall opacity
+  isDirectional: boolean;
+  foamBubbles: FoamBubble[];
 }
 
 interface WaterSplashCanvasProps {
@@ -52,15 +42,89 @@ export const WaterSplashCanvas = forwardRef<WaterSplashCanvasRef, WaterSplashCan
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
-    // Continuous liquid splash ribbon points
-    const trailPointsRef = useRef<SplashPoint[]>([]);
-    // Teardrop splash droplets
-    const dropletsRef = useRef<SplashDroplet[]>([]);
-    // Expanding surface wave rings
-    const wavesRef = useRef<WaveRing[]>([]);
+    // Active rolling ocean waves
+    const wavesRef = useRef<RollingWave[]>([]);
+    const nextWaveId = useRef(1);
 
+    // Mouse tracking & hover state
+    const isHoveredRef = useRef(false);
+    const cursorPosRef = useRef<{ x: number; y: number } | null>(null);
+    const lastMoveTimeRef = useRef(0);
+    const lastSpawnTimeRef = useRef(0);
     const lastPointRef = useRef<{ x: number; y: number; time: number } | null>(null);
+
     const animFrameRef = useRef<number | null>(null);
+
+    // Helper: calculate distance to furthest card corner to guarantee UNRESTRICTED propagation
+    const getFurthestDistance = (x: number, y: number, w: number, h: number) => {
+      const d1 = Math.hypot(x, y);
+      const d2 = Math.hypot(w - x, y);
+      const d3 = Math.hypot(x, h - y);
+      const d4 = Math.hypot(w - x, h - y);
+      return Math.max(d1, d2, d3, d4) + 60; // Add generous buffer so wave completely exits opposite side
+    };
+
+    // Helper: generate foam bubbles that ride along the wave crest
+    const createFoamBubbles = (spread: number, isDirectional: boolean): FoamBubble[] => {
+      const count = isDirectional ? 10 : 16;
+      const bubbles: FoamBubble[] = [];
+      for (let i = 0; i < count; i++) {
+        const angleOffset = (Math.random() - 0.5) * spread;
+        bubbles.push({
+          angleOffset,
+          distOffset: (Math.random() - 0.5) * 14,
+          size: 1.5 + Math.random() * 2.8,
+          alpha: 0.75 + Math.random() * 0.25,
+          wobble: Math.random() * Math.PI * 2,
+          speed: 0.05 + Math.random() * 0.08,
+        });
+      }
+      return bubbles;
+    };
+
+    // Spawn an unrestricted wave originating at (x, y) rolling towards the opposite side of the card
+    const spawnWave = (
+      x: number,
+      y: number,
+      angle: number,
+      speed: number,
+      isDirectional: boolean
+    ) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+
+      // Unrestricted radius: rolls all the way to the other side of the card
+      const maxRadius = getFurthestDistance(x, y, width, height);
+      const spread = isDirectional ? Math.PI * 0.95 : Math.PI * 2; // ~170 deg arc if directional, 360 deg if stationary
+
+      wavesRef.current.push({
+        id: nextWaveId.current++,
+        startX: x,
+        startY: y,
+        radius: 2,
+        maxRadius,
+        speed: Math.max(speed, 3.8), // Smooth, majestic rolling velocity (~4px/frame)
+        angle,
+        spread,
+        wavelength: 18 + Math.random() * 8,
+        amplitude: 6 + Math.random() * 5,
+        freq: 3 + Math.floor(Math.random() * 3),
+        phase: Math.random() * Math.PI * 2,
+        phaseSpeed: 0.06 + Math.random() * 0.04,
+        alpha: 1.0,
+        isDirectional,
+        foamBubbles: createFoamBubbles(spread, isDirectional),
+      });
+
+      // Keep max 8 simultaneous waves for optimal 60fps performance
+      if (wavesRef.current.length > 8) {
+        wavesRef.current.shift();
+      }
+    };
 
     useImperativeHandle(ref, () => ({
       addPointerMove(clientX: number, clientY: number) {
@@ -73,88 +137,47 @@ export const WaterSplashCanvas = forwardRef<WaterSplashCanvasRef, WaterSplashCan
         const now = performance.now();
 
         if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+          isHoveredRef.current = false;
+          cursorPosRef.current = null;
           lastPointRef.current = null;
           return;
         }
 
+        isHoveredRef.current = true;
+        cursorPosRef.current = { x, y };
+        lastMoveTimeRef.current = now;
+
         if (lastPointRef.current) {
           const dx = x - lastPointRef.current.x;
           const dy = y - lastPointRef.current.y;
+          const dist = Math.hypot(dx, dy);
           const dt = Math.max(now - lastPointRef.current.time, 10);
-          const rawSpeed = Math.hypot(dx, dy) / (dt / 16.6);
+          const rawSpeed = dist / (dt / 16.6);
 
-          // Graceful fluid speed
-          const speed = Math.min(rawSpeed, 9);
-
-          if (speed > 0.2) {
-            const mag = Math.hypot(dx, dy) || 1;
-            const dirX = dx / mag;
-            const dirY = dy / mag;
+          // Spawn wave if moved sufficiently or enough time elapsed (smooth rolling wave train)
+          if (dist > 14 && now - lastSpawnTimeRef.current > 110) {
             const motionAngle = Math.atan2(dy, dx);
+            const waveSpeed = 3.6 + Math.min(rawSpeed * 0.15, 2.4);
 
-            // 1. Continuous Liquid Splash Wave Ribbon (Moves along with card cursor)
-            const ribbonWidth = Math.min(22 + speed * 4.5, 48);
-            trailPointsRef.current.push({
-              x,
-              y,
-              vx: dirX * (speed * 0.28), // Smooth fluid inertia along swipe direction
-              vy: dirY * (speed * 0.28),
-              width: ribbonWidth,
-              alpha: 1.0,
-              life: 1.0,
-              maxLife: 75 // ~1.25s graceful lingering
-            });
-
-            // 2. Spawn Directional Splash Droplets (Water spray moving along with swipe)
-            const dropletCount = Math.min(Math.floor(speed * 0.9) + 2, 6);
-            for (let i = 0; i < dropletCount; i++) {
-              const coneAngle = motionAngle + (Math.random() - 0.5) * 0.75;
-              const dropletSpeed = 1.0 + Math.random() * (speed * 0.4 + 1.6);
-
-              const vx = Math.cos(coneAngle) * dropletSpeed;
-              const vy = Math.sin(coneAngle) * dropletSpeed;
-
-              const radius = 4 + Math.random() * 7;
-
-              dropletsRef.current.push({
-                x: x + (Math.random() - 0.5) * 10,
-                y: y + (Math.random() - 0.5) * 10,
-                vx,
-                vy,
-                radius,
-                length: radius * (1.3 + Math.random() * 0.8),
-                angle: coneAngle,
-                alpha: 0.95,
-                decay: 0.01 + Math.random() * 0.008, // Slower decay (~1.3s - 1.6s)
-                hue: 190 + Math.random() * 20,
-                wobble: Math.random() * Math.PI * 2
-              });
-            }
-
-            // 3. Directional Water Surface Wave Ring
-            if (Math.random() < 0.35) {
-              wavesRef.current.push({
-                x,
-                y,
-                vx: dirX * (speed * 0.18),
-                vy: dirY * (speed * 0.18),
-                radiusX: 8,
-                radiusY: 4.5,
-                maxRadius: 32 + speed * 3.5,
-                angle: motionAngle,
-                alpha: 0.65,
-                decay: 0.015
-              });
-            }
+            // Spawn directional rolling wave moving across to the other side
+            spawnWave(x, y, motionAngle, waveSpeed, true);
+            lastSpawnTimeRef.current = now;
           }
+        } else {
+          // Initial hover entry: spawn initial wave rolling outward from cursor
+          spawnWave(x, y, 0, 3.8, false);
+          lastSpawnTimeRef.current = now;
         }
 
         lastPointRef.current = { x, y, time: now };
       },
 
       handleLeave() {
+        isHoveredRef.current = false;
+        cursorPosRef.current = null;
         lastPointRef.current = null;
-      }
+        // In-flight waves are NOT cleared; they finish rolling across the card naturally
+      },
     }));
 
     useEffect(() => {
@@ -185,211 +208,218 @@ export const WaterSplashCanvas = forwardRef<WaterSplashCanvasRef, WaterSplashCan
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const width = canvas.width / dpr;
         const height = canvas.height / dpr;
+        const now = performance.now();
+
+        // Check if user is stationary hovering: pulse gentle rhythmic rolling ocean swells
+        if (
+          isHoveredRef.current &&
+          cursorPosRef.current &&
+          now - lastSpawnTimeRef.current > 420
+        ) {
+          const { x, y } = cursorPosRef.current;
+          // Determine directional bias towards center or far side of card
+          const toCenterX = width / 2 - x;
+          const toCenterY = height / 2 - y;
+          const centerAngle = Math.atan2(toCenterY, toCenterX);
+
+          spawnWave(x, y, centerAngle, 3.6, false);
+          lastSpawnTimeRef.current = now;
+        }
 
         ctx.clearRect(0, 0, width, height);
 
-        const trails = trailPointsRef.current;
-        const droplets = dropletsRef.current;
         const waves = wavesRef.current;
 
         // -------------------------------------------------------------
-        // A. RENDER CONTINUOUS LIQUID SPLASH BODY (Flows along cursor)
-        // -------------------------------------------------------------
-        if (trails.length > 1) {
-          // Update trail point physics and lifecycle
-          for (let i = trails.length - 1; i >= 0; i--) {
-            const p = trails[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vx *= 0.95; // Fluid water drag
-            p.vy *= 0.95;
-            p.life -= 1 / p.maxLife;
-            p.alpha = Math.max(p.life, 0);
-
-            if (p.life <= 0) {
-              trails.splice(i, 1);
-            }
-          }
-
-          if (trails.length > 1) {
-            // 1. Soft Ambient Aqua Water Wash / Caustic Glow
-            ctx.save();
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            for (let i = 0; i < trails.length - 1; i++) {
-              const p1 = trails[i];
-              const p2 = trails[i + 1];
-              const avgAlpha = ((p1.alpha + p2.alpha) / 2) * 0.55;
-              const avgWidth = (p1.width + p2.width) / 2;
-
-              ctx.beginPath();
-              ctx.moveTo(p1.x, p1.y);
-              ctx.lineTo(p2.x, p2.y);
-              ctx.lineWidth = avgWidth * 1.5;
-              ctx.strokeStyle = `rgba(14, 165, 233, ${avgAlpha})`;
-              ctx.shadowColor = 'rgba(6, 182, 212, 0.7)';
-              ctx.shadowBlur = 20;
-              ctx.stroke();
-            }
-            ctx.restore();
-
-            // 2. Main Liquid Splash Stream Body
-            ctx.save();
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            for (let i = 0; i < trails.length - 1; i++) {
-              const p1 = trails[i];
-              const p2 = trails[i + 1];
-              const avgAlpha = ((p1.alpha + p2.alpha) / 2) * 0.8;
-              const avgWidth = (p1.width + p2.width) / 2;
-
-              ctx.beginPath();
-              ctx.moveTo(p1.x, p1.y);
-              ctx.lineTo(p2.x, p2.y);
-              ctx.lineWidth = avgWidth;
-              ctx.strokeStyle = `rgba(56, 189, 248, ${avgAlpha})`;
-              ctx.stroke();
-            }
-            ctx.restore();
-
-            // 3. Crisp Liquid Wave Crest Highlight (Glistening Water Center)
-            ctx.save();
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            for (let i = 0; i < trails.length - 1; i++) {
-              const p1 = trails[i];
-              const p2 = trails[i + 1];
-              const avgAlpha = ((p1.alpha + p2.alpha) / 2) * 0.95;
-              const avgWidth = Math.max((p1.width + p2.width) * 0.32, 3);
-
-              ctx.beginPath();
-              ctx.moveTo(p1.x, p1.y);
-              ctx.lineTo(p2.x, p2.y);
-              ctx.lineWidth = avgWidth;
-              ctx.strokeStyle = `rgba(255, 255, 255, ${avgAlpha})`;
-              ctx.shadowColor = 'rgba(255, 255, 255, 0.85)';
-              ctx.shadowBlur = 8;
-              ctx.stroke();
-            }
-            ctx.restore();
-          }
-        }
-
-        // -------------------------------------------------------------
-        // B. RENDER SURFACE WAVE RIPPLES
+        // RENDER ROLLING OCEAN WAVES (Unrestricted across card to opposite edge)
         // -------------------------------------------------------------
         for (let i = waves.length - 1; i >= 0; i--) {
           const w = waves[i];
-          w.radiusX += 0.95;
-          w.radiusY += 0.6;
-          w.x += w.vx;
-          w.y += w.vy;
-          w.vx *= 0.96;
-          w.vy *= 0.96;
-          w.alpha -= w.decay;
 
-          if (w.alpha <= 0.01 || w.radiusX >= w.maxRadius) {
+          // Advance wave front across the card
+          w.radius += w.speed;
+          w.phase += w.phaseSpeed;
+
+          // Progress ratio (0 = at cursor, 1 = reached furthest opposite edge)
+          const progress = w.radius / w.maxRadius;
+
+          // Natural ocean envelope: fades in smoothly, maintains high clarity across card,
+          // then gracefully washes out as it exits the opposite boundary
+          if (progress < 0.12) {
+            w.alpha = progress / 0.12;
+          } else if (progress < 0.82) {
+            w.alpha = 1.0;
+          } else {
+            w.alpha = Math.max((1.05 - progress) / 0.23, 0);
+          }
+
+          // When wave has completely crossed and cleared the card boundaries, remove it
+          if (progress >= 1.05 || w.alpha <= 0.01) {
             waves.splice(i, 1);
             continue;
           }
 
+          // Generate wave points along the propagating crest arc
+          const pointCount = w.isDirectional ? 48 : 72;
+          const startAngle = w.isDirectional ? w.angle - w.spread / 2 : 0;
+          const endAngle = w.isDirectional ? w.angle + w.spread / 2 : Math.PI * 2;
+          const angleStep = (endAngle - startAngle) / pointCount;
+
+          const crestPoints: Array<{ x: number; y: number }> = [];
+          const wakePoints1: Array<{ x: number; y: number }> = [];
+          const wakePoints2: Array<{ x: number; y: number }> = [];
+
+          for (let p = 0; p <= pointCount; p++) {
+            const phi = startAngle + p * angleStep;
+
+            // Directional surge forward (wave bulges towards direction of motion)
+            let directionalScale = 1.0;
+            if (w.isDirectional) {
+              const angleDiff = Math.abs(phi - w.angle);
+              directionalScale = 0.72 + 0.28 * Math.cos(angleDiff);
+            }
+
+            // Oceanic sinusoidal harmonics and undulations along the crest
+            const waveUndulation =
+              Math.sin(phi * w.freq + w.phase) * w.amplitude +
+              Math.sin(phi * (w.freq * 2.2) - w.phase * 0.8) * (w.amplitude * 0.35);
+
+            const rMain = Math.max(w.radius * directionalScale + waveUndulation, 2);
+            const rWake1 = Math.max(rMain - 16, 1);
+            const rWake2 = Math.max(rMain - 32, 1);
+
+            crestPoints.push({
+              x: w.startX + Math.cos(phi) * rMain,
+              y: w.startY + Math.sin(phi) * rMain,
+            });
+
+            wakePoints1.push({
+              x: w.startX + Math.cos(phi) * rWake1,
+              y: w.startY + Math.sin(phi) * rWake1,
+            });
+
+            wakePoints2.push({
+              x: w.startX + Math.cos(phi) * rWake2,
+              y: w.startY + Math.sin(phi) * rWake2,
+            });
+          }
+
+          if (crestPoints.length < 2) continue;
+
+          // ===========================================================
+          // 1. LIGHTER SHADE: SOFT AMBIENT WATER SURGE / CAUSTIC WASH
+          // ===========================================================
           ctx.save();
-          ctx.translate(w.x, w.y);
-          ctx.rotate(w.angle);
           ctx.beginPath();
-          ctx.ellipse(0, 0, w.radiusX, w.radiusY, 0, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(56, 189, 248, ${w.alpha * 0.55})`;
-          ctx.lineWidth = 1.8;
-          ctx.shadowColor = 'rgba(14, 165, 233, 0.5)';
+          ctx.moveTo(crestPoints[0].x, crestPoints[0].y);
+          for (let p = 1; p < crestPoints.length; p++) {
+            ctx.lineTo(crestPoints[p].x, crestPoints[p].y);
+          }
+          ctx.lineWidth = 26;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          // Very light, ethereal translucent aqua/ice wash
+          ctx.strokeStyle = `rgba(224, 242, 254, ${w.alpha * 0.22})`;
+          ctx.shadowColor = 'rgba(186, 230, 253, 0.7)';
+          ctx.shadowBlur = 18;
+          ctx.stroke();
+          ctx.restore();
+
+          // ===========================================================
+          // 2. LIGHTER SHADE: TRAILING HARMONIC ECHO RIPPLES (WAKE)
+          // ===========================================================
+          if (w.radius > 25) {
+            ctx.save();
+            // Wake Ripple 2 (farthest behind)
+            ctx.beginPath();
+            ctx.moveTo(wakePoints2[0].x, wakePoints2[0].y);
+            for (let p = 1; p < wakePoints2.length; p++) {
+              ctx.lineTo(wakePoints2[p].x, wakePoints2[p].y);
+            }
+            ctx.lineWidth = 1.8;
+            ctx.strokeStyle = `rgba(224, 242, 254, ${w.alpha * 0.28})`;
+            ctx.stroke();
+
+            // Wake Ripple 1 (intermediate)
+            ctx.beginPath();
+            ctx.moveTo(wakePoints1[0].x, wakePoints1[0].y);
+            for (let p = 1; p < wakePoints1.length; p++) {
+              ctx.lineTo(wakePoints1[p].x, wakePoints1[p].y);
+            }
+            ctx.lineWidth = 2.4;
+            ctx.strokeStyle = `rgba(186, 230, 253, ${w.alpha * 0.45})`;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // ===========================================================
+          // 3. LIGHTER SHADE: MAIN ROLLING WAVE BODY
+          // ===========================================================
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(crestPoints[0].x, crestPoints[0].y);
+          for (let p = 1; p < crestPoints.length; p++) {
+            ctx.lineTo(crestPoints[p].x, crestPoints[p].y);
+          }
+          ctx.lineWidth = 8;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          // Crisp light sky cyan (#7dd3fc / #bae6fd)
+          ctx.strokeStyle = `rgba(125, 211, 252, ${w.alpha * 0.75})`;
+          ctx.stroke();
+          ctx.restore();
+
+          // ===========================================================
+          // 4. LIGHTER SHADE: CRISP LUMINOUS WHITE-CYAN CREST HIGHLIGHT
+          // ===========================================================
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(crestPoints[0].x, crestPoints[0].y);
+          for (let p = 1; p < crestPoints.length; p++) {
+            ctx.lineTo(crestPoints[p].x, crestPoints[p].y);
+          }
+          ctx.lineWidth = 2.8;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          // Glistening white wave crest
+          ctx.strokeStyle = `rgba(255, 255, 255, ${w.alpha * 0.95})`;
+          ctx.shadowColor = 'rgba(224, 242, 254, 0.9)';
           ctx.shadowBlur = 10;
           ctx.stroke();
           ctx.restore();
-        }
 
-        // -------------------------------------------------------------
-        // C. RENDER ORGANIC TEARDROP WATER SPLASHES (Spray moving with cursor)
-        // -------------------------------------------------------------
-        for (let i = droplets.length - 1; i >= 0; i--) {
-          const d = droplets[i];
-
-          // Graceful flow with slight viscous drag
-          d.x += d.vx;
-          d.y += d.vy;
-          d.vx *= 0.97;
-          d.vy *= 0.97;
-
-          // Gentle gravity
-          d.vy += 0.035;
-
-          // Droplet surface tension oscillation
-          d.wobble += 0.07;
-          const currentRadius = Math.max(d.radius + Math.sin(d.wobble) * 0.6, 1.5);
-
-          // Card boundary containment
-          const margin = 8;
-          if (d.x < margin && d.vx < 0) {
-            d.vx *= -0.3;
-            d.x = margin;
-          } else if (d.x > width - margin && d.vx > 0) {
-            d.vx *= -0.3;
-            d.x = width - margin;
-          }
-          if (d.y > height - margin && d.vy > 0) {
-            d.vy *= -0.25;
-            d.y = height - margin;
-          }
-
-          d.alpha -= d.decay;
-
-          if (d.alpha <= 0.01) {
-            droplets.splice(i, 1);
-            continue;
-          }
-
+          // ===========================================================
+          // 5. LIGHTER SHADE: EFFERVESCENT SEAFOAM FLECK BUBBLES
+          // ===========================================================
           ctx.save();
-          ctx.translate(d.x, d.y);
-          ctx.rotate(d.angle);
+          for (let b = 0; b < w.foamBubbles.length; b++) {
+            const fb = w.foamBubbles[b];
+            fb.wobble += fb.speed;
 
-          // 1. Splash Droplet Corona
-          const corona = ctx.createRadialGradient(
-            0, 0, 0,
-            0, 0, currentRadius * 2.5
-          );
-          corona.addColorStop(0, `hsla(${d.hue}, 95%, 65%, ${d.alpha * 0.5})`);
-          corona.addColorStop(0.6, `hsla(${d.hue}, 90%, 50%, ${d.alpha * 0.2})`);
-          corona.addColorStop(1, 'rgba(14, 165, 233, 0)');
+            const bubbleAngle = w.angle + fb.angleOffset;
+            let directionalScale = 1.0;
+            if (w.isDirectional) {
+              const diff = Math.abs(bubbleAngle - w.angle);
+              directionalScale = 0.72 + 0.28 * Math.cos(diff);
+            }
 
-          ctx.fillStyle = corona;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, d.length * 1.5, currentRadius * 1.5, 0, 0, Math.PI * 2);
-          ctx.fill();
+            const rBubble =
+              w.radius * directionalScale +
+              fb.distOffset +
+              Math.sin(fb.wobble) * 2.5;
 
-          // 2. Liquid Droplet Body
-          const dome = ctx.createRadialGradient(
-            -currentRadius * 0.2, -currentRadius * 0.2, 0,
-            0, 0, currentRadius
-          );
-          dome.addColorStop(0, `hsla(${d.hue}, 98%, 76%, ${d.alpha * 0.9})`);
-          dome.addColorStop(0.6, `hsla(${d.hue}, 92%, 56%, ${d.alpha * 0.7})`);
-          dome.addColorStop(1, `hsla(${d.hue + 8}, 88%, 42%, ${d.alpha * 0.25})`);
+            const bx = w.startX + Math.cos(bubbleAngle) * rBubble;
+            const by = w.startY + Math.sin(bubbleAngle) * rBubble;
 
-          ctx.fillStyle = dome;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, d.length, currentRadius, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 3. Water Specular Highlight (Crisp White Wet Sheen)
-          const specX = -d.length * 0.35;
-          const specY = -currentRadius * 0.25;
-          const specSize = Math.max(currentRadius * 0.38, 1.2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha * 0.95})`;
-          ctx.beginPath();
-          ctx.arc(specX, specY, specSize, 0, Math.PI * 2);
-          ctx.fill();
-
+            // Render seafoam bubble
+            const bubbleAlpha = w.alpha * fb.alpha;
+            ctx.fillStyle = `rgba(255, 255, 255, ${bubbleAlpha * 0.95})`;
+            ctx.shadowColor = 'rgba(186, 230, 253, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            ctx.arc(bx, by, fb.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
           ctx.restore();
         }
 
