@@ -370,13 +370,13 @@ export default function DepthSlicePage() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(5.2, 3.8, 6.4);
+    camera.position.set(3.1, 3.8, 6.4);
     cameraRef.current = camera;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(-0.9, 0, 0);
+    controls.target.set(-3.0, 0, 0);
     controls.minDistance = 2.5;
     controls.maxDistance = 18;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
@@ -395,34 +395,15 @@ export default function DepthSlicePage() {
     scene.add(pointLight);
 
     const sunCausticLight = new THREE.PointLight(0xd0f8ff, 2.0, 12);
-    sunCausticLight.position.set(-0.9, 6.0, 1.0);
+    sunCausticLight.position.set(-3.0, 6.0, 1.0);
     scene.add(sunCausticLight);
 
     const waterGroup = new THREE.Group();
-    waterGroup.position.set(-0.9, 0, 0);
+    waterGroup.position.set(-3.0, 0, 0);
     scene.add(waterGroup);
     waterGroupRef.current = waterGroup;
 
-    // ── HUD Canvas Setup ──
-    const hCanvas = document.createElement('canvas');
-    hCanvas.width = 512;
-    hCanvas.height = 256;
-    hudCanvasRef.current = hCanvas;
-    const hTex = new THREE.CanvasTexture(hCanvas);
-    hTex.minFilter = THREE.LinearFilter;
-    hudTextureRef.current = hTex;
-
-    const spriteMat = new THREE.SpriteMaterial({
-      map: hTex,
-      transparent: true,
-      opacity: 0,
-      depthTest: false,
-      depthWrite: false,
-    });
-    const hudSprite = new THREE.Sprite(spriteMat);
-    hudSprite.scale.set(2.6, 1.3, 1);
-    waterGroup.add(hudSprite);
-    hudSpriteRef.current = hudSprite;
+    // HUD sprite removed
 
     // ── Animation Loop ──
     let animationFrameId: number;
@@ -466,7 +447,7 @@ export default function DepthSlicePage() {
       }
 
       // 3. Sun caustic light ray bob
-      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0 - 0.9;
+      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0 - 3.0;
       sunCausticLight.position.z = Math.cos(time * 0.9) * 2.0;
 
       // 4. Suspended Marine Snow & Plankton Drift
@@ -529,7 +510,7 @@ export default function DepthSlicePage() {
         }
       });
 
-      // 6. Update Tether & Laser Pointer Line to HUD Card
+      // 6. Tether & socket updates
       const currentSelectedIdx = (controls as any).userData?.selectedIndex ?? 0;
       const activeItem = layerGroupsRef.current[currentSelectedIdx];
       if (activeItem) {
@@ -556,11 +537,6 @@ export default function DepthSlicePage() {
           extractionSocketRef.current.position.y = baseY;
           const sMat = (extractionSocketRef.current as any).material;
           if (sMat) sMat.opacity = Math.min(0.75, Math.max(0, curX / 2.5));
-        }
-
-        if (hudSpriteRef.current) {
-          hudSpriteRef.current.position.set(curX, curY + 1.25, curZ);
-          hudSpriteRef.current.material.opacity = Math.min(1.0, Math.max(0, (curX - 0.4) / 2.0));
         }
       }
 
@@ -1009,8 +985,8 @@ export default function DepthSlicePage() {
   // Handle camera reset
   const handleResetCamera = useCallback(() => {
     if (controlsRef.current && cameraRef.current) {
-      controlsRef.current.target.set(-0.9, 0, 0);
-      cameraRef.current.position.set(5.2, 3.8, 6.4);
+      controlsRef.current.target.set(-3.0, 0, 0);
+      cameraRef.current.position.set(3.1, 3.8, 6.4);
       controlsRef.current.update();
     }
   }, []);
@@ -1059,7 +1035,7 @@ export default function DepthSlicePage() {
   }, [activeLayer, activeVariable]);
 
   return (
-    <div className="min-h-screen w-full bg-[#080808] text-white flex flex-col overflow-hidden font-sans select-none">
+    <div className="h-screen w-full bg-[#080808] text-white flex flex-col overflow-hidden font-sans select-none">
       {/* ── TOP NAVIGATION BAR (Exact Main Repo Layout) ── */}
       <header className="h-16 bg-[#090909]/95 backdrop-blur-xl border-b border-[#222222] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-md">
         <div className="flex items-center gap-3.5">
@@ -1150,7 +1126,7 @@ export default function DepthSlicePage() {
       </header>
 
       {/* ── MAIN WORKSPACE: 3D CANVAS + TELEMETRY PANEL ── */}
-      <div className="flex-1 flex relative overflow-hidden bg-[#040404]">
+      <div className="flex-1 flex relative overflow-hidden bg-[#1c1c1c]">
         {/* 3D Visualizer Area */}
         <div ref={mountRef} className="flex-1 h-full relative overflow-hidden">
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
@@ -1164,155 +1140,118 @@ export default function DepthSlicePage() {
             </div>
           </div>
 
-          {/* Top Right: Geometry & Variable Controls */}
-          <div className="absolute top-4 right-4 z-10 pointer-events-none">
-            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl p-1.5 shadow-xl flex items-center gap-2">
+          {/* ── UNIFIED TOP-RIGHT CARD: Controls + Telemetry ── */}
+          <div className="absolute top-4 right-4 z-10 pointer-events-none w-64">
+            <div className="pointer-events-auto bg-[#0c0c0c]/95 backdrop-blur-xl border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
+
+              {/* Region Header */}
+              <div className="px-4 pt-3.5 pb-2 border-b border-[#1e1e1e]">
+                <div className="text-[10px] text-[#666666] font-mono">{basePrediction.location.regionName}</div>
+                <div className="text-xs font-bold text-white mt-0.5">{getZoneLabel(activeLayer.depth)}</div>
+                <div className="text-[10px] font-mono text-[#555555] mt-0.5">{lat.toFixed(4)}°N, {lon.toFixed(4)}°E • <span className="text-cyan-500">{activeLayer.depth}m</span></div>
+              </div>
+
               {/* Geometry Toggle */}
-              <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626]">
-                <button
-                  onClick={() => setGeometryType('cylinder')}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
-                    geometryType === 'cylinder'
-                      ? "bg-white text-black font-bold shadow"
-                      : "text-[#888888] hover:text-white"
-                  )}
-                >
-                  Cylinder
-                </button>
-                <button
-                  onClick={() => setGeometryType('cuboid')}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
-                    geometryType === 'cuboid'
-                      ? "bg-white text-black font-bold shadow"
-                      : "text-[#888888] hover:text-white"
-                  )}
-                >
-                  Cuboid
-                </button>
+              <div className="px-3 pt-3 pb-1.5">
+                <div className="text-[9px] text-[#555555] font-mono uppercase tracking-widest mb-1.5">Shape</div>
+                <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626] w-full">
+                  <button
+                    onClick={() => setGeometryType('cylinder')}
+                    className={cn(
+                      "flex-1 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
+                      geometryType === 'cylinder' ? "bg-white text-black font-bold shadow" : "text-[#666666] hover:text-white"
+                    )}
+                  >Cylinder</button>
+                  <button
+                    onClick={() => setGeometryType('cuboid')}
+                    className={cn(
+                      "flex-1 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
+                      geometryType === 'cuboid' ? "bg-white text-black font-bold shadow" : "text-[#666666] hover:text-white"
+                    )}
+                  >Cuboid</button>
+                </div>
               </div>
 
-              {/* Variable Toggle */}
-              <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626]">
-                <button
-                  onClick={() => setActiveVariable('temperature')}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                    activeVariable === 'temperature'
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
-                      : "text-[#888888] hover:text-white"
-                  )}
-                >
-                  θ₀ Temp
-                </button>
-                <button
-                  onClick={() => setActiveVariable('salinity')}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                    activeVariable === 'salinity'
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
-                      : "text-[#888888] hover:text-white"
-                  )}
-                >
-                  S₀ Salinity
-                </button>
-                <button
-                  onClick={() => setActiveVariable('currents')}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                    activeVariable === 'currents'
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
-                      : "text-[#888888] hover:text-white"
-                  )}
-                >
-                  Velocity
-                </button>
-                <button
-                  onClick={() => setActiveVariable('chlorophyll')}
-                  className={cn(
-                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                    activeVariable === 'chlorophyll'
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold"
-                      : "text-[#888888] hover:text-white"
-                  )}
-                >
-                  🌿 Chl-a
-                </button>
+              {/* Variable Selector */}
+              <div className="px-3 pb-2">
+                <div className="text-[9px] text-[#555555] font-mono uppercase tracking-widest mb-1.5">Variable</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {([
+                    { key: 'temperature', label: 'θ₀ Temp' },
+                    { key: 'salinity',    label: 'S₀ Salinity' },
+                    { key: 'currents',    label: 'Velocity' },
+                    { key: 'chlorophyll', label: '🌿 Chl-a' },
+                  ] as const).map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setActiveVariable(key)}
+                      className={cn(
+                        "py-1 px-2 text-[10px] font-medium rounded-lg border transition-all cursor-pointer text-center",
+                        activeVariable === key
+                          ? key === 'chlorophyll'
+                            ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold"
+                            : "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 font-bold"
+                          : "bg-[#141414] border-[#262626] text-[#666666] hover:text-white hover:border-[#333333]"
+                      )}
+                    >{label}</button>
+                  ))}
+                </div>
               </div>
 
-              {/* Reset Camera */}
-              <button
-                onClick={handleResetCamera}
-                className="p-1.5 rounded-lg bg-[#181818] hover:bg-[#252525] border border-[#2a2a2a] text-[#aaaaaa] hover:text-white transition-all cursor-pointer"
-                title="Reset Camera View"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Floating Dynamic Color Scale Legend Widget (Bottom Left) */}
-          <div className="absolute bottom-16 left-4 z-10 pointer-events-none">
-            <div className="pointer-events-auto bg-[#090909]/92 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-3 shadow-2xl w-60 font-mono text-xs flex flex-col gap-1.5">
-              <div className="flex justify-between items-center text-[11px] font-bold text-white">
-                <span>{legendConfig.title}</span>
-                <span className="flex items-center gap-1.5 text-cyan-300">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full inline-block border border-white/40 shadow-sm"
-                    style={{ backgroundColor: legendConfig.hexCol }}
+              {/* Color Scale Legend */}
+              <div className="px-3 pb-2.5 border-t border-[#1a1a1a] pt-2.5">
+                <div className="flex justify-between items-center text-[10px] font-mono mb-1.5">
+                  <span className="text-[#888888] font-bold">{legendConfig.title}</span>
+                  <span className="flex items-center gap-1.5 text-cyan-300 font-bold">
+                    <span className="w-2 h-2 rounded-full border border-white/30" style={{ backgroundColor: legendConfig.hexCol }} />
+                    {legendConfig.valStr}
+                  </span>
+                </div>
+                <div className="relative w-full h-2 rounded-full border border-white/10 overflow-visible">
+                  <div className="w-full h-full rounded-full" style={{ background: legendConfig.gradCss }} />
+                  <div
+                    className="absolute -top-1 w-1.5 h-4 bg-white rounded-full shadow-[0_0_6px_#fff] -translate-x-1/2 pointer-events-none transition-all duration-300"
+                    style={{ left: `${legendConfig.pct}%` }}
                   />
-                  <span>{legendConfig.valStr}</span>
-                </span>
+                </div>
+                <div className="flex justify-between text-[9px] text-[#555555] font-mono mt-1">
+                  {legendConfig.ticks.map((t) => <span key={t}>{t}</span>)}
+                </div>
               </div>
-              <div className="relative w-full h-2.5 rounded-full border border-white/20 overflow-visible my-0.5">
-                <div
-                  className="w-full h-full rounded-full"
-                  style={{ background: legendConfig.gradCss }}
-                />
-                <div
-                  className="absolute -top-1 w-1.5 h-4.5 bg-white rounded-full shadow-[0_0_8px_#ffffff] -translate-x-1/2 pointer-events-none transition-all duration-300"
-                  style={{ left: `${legendConfig.pct}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[9px] text-[#888888]">
-                {legendConfig.ticks.map((t) => (
-                  <span key={t}>{t}</span>
+
+              {/* Divider */}
+              <div className="mx-3 h-px bg-[#1e1e1e]" />
+
+              {/* Telemetry Rows */}
+              <div className="px-3 py-2.5 space-y-1.5">
+                {[
+                  { label: 'Temperature', value: `${activeLayer.thetao.toFixed(2)} °C` },
+                  { label: 'Salinity',    value: `${activeLayer.so.toFixed(2)} PSU` },
+                  { label: 'Current',     value: `${activeLayer.current_speed.toFixed(3)} m/s` },
+                  { label: 'Direction',   value: `${Math.round(activeLayer.dirDeg)}° ${activeLayer.dirStr}` },
+                  { label: 'Chl-a',       value: `${activeLayer.chlorophyll.toFixed(3)} mg/m³` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex justify-between items-center">
+                    <span className="text-[10px] text-[#666666]">{label}</span>
+                    <span className="text-[10px] font-bold font-mono text-white">{value}</span>
+                  </div>
                 ))}
               </div>
+
+              {/* Reset Camera Footer */}
+              <div className="px-3 pb-3">
+                <button
+                  onClick={handleResetCamera}
+                  className="w-full py-1.5 rounded-lg bg-[#141414] hover:bg-[#1e1e1e] border border-[#262626] hover:border-[#333333] text-[10px] font-mono text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Reset Camera
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Bottom Controls: Depth Range Bar + Orbit Hint */}
-          <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
-            {/* Orbit Hint */}
-            <div className="pointer-events-auto hidden md:flex items-center gap-2 bg-[#090909]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-mono text-[#888888]">
-              <Compass className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Left-click drag to orbit • Scroll to zoom • Right-click to pan</span>
-            </div>
 
-            {/* Floating Depth Bar */}
-            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-4 py-2 flex items-center gap-3.5 shadow-2xl mx-auto md:mx-0">
-              <span className="text-xs font-mono text-cyan-400 font-bold whitespace-nowrap">
-                Depth: <strong className="text-white">{activeLayer.depth}m</strong>
-              </span>
-              <input
-                type="range"
-                min="0"
-                max={waterColumn.length - 1}
-                step="1"
-                value={selectedIndex}
-                onChange={(e) => {
-                  const idx = parseInt(e.target.value, 10);
-                  if (waterColumn[idx]) setSelectedDepth(waterColumn[idx].depth);
-                }}
-                className="w-36 sm:w-48 accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
-              />
-              <span className="text-[11px] font-mono text-[#888888] hidden sm:inline">
-                {getZoneLabel(activeLayer.depth)}
-              </span>
-            </div>
-          </div>
 
           {/* Collapse Trigger (When panel is minimized) */}
           {panelCollapsed && (
