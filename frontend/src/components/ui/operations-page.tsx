@@ -249,9 +249,9 @@ export default function OperationsPage() {
       {/* MAIN WORKSPACE: 3-COLUMN SYMMETRIC LAYOUT (LEFT FIXED PANEL | CENTER 3D MAP | RIGHT FIXED PANEL) */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY */}
-        <div className="w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+        <div className="w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 overflow-hidden z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
           {/* Header */}
-          <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
+          <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
               <span>MARITIME INTELLIGENCE HUD</span>
             </h3>
@@ -436,35 +436,6 @@ export default function OperationsPage() {
                 <div className="text-[9px] text-neutral-500 truncate">
                   INCOIS / CMEMS baseline
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 5: In-Situ Sensor Telemetry & Provenance */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">SENSOR TELEMETRY &amp; ASSIMILATION</span>
-              <span className="text-emerald-400 flex items-center gap-1 font-mono text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                ACTIVE
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2">
-                <div className="text-[9px] text-neutral-500">ARGO FLOATS</div>
-                <div className="text-xs font-bold text-white mt-0.5">6 Active</div>
-                <div className="text-[8px] text-neutral-400 mt-0.5">250nm radius</div>
-              </div>
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2">
-                <div className="text-[9px] text-neutral-500">LATENCY</div>
-                <div className="text-xs font-bold text-cyan-400 mt-0.5">&lt; 15 min</div>
-                <div className="text-[8px] text-neutral-400 mt-0.5">NRT Stream</div>
-              </div>
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2">
-                <div className="text-[9px] text-neutral-500">CONFIDENCE</div>
-                <div className="text-xs font-bold text-emerald-400 mt-0.5">99.4%</div>
-                <div className="text-[8px] text-neutral-400 mt-0.5">CMEMS Ens.</div>
               </div>
             </div>
           </div>
