@@ -3,7 +3,7 @@
 .cyber-container {
   position: relative;
   width: 100%;
-  min-height: 120px;
+  min-height: 80px;
   height: 100%;
   transition: 200ms;
 }

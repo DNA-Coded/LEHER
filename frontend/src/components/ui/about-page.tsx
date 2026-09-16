@@ -86,34 +86,40 @@ export function AboutLeherPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            <RayCard>
-              <span className="text-xs font-mono text-neutral-400 block">CARD 01</span>
-              <h3 className="text-base font-semibold text-white tracking-tight mt-2">
-                Conditions Change
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Temperature, salinity and currents vary across location and depth.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">CARD 01</span>
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Conditions Change
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Temperature, salinity and currents vary across location and depth.
+                </p>
+              </div>
             </RayCard>
 
-            <RayCard>
-              <span className="text-xs font-mono text-neutral-400 block">CARD 02</span>
-              <h3 className="text-base font-semibold text-white tracking-tight mt-2">
-                Information Comes From Different Sources
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Ocean models and in-situ observations provide different views of the same environment.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">CARD 02</span>
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Information Comes From Different Sources
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Ocean models and in-situ observations provide different views of the same environment.
+                </p>
+              </div>
             </RayCard>
 
-            <RayCard>
-              <span className="text-xs font-mono text-neutral-400 block">CARD 03</span>
-              <h3 className="text-base font-semibold text-white tracking-tight mt-2">
-                Context Matters
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                A condition becomes more useful when it can be understood for a specific location, time and surrounding risk.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">CARD 03</span>
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Context Matters
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  A condition becomes more useful when it can be understood for a specific location, time and surrounding risk.
+                </p>
+              </div>
             </RayCard>
           </div>
         </section>
@@ -137,8 +143,8 @@ export function AboutLeherPage() {
           {/* Connected Flow: OCEAN -> OBSERVATIONS -> LOCATION -> DECISION */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
             {/* Block 01 */}
-            <RayCard className="min-h-[240px]">
-              <div className="space-y-2.5">
+            <RayCard innerClassName="p-4 sm:p-5 justify-between">
+              <div className="space-y-2">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">01 — OCEAN</span>
                 </div>
@@ -156,8 +162,8 @@ export function AboutLeherPage() {
             </RayCard>
 
             {/* Block 02 */}
-            <RayCard className="min-h-[240px]">
-              <div className="space-y-2.5">
+            <RayCard innerClassName="p-4 sm:p-5 justify-between">
+              <div className="space-y-2">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">02 — OBSERVATIONS</span>
                 </div>
@@ -175,8 +181,8 @@ export function AboutLeherPage() {
             </RayCard>
 
             {/* Block 03 */}
-            <RayCard className="min-h-[240px]">
-              <div className="space-y-2.5">
+            <RayCard innerClassName="p-4 sm:p-5 justify-between">
+              <div className="space-y-2">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">03 — LOCATION</span>
                 </div>
@@ -194,8 +200,8 @@ export function AboutLeherPage() {
             </RayCard>
 
             {/* Block 04 */}
-            <RayCard className="min-h-[240px]">
-              <div className="space-y-2.5">
+            <RayCard innerClassName="p-4 sm:p-5 justify-between">
+              <div className="space-y-2">
                 <div>
                   <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">04 — DECISION</span>
                 </div>
@@ -236,34 +242,40 @@ export function AboutLeherPage() {
               RISK STATES
             </span>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <RayCard innerClassName="p-5">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 font-mono text-xs font-bold w-fit">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>SAFE</span>
+              <RayCard innerClassName="p-3.5 sm:p-4">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 font-mono text-xs font-bold w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span>SAFE</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    Conditions indicate lower operational risk.
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed pt-2">
-                  Conditions indicate lower operational risk.
-                </p>
               </RayCard>
 
-              <RayCard innerClassName="p-5">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-950/60 border border-amber-800/60 text-amber-400 font-mono text-xs font-bold w-fit">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>CAUTION</span>
+              <RayCard innerClassName="p-3.5 sm:p-4">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-950/60 border border-amber-800/60 text-amber-400 font-mono text-xs font-bold w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    <span>CAUTION</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    Conditions require additional attention before proceeding.
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed pt-2">
-                  Conditions require additional attention before proceeding.
-                </p>
               </RayCard>
 
-              <RayCard innerClassName="p-5">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-rose-950/60 border border-rose-800/60 text-rose-400 font-mono text-xs font-bold w-fit">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span>DANGER</span>
+              <RayCard innerClassName="p-3.5 sm:p-4">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-rose-950/60 border border-rose-800/60 text-rose-400 font-mono text-xs font-bold w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                    <span>DANGER</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    Conditions indicate elevated maritime risk.
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed pt-2">
-                  Conditions indicate elevated maritime risk.
-                </p>
               </RayCard>
             </div>
           </div>
@@ -356,44 +368,52 @@ export function AboutLeherPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-neutral-400 block">STEP 01</span>
-              <h3 className="text-base font-bold text-white tracking-tight mt-1">
-                SEE
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Explore the 3D ocean environment and identify an area of interest.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-4.5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">STEP 01</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  SEE
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Explore the 3D ocean environment and identify an area of interest.
+                </p>
+              </div>
             </RayCard>
 
-            <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-neutral-400 block">STEP 02</span>
-              <h3 className="text-base font-bold text-white tracking-tight mt-1">
-                CLICK
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Select a location or hazard on the map.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-4.5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">STEP 02</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  CLICK
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Select a location or hazard on the map.
+                </p>
+              </div>
             </RayCard>
 
-            <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-neutral-400 block">STEP 03</span>
-              <h3 className="text-base font-bold text-white tracking-tight mt-1">
-                UNDERSTAND
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Review ocean conditions, observations and risk for that location.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-4.5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">STEP 03</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  UNDERSTAND
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Review ocean conditions, observations and risk for that location.
+                </p>
+              </div>
             </RayCard>
 
-            <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-neutral-400 block">STEP 04</span>
-              <h3 className="text-base font-bold text-white tracking-tight mt-1">
-                ACT
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Use the information to respond to hazards or support a safer route decision.
-              </p>
+            <RayCard innerClassName="p-4 sm:p-4.5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 block">STEP 04</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  ACT
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Use the information to respond to hazards or support a safer route decision.
+                </p>
+              </div>
             </RayCard>
           </div>
         </section>
@@ -412,24 +432,28 @@ export function AboutLeherPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RayCard innerClassName="p-6">
-              <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 01</span>
-              <h3 className="text-lg font-bold text-white tracking-tight mt-1">
-                FISHERMEN
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Quickly understand conditions, hazards and local risk before making decisions at sea.
-              </p>
+            <RayCard innerClassName="p-4.5 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 01</span>
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  FISHERMEN
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Quickly understand conditions, hazards and local risk before making decisions at sea.
+                </p>
+              </div>
             </RayCard>
 
-            <RayCard innerClassName="p-6">
-              <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 02</span>
-              <h3 className="text-lg font-bold text-white tracking-tight mt-1">
-                COAST GUARD
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mt-2">
-                Inspect ocean conditions, hazards and route risk when assessing maritime situations.
-              </p>
+            <RayCard innerClassName="p-4.5 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 02</span>
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  COAST GUARD
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Inspect ocean conditions, hazards and route risk when assessing maritime situations.
+                </p>
+              </div>
             </RayCard>
           </div>
         </section>

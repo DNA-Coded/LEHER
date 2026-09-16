@@ -41,7 +41,7 @@ export function RayCard({
       {/* Invisible natural flow spacer: container automatically adapts height to children text */}
       {children && (
         <div
-          className={cn("invisible pointer-events-none select-none p-5 flex flex-col justify-between w-full h-full", innerClassName)}
+          className={cn("invisible pointer-events-none select-none p-5 flex flex-col w-full h-auto", innerClassName)}
           aria-hidden="true"
         >
           {children}
@@ -106,7 +106,7 @@ export function RayCard({
 
             {/* Custom Content */}
             {children && (
-              <div className={cn("relative z-10 w-full h-full flex flex-col justify-between p-5 pointer-events-none select-none", innerClassName)}>
+              <div className={cn("relative z-10 w-full h-full flex flex-col p-5 pointer-events-none select-none", innerClassName)}>
                 {children}
               </div>
             )}
