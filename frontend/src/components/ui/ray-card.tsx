@@ -46,7 +46,7 @@ export function RayCard({
 
         {/* 3D Tilted Card Body */}
         <div className="cyber-card">
-          <div className={cn("cyber-card-content", innerClassName)}>
+          <div className="cyber-card-content">
             {/* Dynamic Directional Water Flow & Spill Canvas (Replaces the Aura Light) */}
             <WaterSplashCanvas ref={waterRef} />
 
@@ -96,7 +96,7 @@ export function RayCard({
 
             {/* Custom Content */}
             {children && (
-              <div className="relative z-10 w-full h-full flex flex-col justify-between p-6 pointer-events-none select-none">
+              <div className={cn("relative z-10 w-full h-full flex flex-col justify-between p-5 pointer-events-none select-none", innerClassName)}>
                 {children}
               </div>
             )}

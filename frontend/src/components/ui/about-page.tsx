@@ -137,76 +137,76 @@ export function AboutLeherPage() {
           {/* Connected Flow: OCEAN -> OBSERVATIONS -> LOCATION -> DECISION */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
             {/* Block 01 */}
-            <RayCard innerClassName="p-5">
-              <div className="space-y-3">
+            <RayCard>
+              <div className="space-y-2.5">
                 <div>
-                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">01 — OCEAN</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">01 — OCEAN</span>
                 </div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-semibold text-white tracking-tight">
                   Ocean Conditions
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
                   Explore temperature, salinity and currents across location and depth.
                 </p>
               </div>
-              <div className="pt-4 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+              <div className="pt-3 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                 <span>Connects to</span>
                 <span className="text-neutral-300 font-medium">→ Observations</span>
               </div>
             </RayCard>
 
             {/* Block 02 */}
-            <RayCard innerClassName="p-5">
-              <div className="space-y-3">
+            <RayCard>
+              <div className="space-y-2.5">
                 <div>
-                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">02 — OBSERVATIONS</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">02 — OBSERVATIONS</span>
                 </div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-semibold text-white tracking-tight">
                   Ocean Observations
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
                   View observations from instruments such as Argo floats and gliders alongside the ocean environment.
                 </p>
               </div>
-              <div className="pt-4 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+              <div className="pt-3 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                 <span>Connects to</span>
                 <span className="text-neutral-300 font-medium">→ Location</span>
               </div>
             </RayCard>
 
             {/* Block 03 */}
-            <RayCard innerClassName="p-5">
-              <div className="space-y-3">
+            <RayCard>
+              <div className="space-y-2.5">
                 <div>
-                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">03 — LOCATION</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">03 — LOCATION</span>
                 </div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-semibold text-white tracking-tight">
                   Location Assessment
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
                   Select a location to understand its conditions, observations and current risk status.
                 </p>
               </div>
-              <div className="pt-4 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
+              <div className="pt-3 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                 <span>Connects to</span>
                 <span className="text-neutral-300 font-medium">→ Decision</span>
               </div>
             </RayCard>
 
             {/* Block 04 */}
-            <RayCard innerClassName="p-5">
-              <div className="space-y-3">
+            <RayCard>
+              <div className="space-y-2.5">
                 <div>
-                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">04 — DECISION</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">04 — DECISION</span>
                 </div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-semibold text-white tracking-tight">
                   Maritime Decision Support
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
                   Use the available information to identify hazards, understand risk and support safer maritime decisions.
                 </p>
               </div>
-              <div className="pt-4 text-[11px] font-mono text-neutral-400 flex items-center gap-1.5">
+              <div className="pt-3 text-[11px] font-mono text-neutral-400 flex items-center gap-1.5">
                 <span>Outcome</span>
                 <span className="text-white font-medium">→ Safer Decisions</span>
               </div>
