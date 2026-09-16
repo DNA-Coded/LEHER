@@ -107,6 +107,9 @@ export function Component({
         }
     }, [animationEnabled, animationDuration, hueRotateMotionValue]);
 
+    const maskUrl = customImage?.src || 'https://cdn.21st.dev/assets/mirror/bc/bc6c1564cdc919adb04a692b11e2f19299dd414e5eb45e298c0054cb232b8c3a.png';
+    const noiseUrl = 'https://cdn.21st.dev/assets/mirror/a7/a7723ec07acdbbcdda4e9de1d47d65cd28991ed00a3de07aa3720589bc9683f7.png';
+
     return (
         <div
             className={className}
@@ -122,14 +125,11 @@ export function Component({
                 style={{
                     position: "absolute",
                     inset: -displacementScale,
-                    filter: animationEnabled ? `url(#${id})` : "none"
+                    filter: animationEnabled ? `url(#${id}) blur(4px)` : "none"
                 }}
             >
                 {animationEnabled && (
-                    <svg
-                        style={{ position: "absolute", width: 0, height: 0 }}
-                        aria-hidden="true"
-                    >
+                    <svg style={{ position: "absolute", width: 0, height: 0 }} aria-hidden="true">
                         <defs>
                             <filter id={id} x="-20%" y="-20%" width="140%" height="140%">
                                 <feTurbulence
@@ -142,12 +142,11 @@ export function Component({
                                 <feColorMatrix
                                     ref={feColorMatrixRef}
                                     in="undulation"
-                                    result="rotatedUndulation"
                                     type="hueRotate"
                                     values="180"
                                 />
                                 <feColorMatrix
-                                    in="rotatedUndulation"
+                                    in="dist"
                                     result="circulation"
                                     type="matrix"
                                     values="4 0 0 0 1  4 0 0 0 1  4 0 0 0 1  1 0 0 0 0"
@@ -160,8 +159,8 @@ export function Component({
                                 />
                                 <feDisplacementMap
                                     in="dist"
-                                    in2="rotatedUndulation"
-                                    scale={displacementScale * 0.6}
+                                    in2="undulation"
+                                    scale={displacementScale}
                                     result="output"
                                 />
                             </filter>
@@ -170,13 +169,17 @@ export function Component({
                 )}
                 <div
                     style={{
-                        position: "relative",
+                        backgroundColor: color,
+                        maskImage: `url('${maskUrl}')`,
+                        WebkitMaskImage: `url('${maskUrl}')`,
+                        maskSize: sizing === "stretch" ? "100% 100%" : "cover",
+                        WebkitMaskSize: sizing === "stretch" ? "100% 100%" : "cover",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskRepeat: "no-repeat",
+                        maskPosition: "center",
+                        WebkitMaskPosition: "center",
                         width: "100%",
-                        height: "100%",
-                        backgroundImage: `url("${customImage?.src || '/assets/ethereal-silk.jpg'}")`,
-                        backgroundSize: sizing === "stretch" ? "100% 100%" : "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
+                        height: "100%"
                     }}
                 />
             </div>
@@ -192,7 +195,7 @@ export function Component({
                         zIndex: 10
                     }}
                 >
-                    <h1 className="md:text-7xl text-6xl lg:text-8xl font-bold text-center text-foreground relative z-20">
+                    <h1 className="md:text-7xl text-6xl lg:text-8xl font-bold text-center text-white tracking-tight leading-tight select-none relative z-20">
                         {title || "Etheral Shadows"}
                     </h1>
                 </div>
@@ -209,11 +212,10 @@ export function Component({
                     style={{
                         position: "absolute",
                         inset: 0,
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                        backgroundSize: `${noise.scale * 128}px`,
+                        backgroundImage: `url("${noiseUrl}")`,
+                        backgroundSize: `${noise.scale * 200}px`,
                         backgroundRepeat: "repeat",
-                        opacity: noise.opacity * 0.28,
-                        mixBlendMode: "overlay",
+                        opacity: noise.opacity / 2,
                         pointerEvents: "none"
                     }}
                 />
@@ -228,10 +230,11 @@ export const DemoOne = () => {
     return (
         <div className="flex w-full h-screen justify-center items-center">
             <Component
-                color="rgba(14, 165, 233, 0.85)"
+                color="rgba(128, 128, 128, 1)"
                 animation={{ scale: 100, speed: 90 }}
                 noise={{ opacity: 1, scale: 1.2 }}
                 sizing="fill"
+                showTitle={true}
             />
         </div>
     );
