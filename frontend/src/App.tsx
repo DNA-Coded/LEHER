@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import DemoOne from "@/components/ui/demo";
+import LandingPage from "@/components/ui/landing-page";
 import FlowFieldBackground from "@/components/ui/flow-field-background";
 import MaritimePattern from "@/components/ui/maritime-pattern";
 import OperationsPage from "@/components/ui/operations-page";
@@ -71,7 +71,7 @@ function App() {
       />
 
       <div className="relative z-10">
-        <DemoOne />
+        <LandingPage />
       </div>
     </div>
   );
