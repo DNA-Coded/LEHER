@@ -16,6 +16,8 @@
     "lint": "npm --prefix frontend run lint"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.30.1"
+    "@rollup/rollup-linux-x64-gnu": "^4.30.1",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
+    "lightningcss-linux-x64-gnu": "^1.32.0"
   }
 }
