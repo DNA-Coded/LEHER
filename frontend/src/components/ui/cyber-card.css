@@ -89,61 +89,10 @@
   font-weight: bold;
 }
 
-.cyber-glowing-elements {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.cyber-glow-1,
-.cyber-glow-2,
-.cyber-glow-3 {
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    rgba(0, 255, 170, 0.3) 0%,
-    rgba(0, 255, 170, 0) 70%
-  );
-  filter: blur(15px);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.cyber-glow-1 {
-  top: -20px;
-  left: -20px;
-}
-.cyber-glow-2 {
-  top: 50%;
-  right: -30px;
-  transform: translateY(-50%);
-}
-.cyber-glow-3 {
-  bottom: -20px;
-  left: 30%;
-}
-
-.cyber-card-particles span {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: #00ffaa;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
 /* Hover effects */
 .cyber-tracker:hover ~ .cyber-card .cyber-title {
   opacity: 1;
   transform: translateY(-10px);
-}
-
-.cyber-tracker:hover ~ .cyber-card .cyber-glowing-elements div {
-  opacity: 1;
 }
 
 .cyber-tracker:hover ~ .cyber-card .cyber-card-particles span {
