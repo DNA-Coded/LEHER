@@ -13,19 +13,19 @@ export function AboutLeherPage() {
 
   return (
     <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans selection:bg-white/20 selection:text-white relative overflow-hidden">
-      {/* Dynamic Ethereal Ocean Blue Shadow Background */}
+      {/* Dynamic Ethereal Shadow Background (Original Greyish White Water Ripple) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <EtherealShadow
-          color="rgba(14, 165, 233, 0.65)"
-          animation={{ scale: 90, speed: 75 }}
-          noise={{ opacity: 0.5, scale: 1.2 }}
+          color="rgba(140, 140, 140, 0.95)"
+          animation={{ scale: 95, speed: 75 }}
+          noise={{ opacity: 0.4, scale: 1.2 }}
           sizing="fill"
-          className="w-full h-full opacity-80"
+          className="w-full h-full opacity-75"
         />
-        {/* Ambient deep ocean blue radial aura */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_25%,rgba(14,165,233,0.14),transparent_75%)] pointer-events-none" />
+        {/* Ambient subtle monochrome radial aura */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_25%,rgba(255,255,255,0.06),transparent_75%)] pointer-events-none" />
         {/* Soft vignette overlay for text legibility and contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080808]/40 via-transparent to-[#080808]/70 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080808]/50 via-transparent to-[#080808]/80 pointer-events-none" />
       </div>
 
       {/* Top Navigation */}
@@ -89,7 +89,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <RayCard>
-              <span className="text-xs font-mono text-cyan-400 block">CARD 01</span>
+              <span className="text-xs font-mono text-neutral-400 block">CARD 01</span>
               <h3 className="text-base font-semibold text-white tracking-tight mt-2">
                 Conditions Change
               </h3>
@@ -99,7 +99,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             <RayCard>
-              <span className="text-xs font-mono text-cyan-400 block">CARD 02</span>
+              <span className="text-xs font-mono text-neutral-400 block">CARD 02</span>
               <h3 className="text-base font-semibold text-white tracking-tight mt-2">
                 Information Comes From Different Sources
               </h3>
@@ -109,7 +109,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             <RayCard>
-              <span className="text-xs font-mono text-cyan-400 block">CARD 03</span>
+              <span className="text-xs font-mono text-neutral-400 block">CARD 03</span>
               <h3 className="text-base font-semibold text-white tracking-tight mt-2">
                 Context Matters
               </h3>
@@ -142,7 +142,7 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-mono text-cyan-400 font-semibold tracking-wider">01 — OCEAN</span>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">01 — OCEAN</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Ocean Conditions
@@ -153,7 +153,7 @@ export function AboutLeherPage() {
               </div>
               <div className="pt-4 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                 <span>Connects to</span>
-                <span className="text-cyan-400 font-medium">→ Observations</span>
+                <span className="text-neutral-300 font-medium">→ Observations</span>
               </div>
             </RayCard>
 
@@ -161,7 +161,7 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-mono text-cyan-400 font-semibold tracking-wider">02 — OBSERVATIONS</span>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">02 — OBSERVATIONS</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Ocean Observations
@@ -172,7 +172,7 @@ export function AboutLeherPage() {
               </div>
               <div className="pt-4 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                 <span>Connects to</span>
-                <span className="text-cyan-400 font-medium">→ Location</span>
+                <span className="text-neutral-300 font-medium">→ Location</span>
               </div>
             </RayCard>
 
@@ -180,7 +180,7 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-mono text-cyan-400 font-semibold tracking-wider">03 — LOCATION</span>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">03 — LOCATION</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Location Assessment
@@ -191,7 +191,7 @@ export function AboutLeherPage() {
               </div>
               <div className="pt-4 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                 <span>Connects to</span>
-                <span className="text-cyan-400 font-medium">→ Decision</span>
+                <span className="text-neutral-300 font-medium">→ Decision</span>
               </div>
             </RayCard>
 
@@ -199,7 +199,7 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-5">
               <div className="space-y-3">
                 <div>
-                  <span className="text-xs font-mono text-cyan-400 font-semibold tracking-wider">04 — DECISION</span>
+                  <span className="text-xs font-mono text-neutral-300 font-semibold tracking-wider">04 — DECISION</span>
                 </div>
                 <h3 className="text-base font-semibold text-white">
                   Maritime Decision Support
@@ -274,7 +274,7 @@ export function AboutLeherPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
             {/* Risk Factors */}
             <RayCard className="lg:col-span-7" innerClassName="p-6">
-              <span className="text-xs font-mono uppercase tracking-wider text-cyan-300 font-semibold block mb-3">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-300 font-semibold block mb-3">
                 WHAT CAN AFFECT RISK?
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
@@ -307,7 +307,7 @@ export function AboutLeherPage() {
 
             {/* Compact Hazards List */}
             <RayCard className="lg:col-span-5" innerClassName="p-6">
-              <span className="text-xs font-mono uppercase tracking-wider text-cyan-300 font-semibold block mb-3">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-300 font-semibold block mb-3">
                 HAZARDS
               </span>
               <div className="space-y-3.5">
@@ -322,7 +322,7 @@ export function AboutLeherPage() {
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                  <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs font-mono">
+                  <div className="flex items-center gap-2 text-neutral-300 font-semibold text-xs font-mono">
                     <CloudRain className="w-3.5 h-3.5" />
                     <span>STORM SURGE</span>
                   </div>
@@ -346,7 +346,7 @@ export function AboutLeherPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
               From Ocean Conditions to Action
             </h2>
-            <div className="mt-3 flex items-center gap-2 font-mono text-xs text-cyan-400 font-semibold tracking-wide">
+            <div className="mt-3 flex items-center gap-2 font-mono text-xs text-neutral-300 font-semibold tracking-wide">
               <span>SEE</span>
               <span className="text-neutral-600">→</span>
               <span>CLICK</span>
@@ -359,7 +359,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-cyan-400 block">STEP 01</span>
+              <span className="text-xs font-mono text-neutral-400 block">STEP 01</span>
               <h3 className="text-base font-bold text-white tracking-tight mt-1">
                 SEE
               </h3>
@@ -369,7 +369,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-cyan-400 block">STEP 02</span>
+              <span className="text-xs font-mono text-neutral-400 block">STEP 02</span>
               <h3 className="text-base font-bold text-white tracking-tight mt-1">
                 CLICK
               </h3>
@@ -379,7 +379,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-cyan-400 block">STEP 03</span>
+              <span className="text-xs font-mono text-neutral-400 block">STEP 03</span>
               <h3 className="text-base font-bold text-white tracking-tight mt-1">
                 UNDERSTAND
               </h3>
@@ -389,7 +389,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             <RayCard innerClassName="p-5">
-              <span className="text-xs font-mono text-cyan-400 block">STEP 04</span>
+              <span className="text-xs font-mono text-neutral-400 block">STEP 04</span>
               <h3 className="text-base font-bold text-white tracking-tight mt-1">
                 ACT
               </h3>
@@ -415,7 +415,7 @@ export function AboutLeherPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <RayCard innerClassName="p-6">
-              <span className="text-xs font-mono text-cyan-400 font-semibold block">USER GROUP 01</span>
+              <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 01</span>
               <h3 className="text-lg font-bold text-white tracking-tight mt-1">
                 FISHERMEN
               </h3>
@@ -425,7 +425,7 @@ export function AboutLeherPage() {
             </RayCard>
 
             <RayCard innerClassName="p-6">
-              <span className="text-xs font-mono text-cyan-400 font-semibold block">USER GROUP 02</span>
+              <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 02</span>
               <h3 className="text-lg font-bold text-white tracking-tight mt-1">
                 COAST GUARD
               </h3>

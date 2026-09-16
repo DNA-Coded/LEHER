@@ -21,15 +21,15 @@ export function RayCard({
     <div
       className={cn(
         "group relative rounded-2xl p-[1px] transition-all duration-300",
-        "bg-[radial-gradient(circle_300px_at_0%_0%,rgba(56,189,248,0.5),rgba(14,165,233,0.18)_50%,rgba(15,23,42,0.6)_85%,rgba(8,10,14,0.9)_100%)]",
-        "hover:shadow-[0_0_25px_-5px_rgba(56,189,248,0.25)]",
+        "bg-[radial-gradient(circle_280px_at_0%_0%,#ffffff,#0c0d0d)]",
+        "hover:shadow-[0_0_25px_-5px_rgba(255,255,255,0.2)]",
         className
       )}
       {...props}
     >
-      {/* Animated Light Sky Orbiting Dot */}
+      {/* Animated White Orbiting Dot */}
       <div
-        className="pointer-events-none absolute z-20 w-[5px] h-[5px] rounded-full bg-[#38bdf8] shadow-[0_0_10px_#38bdf8,0_0_20px_#0284c7]"
+        className="pointer-events-none absolute z-20 w-[5px] h-[5px] rounded-full bg-[#ffffff] shadow-[0_0_10px_#ffffff,0_0_20px_#ffffff]"
         style={{
           animation: 'moveDot 6s linear infinite',
           right: '10%',
@@ -41,16 +41,16 @@ export function RayCard({
       {/* Inner Card */}
       <div
         className={cn(
-          "relative z-10 w-full h-full rounded-[15px] border border-[#1e293b]/70 overflow-hidden",
-          "bg-[radial-gradient(circle_320px_at_0%_0%,rgba(14,165,233,0.12),#0c0e12_65%,#08090b_100%)]",
-          "p-6 flex flex-col justify-between transition-colors",
+          "relative z-10 w-full h-full rounded-[15px] border border-[#202222] overflow-hidden",
+          "bg-[radial-gradient(circle_320px_at_0%_0%,#444444,#0c0d0d)]",
+          "p-6 flex flex-col justify-between transition-colors text-white",
           innerClassName
         )}
       >
-        {/* Light Sky Ray Light Beam */}
+        {/* Soft White/Grey Ray Light Beam */}
         {showRay && (
           <div
-            className="pointer-events-none absolute -top-4 -left-6 w-56 h-12 rounded-full bg-[#38bdf8] opacity-25 blur-xl rotate-[40deg] origin-[10%] shadow-[0_0_45px_#38bdf8]"
+            className="pointer-events-none absolute -top-4 -left-6 w-56 h-12 rounded-full bg-[#c7c7c7] opacity-40 blur-md rotate-[40deg] origin-[10%] shadow-[0_0_50px_#ffffff]"
             aria-hidden="true"
           />
         )}
@@ -63,12 +63,12 @@ export function RayCard({
               className="absolute left-0 w-full h-[1px]"
               style={{
                 top: '10%',
-                background: 'linear-gradient(90deg, rgba(56,189,248,0.4) 15%, rgba(30,41,59,0.2) 70%)'
+                background: 'linear-gradient(90deg, #888888 30%, #1d1f1f 70%)'
               }}
             />
             {/* Bottom Guideline */}
             <div
-              className="absolute left-0 w-full h-[1px] bg-[#1e293b]/30"
+              className="absolute left-0 w-full h-[1px] bg-[#2c2c2c]"
               style={{ bottom: '10%' }}
             />
             {/* Left Guideline */}
@@ -76,12 +76,12 @@ export function RayCard({
               className="absolute top-0 w-[1px] h-full"
               style={{
                 left: '10%',
-                background: 'linear-gradient(180deg, rgba(56,189,248,0.4) 15%, rgba(30,41,59,0.2) 70%)'
+                background: 'linear-gradient(180deg, #747474 30%, #222424 70%)'
               }}
             />
             {/* Right Guideline */}
             <div
-              className="absolute top-0 w-[1px] h-full bg-[#1e293b]/30"
+              className="absolute top-0 w-[1px] h-full bg-[#2c2c2c]"
               style={{ right: '10%' }}
             />
           </div>
