@@ -61,6 +61,7 @@ const useInstanceId = (): string => {
 export function Component({
     sizing = 'fill',
     color = 'rgba(128, 128, 128, 1)',
+    customImage,
     animation,
     noise,
     style,
@@ -121,7 +122,7 @@ export function Component({
                 style={{
                     position: "absolute",
                     inset: -displacementScale,
-                    filter: animationEnabled ? `url(#${id}) blur(8px)` : "none"
+                    filter: animationEnabled ? `url(#${id})` : "none"
                 }}
             >
                 {animationEnabled && (
@@ -169,17 +170,13 @@ export function Component({
                 )}
                 <div
                     style={{
-                        backgroundColor: color,
-                        WebkitMaskImage: `radial-gradient(ellipse 75% 65% at 50% 40%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.3) 75%, transparent 90%)`,
-                        maskImage: `radial-gradient(ellipse 75% 65% at 50% 40%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.3) 75%, transparent 90%)`,
-                        WebkitMaskSize: sizing === "stretch" ? "100% 100%" : "cover",
-                        maskSize: sizing === "stretch" ? "100% 100%" : "cover",
-                        WebkitMaskRepeat: "no-repeat",
-                        maskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                        maskPosition: "center",
+                        position: "relative",
                         width: "100%",
-                        height: "100%"
+                        height: "100%",
+                        backgroundImage: `url("${customImage?.src || '/assets/ethereal-silk.jpg'}")`,
+                        backgroundSize: sizing === "stretch" ? "100% 100%" : "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
                     }}
                 />
             </div>
@@ -212,10 +209,11 @@ export function Component({
                     style={{
                         position: "absolute",
                         inset: 0,
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")`,
-                        backgroundSize: noise.scale * 150,
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                        backgroundSize: `${noise.scale * 128}px`,
                         backgroundRepeat: "repeat",
-                        opacity: noise.opacity * 0.15,
+                        opacity: noise.opacity * 0.28,
+                        mixBlendMode: "overlay",
                         pointerEvents: "none"
                     }}
                 />

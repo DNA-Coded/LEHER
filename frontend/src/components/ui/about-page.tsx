@@ -13,14 +13,13 @@ export function AboutLeherPage() {
 
   return (
     <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans selection:bg-white/20 selection:text-white relative overflow-hidden">
-      {/* Dynamic Ethereal Shadow Background (Original Greyish White Water Ripple) */}
+      {/* Dynamic Ethereal Shadow Background (Monochrome Liquid Silk Drapery) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <EtherealShadow
-          color="rgba(140, 140, 140, 0.95)"
-          animation={{ scale: 95, speed: 75 }}
-          noise={{ opacity: 0.4, scale: 1.2 }}
+          animation={{ scale: 45, speed: 60 }}
+          noise={{ opacity: 0.75, scale: 1.0 }}
           sizing="fill"
-          className="w-full h-full opacity-75"
+          className="w-full h-full opacity-90"
         />
         {/* Ambient subtle monochrome radial aura */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_25%,rgba(255,255,255,0.06),transparent_75%)] pointer-events-none" />
