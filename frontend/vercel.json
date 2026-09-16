@@ -3,21 +3,18 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "routes": [
+  "rewrites": [
     {
-      "handle": "filesystem"
+      "source": "/earth",
+      "destination": "/earth/index.html"
     },
     {
-      "src": "/earth",
-      "dest": "/earth/index.html"
+      "source": "/globe",
+      "destination": "/globe/index.html"
     },
     {
-      "src": "/globe",
-      "dest": "/globe/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
