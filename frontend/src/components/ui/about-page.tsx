@@ -3,6 +3,7 @@ import { ArrowRight, Compass, AlertTriangle, ShieldCheck, Wind, CloudRain } from
 import AppNavbar from '@/components/ui/app-navbar';
 import { ShinyButton } from '@/components/ui/shiny-button';
 import { SpinningBorderButton } from '@/components/ui/spinning-border-button';
+import { Component as EtherealShadow } from '@/components/ui/etheral-shadow';
 
 export function AboutLeherPage() {
   const navigateTo = (path: string) => {
@@ -10,12 +11,29 @@ export function AboutLeherPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans selection:bg-white/20 selection:text-white">
+    <div className="min-h-screen bg-[#080808] text-white flex flex-col font-sans selection:bg-white/20 selection:text-white relative overflow-hidden">
+      {/* Dynamic Ethereal Ocean Blue Shadow Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <EtherealShadow
+          color="rgba(14, 165, 233, 0.9)"
+          animation={{ scale: 100, speed: 80 }}
+          noise={{ opacity: 0.6, scale: 1.2 }}
+          sizing="fill"
+          className="w-full h-full opacity-85"
+        />
+        {/* Ambient deep ocean blue radial aura */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_25%,rgba(14,165,233,0.14),transparent_75%)] pointer-events-none" />
+        {/* Soft vignette overlay for text legibility and contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080808]/40 via-transparent to-[#080808]/70 pointer-events-none" />
+      </div>
+
       {/* Top Navigation */}
-      <AppNavbar currentRoute="about" />
+      <div className="relative z-20">
+        <AppNavbar currentRoute="about" />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 pt-24 pb-20 px-4 sm:px-6 lg:px-12 max-w-5xl mx-auto w-full space-y-20 sm:space-y-24">
+      <main className="flex-1 pt-24 pb-20 px-4 sm:px-6 lg:px-12 max-w-5xl mx-auto w-full space-y-20 sm:space-y-24 relative z-10">
         
         {/* ========================================================
             01 — ABOUT LEHER (HERO)
