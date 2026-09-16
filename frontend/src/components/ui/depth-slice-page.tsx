@@ -370,13 +370,13 @@ export default function DepthSlicePage() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(3.1, 3.8, 6.4);
+    camera.position.set(4.6, 4.2, 7.2);
     cameraRef.current = camera;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(-3.0, 0, 0);
+    controls.target.set(0, 0, 0);
     controls.minDistance = 2.5;
     controls.maxDistance = 18;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
@@ -395,11 +395,11 @@ export default function DepthSlicePage() {
     scene.add(pointLight);
 
     const sunCausticLight = new THREE.PointLight(0xd0f8ff, 2.0, 12);
-    sunCausticLight.position.set(-3.0, 6.0, 1.0);
+    sunCausticLight.position.set(0, 6.0, 1.0);
     scene.add(sunCausticLight);
 
     const waterGroup = new THREE.Group();
-    waterGroup.position.set(-3.0, 0, 0);
+    waterGroup.position.set(0, 0, 0);
     scene.add(waterGroup);
     waterGroupRef.current = waterGroup;
 
@@ -447,7 +447,7 @@ export default function DepthSlicePage() {
       }
 
       // 3. Sun caustic light ray bob
-      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0 - 3.0;
+      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0;
       sunCausticLight.position.z = Math.cos(time * 0.9) * 2.0;
 
       // 4. Suspended Marine Snow & Plankton Drift
@@ -550,6 +550,7 @@ export default function DepthSlicePage() {
       const h = mountRef.current.clientHeight;
       renderer.setSize(w, h);
       camera.aspect = w / h;
+      camera.setViewOffset(w, h, w * 0.16, 0, w, h);
       camera.updateProjectionMatrix();
     };
 
@@ -769,8 +770,8 @@ export default function DepthSlicePage() {
     particlesMeshRef.current = particles;
 
     // 4. Layer Slices with Dynamic 3D Waves & Lateral Slide Extraction
-    const SLIDE_FAR_X = 4.2;
-    const SLIDE_FAR_Z = 1.25;
+    const SLIDE_FAR_X = 2.4;
+    const SLIDE_FAR_Z = 0.7;
     const SLIDE_LIFT_Y = 0.28;
 
     waterColumn.forEach((layer, idx) => {
@@ -958,8 +959,8 @@ export default function DepthSlicePage() {
 
   // Handle Depth Selection Updates (Slide target interpolation trigger)
   useEffect(() => {
-    const SLIDE_FAR_X = 4.2;
-    const SLIDE_FAR_Z = 1.25;
+    const SLIDE_FAR_X = 2.4;
+    const SLIDE_FAR_Z = 0.7;
     const SLIDE_LIFT_Y = 0.28;
 
     layerGroupsRef.current.forEach((item) => {
@@ -985,8 +986,8 @@ export default function DepthSlicePage() {
   // Handle camera reset
   const handleResetCamera = useCallback(() => {
     if (controlsRef.current && cameraRef.current) {
-      controlsRef.current.target.set(-3.0, 0, 0);
-      cameraRef.current.position.set(3.1, 3.8, 6.4);
+      controlsRef.current.target.set(0, 0, 0);
+      cameraRef.current.position.set(4.6, 4.2, 7.2);
       controlsRef.current.update();
     }
   }, []);
@@ -1131,14 +1132,7 @@ export default function DepthSlicePage() {
         <div ref={mountRef} className="flex-1 h-full relative overflow-hidden">
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
-          {/* Top Left: Coordinates Badge */}
-          <div className="absolute top-4 left-4 z-10 pointer-events-none">
-            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-3.5 py-2 shadow-xl flex items-center gap-2">
-              <div className="font-mono text-xs text-[#e0e0e0]">
-                <strong className="text-white">{basePrediction.location.regionName}</strong> • {lat.toFixed(4)}°N, {lon.toFixed(4)}°E
-              </div>
-            </div>
-          </div>
+
 
           {/* ── UNIFIED TOP-RIGHT CARD: Controls + Telemetry ── */}
           <div className="absolute top-4 right-4 z-10 pointer-events-none w-64">
