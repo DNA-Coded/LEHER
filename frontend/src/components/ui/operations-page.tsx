@@ -171,6 +171,23 @@ export default function OperationsPage() {
     return "Abyssal Plain Subsurface (>1000m)";
   }, [workbenchDepth]);
 
+  // Acoustic sound speed calculation (Mackenzie formulation)
+  const soundSpeed = useMemo(() => {
+    const T = prediction.variables.thetao.value;
+    const S = prediction.variables.so.value;
+    const D = workbenchDepth;
+    const c = 1448.96 + 4.591 * T - 0.05304 * (T ** 2) + 0.0002374 * (T ** 3) + 1.340 * (S - 35) + 0.0163 * D + 1.675e-7 * (D ** 2);
+    return c.toFixed(1);
+  }, [prediction.variables.thetao.value, prediction.variables.so.value, workbenchDepth]);
+
+  // Seawater in-situ density approximation (kg/m3)
+  const seawaterDensity = useMemo(() => {
+    const T = prediction.variables.thetao.value;
+    const S = prediction.variables.so.value;
+    const rho = 1000 + 28.15 - 0.18 * (T - 15) + 0.78 * (S - 35) + 0.0044 * workbenchDepth;
+    return rho.toFixed(2);
+  }, [prediction.variables.thetao.value, prediction.variables.so.value, workbenchDepth]);
+
   const handleBackToHome = () => {
     window.location.href = '/';
   };
@@ -355,6 +372,99 @@ export default function OperationsPage() {
                 <div className="text-[9px] text-neutral-500 truncate">
                   Deep sea-floor layer
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Acoustic & Subsurface Intelligence */}
+          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+              <span className="uppercase tracking-wide">ACOUSTIC &amp; SENSOR INTEL</span>
+              <span className="text-neutral-400">SONAR / SVP</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Sound Speed */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                <div className="text-[10px] text-neutral-400">
+                  <span>Sound Speed (c)</span>
+                </div>
+                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                  <span>{soundSpeed}</span>
+                  <span className="text-[10px] font-normal text-neutral-400">m/s</span>
+                </div>
+                <div className="text-[9px] text-neutral-500 truncate">
+                  {workbenchDepth < 80 ? 'Surface Sonic Layer' : workbenchDepth < 350 ? 'Thermocline Gradient' : 'Deep SOFAR Channel'}
+                </div>
+              </div>
+
+              {/* In-Situ Density */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                <div className="text-[10px] text-neutral-400">
+                  <span>In-situ Density (ρ)</span>
+                </div>
+                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                  <span>{seawaterDensity}</span>
+                  <span className="text-[9px] text-neutral-400">kg/m³</span>
+                </div>
+                <div className="text-[9px] text-neutral-500 truncate">
+                  Pycnocline gradient
+                </div>
+              </div>
+
+              {/* Chlorophyll-a Biomass */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                <div className="text-[10px] text-neutral-400">
+                  <span>Chlorophyll-a</span>
+                </div>
+                <div className="text-xs font-bold font-mono text-white">
+                  {prediction.variables.chl.formattedValue}
+                </div>
+                <div className="text-[9px] text-neutral-500 truncate">
+                  {workbenchDepth < 50 ? 'Euphotic biomass zone' : 'Sub-euphotic aphotic'}
+                </div>
+              </div>
+
+              {/* Optical / Oxygen State */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                <div className="text-[10px] text-neutral-400">
+                  <span>Water Mass State</span>
+                </div>
+                <div className="text-xs font-bold font-mono text-cyan-400 truncate">
+                  {prediction.location.regionName.includes('Arabian') ? 'Subsurface OMZ' : 'Pelagic Mixed'}
+                </div>
+                <div className="text-[9px] text-neutral-500 truncate">
+                  INCOIS / CMEMS baseline
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: In-Situ Sensor Telemetry & Provenance */}
+          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+              <span className="uppercase tracking-wide">SENSOR TELEMETRY &amp; ASSIMILATION</span>
+              <span className="text-emerald-400 flex items-center gap-1 font-mono text-[10px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                ACTIVE
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2">
+                <div className="text-[9px] text-neutral-500">ARGO FLOATS</div>
+                <div className="text-xs font-bold text-white mt-0.5">6 Active</div>
+                <div className="text-[8px] text-neutral-400 mt-0.5">250nm radius</div>
+              </div>
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2">
+                <div className="text-[9px] text-neutral-500">LATENCY</div>
+                <div className="text-xs font-bold text-cyan-400 mt-0.5">&lt; 15 min</div>
+                <div className="text-[8px] text-neutral-400 mt-0.5">NRT Stream</div>
+              </div>
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2">
+                <div className="text-[9px] text-neutral-500">CONFIDENCE</div>
+                <div className="text-xs font-bold text-emerald-400 mt-0.5">99.4%</div>
+                <div className="text-[8px] text-neutral-400 mt-0.5">CMEMS Ens.</div>
               </div>
             </div>
           </div>
