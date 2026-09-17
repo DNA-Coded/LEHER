@@ -4,6 +4,7 @@ import {
   ChevronDown, 
   RefreshCw, 
   ArrowUpRight,
+  ExternalLink,
   Clock,
   Activity,
   Map as MapIcon,
@@ -39,6 +40,15 @@ export default function OperationsPage() {
   const [inputLat, setInputLat] = useState<number>(params.lat);
   const [inputLon, setInputLon] = useState<number>(params.lon);
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
+
+  const handleLatBlur = () => {
+    setInputLat((prev) => Math.min(25, Math.max(4, prev)));
+  };
+
+  const handleLonBlur = () => {
+    setInputLon((prev) => Math.min(99, Math.max(53, prev)));
+  };
+
   const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
   const [activeMobileTab, setActiveMobileTab] = useState<'hud' | 'map' | 'controls'>('map');
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -475,32 +485,26 @@ export default function OperationsPage() {
                   Pycnocline gradient
                 </div>
               </div>
+            </div>
 
-              {/* Chlorophyll-a Biomass */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Chlorophyll-a</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white">
-                  {prediction.variables.chl.formattedValue}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  {workbenchDepth < 50 ? 'Euphotic biomass zone' : 'Sub-euphotic aphotic'}
-                </div>
-              </div>
+            <div className="space-y-1.5 pt-0.5">
+              <button
+                type="button"
+                onClick={handlePredict}
+                disabled={isPredicting}
+                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+              >
+                <span>Open 3D Depth Slice ({workbenchDepth}m)</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-black" />
+              </button>
 
-              {/* Optical / Oxygen State */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Water Mass State</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-cyan-400 truncate">
-                  {prediction.location.regionName.includes('Arabian') ? 'Subsurface OMZ' : 'Pelagic Mixed'}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  INCOIS / CMEMS baseline
-                </div>
-              </div>
+              <a
+                href={`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`}
+                className="w-full py-1.5 px-3 rounded-lg bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] text-neutral-300 hover:text-white text-[10px] font-mono flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+              >
+                <span>Inspect Copernicus Variable Matrix</span>
+                <ExternalLink className="w-3 h-3 text-neutral-500" />
+              </a>
             </div>
           </div>
 
@@ -524,6 +528,14 @@ export default function OperationsPage() {
               });
             }}
           />
+
+          {/* Center Floating Coordinate HUD */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-2 pointer-events-auto shadow-xl">
+              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}</strong> @ {workbenchDepth}m</span>
+              <span className="text-neutral-500 hidden md:inline">• Click on map to inspect</span>
+            </div>
+          </div>
         </div>
 
         {/* RIGHT DOCKED PANEL: OPERATIONS & ANALYTICS WORKBENCH (EXACT SAME WIDTH & MATCHING CARDS) */}
