@@ -9,10 +9,7 @@ import {
   ChevronRight, 
   ChevronLeft,
   Compass,
-  Maximize2,
-  GripHorizontal,
-  Home,
-  Minus
+  Maximize2
 } from 'lucide-react';
 import { predictOceanState } from '@/lib/api/oceanPredictionService';
 import { cn } from '@/lib/utils';
@@ -142,111 +139,9 @@ export default function DepthSlicePage() {
   const [activeTab, setActiveTab] = useState<'telemetry' | 'layers' | 'profile'>('telemetry');
   const [geometryType, setGeometryType] = useState<'cylinder' | 'cuboid'>('cylinder');
   const [activeVariable, setActiveVariable] = useState<'temperature' | 'salinity' | 'currents' | 'chlorophyll'>('temperature');
-  const [panelCollapsed, setPanelCollapsed] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [panelCollapsed, setPanelCollapsed] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
-
-  // Floating Movable Controls + Telemetry Card State
-  const [cardPos, setCardPos] = useState<{ x: number; y: number } | null>(null);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [isCardMinimized, setIsCardMinimized] = useState<boolean>(false);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const dragDataRef = useRef<{
-    startX: number;
-    startY: number;
-    initialCardX: number;
-    initialCardY: number;
-    pointerId: number;
-  } | null>(null);
-
-  const handleCardPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    // Only handle primary pointer (left mouse click or touch)
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-
-    const card = cardRef.current;
-    const parent = mountRef.current;
-    if (!card || !parent) return;
-
-    const cardRect = card.getBoundingClientRect();
-    const parentRect = parent.getBoundingClientRect();
-
-    const currentX = cardPos ? cardPos.x : (cardRect.left - parentRect.left);
-    const currentY = cardPos ? cardPos.y : (cardRect.top - parentRect.top);
-
-    dragDataRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      initialCardX: currentX,
-      initialCardY: currentY,
-      pointerId: e.pointerId,
-    };
-
-    setIsDragging(true);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      // ignore
-    }
-  }, [cardPos]);
-
-  const handleCardPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragDataRef.current) return;
-    const card = cardRef.current;
-    const parent = mountRef.current;
-    if (!card || !parent) return;
-
-    const parentRect = parent.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-
-    const deltaX = e.clientX - dragDataRef.current.startX;
-    const deltaY = e.clientY - dragDataRef.current.startY;
-
-    let nextX = dragDataRef.current.initialCardX + deltaX;
-    let nextY = dragDataRef.current.initialCardY + deltaY;
-
-    // Keep card within parent container with 8px margin
-    const minX = 8;
-    const maxX = Math.max(8, parentRect.width - cardRect.width - 8);
-    const minY = 8;
-    const maxY = Math.max(8, parentRect.height - cardRect.height - 8);
-
-    nextX = Math.max(minX, Math.min(maxX, nextX));
-    nextY = Math.max(minY, Math.min(maxY, nextY));
-
-    setCardPos({ x: nextX, y: nextY });
-  }, []);
-
-  const handleCardPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (dragDataRef.current) {
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        // ignore
-      }
-      dragDataRef.current = null;
-      setIsDragging(false);
-    }
-  }, []);
-
-  // Clamp position when window resizes
-  useEffect(() => {
-    const handleResize = () => {
-      if (!cardPos || !cardRef.current || !mountRef.current) return;
-      const parentRect = mountRef.current.getBoundingClientRect();
-      const cardRect = cardRef.current.getBoundingClientRect();
-      const maxX = Math.max(8, parentRect.width - cardRect.width - 8);
-      const maxY = Math.max(8, parentRect.height - cardRect.height - 8);
-      setCardPos((prev) => {
-        if (!prev) return null;
-        return {
-          x: Math.max(8, Math.min(maxX, prev.x)),
-          y: Math.max(8, Math.min(maxY, prev.y)),
-        };
-      });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [cardPos]);
 
   // Generate water column data using predictOceanState
   const waterColumn = useMemo<WaterColumnLayer[]>(() => {
@@ -466,7 +361,7 @@ export default function DepthSlicePage() {
     if (!canvas) return;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     rendererRef.current = renderer;
@@ -475,13 +370,13 @@ export default function DepthSlicePage() {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(4.6, 4.2, 7.2);
+    camera.position.set(5.2, 3.8, 6.4);
     cameraRef.current = camera;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(0, 0, 0);
+    controls.target.set(-0.9, 0, 0);
     controls.minDistance = 2.5;
     controls.maxDistance = 18;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
@@ -500,15 +395,34 @@ export default function DepthSlicePage() {
     scene.add(pointLight);
 
     const sunCausticLight = new THREE.PointLight(0xd0f8ff, 2.0, 12);
-    sunCausticLight.position.set(0, 6.0, 1.0);
+    sunCausticLight.position.set(-0.9, 6.0, 1.0);
     scene.add(sunCausticLight);
 
     const waterGroup = new THREE.Group();
-    waterGroup.position.set(0, 0, 0);
+    waterGroup.position.set(-0.9, 0, 0);
     scene.add(waterGroup);
     waterGroupRef.current = waterGroup;
 
-    // HUD sprite removed
+    // ── HUD Canvas Setup ──
+    const hCanvas = document.createElement('canvas');
+    hCanvas.width = 512;
+    hCanvas.height = 256;
+    hudCanvasRef.current = hCanvas;
+    const hTex = new THREE.CanvasTexture(hCanvas);
+    hTex.minFilter = THREE.LinearFilter;
+    hudTextureRef.current = hTex;
+
+    const spriteMat = new THREE.SpriteMaterial({
+      map: hTex,
+      transparent: true,
+      opacity: 0,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const hudSprite = new THREE.Sprite(spriteMat);
+    hudSprite.scale.set(2.6, 1.3, 1);
+    waterGroup.add(hudSprite);
+    hudSpriteRef.current = hudSprite;
 
     // ── Animation Loop ──
     let animationFrameId: number;
@@ -519,7 +433,6 @@ export default function DepthSlicePage() {
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      if (document.hidden) return;
       time += 0.016;
       controls.update();
 
@@ -553,7 +466,7 @@ export default function DepthSlicePage() {
       }
 
       // 3. Sun caustic light ray bob
-      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0;
+      sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0 - 0.9;
       sunCausticLight.position.z = Math.cos(time * 0.9) * 2.0;
 
       // 4. Suspended Marine Snow & Plankton Drift
@@ -616,7 +529,7 @@ export default function DepthSlicePage() {
         }
       });
 
-      // 6. Tether & socket updates
+      // 6. Update Tether & Laser Pointer Line to HUD Card
       const currentSelectedIdx = (controls as any).userData?.selectedIndex ?? 0;
       const activeItem = layerGroupsRef.current[currentSelectedIdx];
       if (activeItem) {
@@ -644,6 +557,11 @@ export default function DepthSlicePage() {
           const sMat = (extractionSocketRef.current as any).material;
           if (sMat) sMat.opacity = Math.min(0.75, Math.max(0, curX / 2.5));
         }
+
+        if (hudSpriteRef.current) {
+          hudSpriteRef.current.position.set(curX, curY + 1.25, curZ);
+          hudSpriteRef.current.material.opacity = Math.min(1.0, Math.max(0, (curX - 0.4) / 2.0));
+        }
       }
 
       renderer.render(scene, camera);
@@ -656,7 +574,6 @@ export default function DepthSlicePage() {
       const h = mountRef.current.clientHeight;
       renderer.setSize(w, h);
       camera.aspect = w / h;
-      camera.setViewOffset(w, h, w * 0.16, 0, w, h);
       camera.updateProjectionMatrix();
     };
 
@@ -876,8 +793,8 @@ export default function DepthSlicePage() {
     particlesMeshRef.current = particles;
 
     // 4. Layer Slices with Dynamic 3D Waves & Lateral Slide Extraction
-    const SLIDE_FAR_X = 2.4;
-    const SLIDE_FAR_Z = 0.7;
+    const SLIDE_FAR_X = 4.2;
+    const SLIDE_FAR_Z = 1.25;
     const SLIDE_LIFT_Y = 0.28;
 
     waterColumn.forEach((layer, idx) => {
@@ -1065,8 +982,8 @@ export default function DepthSlicePage() {
 
   // Handle Depth Selection Updates (Slide target interpolation trigger)
   useEffect(() => {
-    const SLIDE_FAR_X = 2.4;
-    const SLIDE_FAR_Z = 0.7;
+    const SLIDE_FAR_X = 4.2;
+    const SLIDE_FAR_Z = 1.25;
     const SLIDE_LIFT_Y = 0.28;
 
     layerGroupsRef.current.forEach((item) => {
@@ -1092,8 +1009,8 @@ export default function DepthSlicePage() {
   // Handle camera reset
   const handleResetCamera = useCallback(() => {
     if (controlsRef.current && cameraRef.current) {
-      controlsRef.current.target.set(0, 0, 0);
-      cameraRef.current.position.set(4.6, 4.2, 7.2);
+      controlsRef.current.target.set(-0.9, 0, 0);
+      cameraRef.current.position.set(5.2, 3.8, 6.4);
       controlsRef.current.update();
     }
   }, []);
@@ -1142,11 +1059,10 @@ export default function DepthSlicePage() {
   }, [activeLayer, activeVariable]);
 
   return (
-    <div className="h-screen w-full bg-[#080808] text-white flex flex-col overflow-hidden font-sans select-none">
+    <div className="min-h-screen w-full bg-[#080808] text-white flex flex-col overflow-hidden font-sans select-none">
       {/* ── TOP NAVIGATION BAR (Exact Main Repo Layout) ── */}
       <header className="h-16 bg-[#090909]/95 backdrop-blur-xl border-b border-[#222222] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-md">
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Back to Previous Link */}
+        <div className="flex items-center gap-3.5">
           <button
             onClick={() => {
               if (window.history.length > 1) {
@@ -1156,25 +1072,15 @@ export default function DepthSlicePage() {
               }
             }}
             className="p-2 rounded-xl bg-[#141414] hover:bg-[#202020] border border-[#262626] text-[#cccccc] hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
-            title="Go back to previous page"
+            title="Return to Operations Console"
           >
-            <ArrowLeft className="w-4 h-4 text-cyan-400" />
-            <span className="hidden sm:inline">Previous Page</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Operations</span>
           </button>
-
-          {/* Go to Landing Page */}
-          <a
-            href="/"
-            className="p-2 rounded-xl bg-[#141414] hover:bg-[#202020] border border-[#262626] text-[#cccccc] hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
-            title="Return to Leher Landing Page"
-          >
-            <Home className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline">Landing Page</span>
-          </a>
 
           <div className="h-4 w-[1px] bg-[#222222] hidden sm:block" />
 
-          <a href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity" title="Leher Home">
+          <div className="flex items-center gap-2.5">
             <img 
               src="/logo.png" 
               alt="Leher Logo" 
@@ -1189,7 +1095,7 @@ export default function DepthSlicePage() {
                 {basePrediction.location.regionName} ({lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`}, {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}) @ {selectedDepth}m
               </div>
             </div>
-          </a>
+          </div>
         </div>
 
         {/* Center Primary Navigation */}
@@ -1244,249 +1150,187 @@ export default function DepthSlicePage() {
       </header>
 
       {/* ── MAIN WORKSPACE: 3D CANVAS + TELEMETRY PANEL ── */}
-      <div className="flex-1 flex relative overflow-hidden bg-[#1c1c1c]">
+      <div className="flex-1 flex relative overflow-hidden bg-[#040404]">
         {/* 3D Visualizer Area */}
         <div ref={mountRef} className="flex-1 h-full relative overflow-hidden">
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
-
-
-          {/* ── UNIFIED TOP-RIGHT CARD: Controls + Telemetry (Draggable / Moveable & Minimizable across all screens) ── */}
-          <div
-            ref={cardRef}
-            style={
-              cardPos
-                ? {
-                    left: `${cardPos.x}px`,
-                    top: `${cardPos.y}px`,
-                    right: 'auto',
-                    bottom: 'auto',
-                  }
-                : undefined
-            }
-            className={cn(
-              "absolute z-20 pointer-events-none transition-shadow duration-150",
-              isCardMinimized ? "w-auto" : "w-60 sm:w-64 max-w-[calc(100vw-2rem)]",
-              !cardPos && "top-4 right-4",
-              isDragging && "opacity-95 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_24px_rgba(0,229,255,0.3)] ring-1 ring-cyan-500/50"
-            )}
-          >
-            {isCardMinimized ? (
-              /* Minimized small button of Leher (synchronizes with full card) */
-              <div
-                onPointerDown={handleCardPointerDown}
-                onPointerMove={handleCardPointerMove}
-                onPointerUp={handleCardPointerUp}
-                onPointerCancel={handleCardPointerUp}
-                className="pointer-events-auto bg-[#0c0c0c]/95 hover:bg-[#141414] backdrop-blur-xl border border-cyan-500/50 hover:border-cyan-400 rounded-2xl px-3 py-2 shadow-2xl transition-all cursor-grab active:cursor-grabbing flex items-center gap-2.5 group select-none touch-none ring-1 ring-cyan-500/20"
-                title="Drag to move • Click to expand Leher 3D Controls"
-              >
-                <div 
-                  onClick={() => setIsCardMinimized(false)}
-                  className="flex items-center gap-2.5 cursor-pointer"
-                >
-                  <div className="relative flex items-center justify-center">
-                    <img
-                      src="/logo.png"
-                      alt="Leher Logo"
-                      className="h-6 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.6)] group-hover:scale-105 transition-transform"
-                    />
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                  </div>
-                  <div className="text-left font-mono">
-                    <div className="text-[11px] font-bold text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-                      <span>Leher</span>
-                      <span className="text-[10px] text-cyan-400">• {activeLayer.depth}m</span>
-                    </div>
-                    <div className="text-[9px] text-[#888888] flex items-center gap-1">
-                      <span className="capitalize">{geometryType}</span>
-                      <span>•</span>
-                      <span>{activeVariable === 'temperature' ? 'θ₀ Temp' : activeVariable}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 pl-1.5 border-l border-[#222222]">
-                  <button
-                    onClick={() => setIsCardMinimized(false)}
-                    className="p-1 rounded-lg bg-[#141414] hover:bg-[#222222] border border-[#2a2a2a] text-[#888888] hover:text-cyan-300 transition-colors cursor-pointer"
-                    title="Expand Controls"
-                  >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  </button>
-                  <div className="p-1 text-[#666666] group-hover:text-[#aaaaaa] cursor-grab active:cursor-grabbing" title="Drag handle">
-                    <GripHorizontal className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="pointer-events-auto bg-[#0c0c0c]/95 backdrop-blur-xl border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
-
-                {/* Region Header & Drag Handle */}
-                <div
-                  onPointerDown={handleCardPointerDown}
-                  onPointerMove={handleCardPointerMove}
-                  onPointerUp={handleCardPointerUp}
-                  onPointerCancel={handleCardPointerUp}
-                  onDoubleClick={() => setCardPos(null)}
-                  className={cn(
-                    "px-4 pt-3 pb-2 border-b border-[#1e1e1e] flex items-center justify-between select-none touch-none transition-colors",
-                    isDragging ? "cursor-grabbing bg-white/[0.06]" : "cursor-grab hover:bg-white/[0.03]"
-                  )}
-                  title="Click or touch and drag to move panel anywhere on screen (Double-click to reset)"
-                >
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="text-[10px] text-[#666666] font-mono flex items-center gap-1.5">
-                      <span className="truncate">{basePrediction.location.regionName}</span>
-                      <span className="text-[8px] text-cyan-400/90 font-mono tracking-wider px-1 py-0.2 rounded bg-cyan-500/10 border border-cyan-500/25">
-                        DRAG
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-white mt-0.5">{getZoneLabel(activeLayer.depth)}</div>
-                    <div className="text-[10px] font-mono text-[#555555] mt-0.5">
-                      {lat.toFixed(4)}°N, {lon.toFixed(4)}°E • <span className="text-cyan-500">{activeLayer.depth}m</span>
-                    </div>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsCardMinimized(true);
-                      }}
-                      className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center"
-                      title="Minimize to small Leher button"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <div 
-                      className="p-1.5 rounded-lg bg-[#141414] border border-[#262626] text-[#666666] hover:text-cyan-400 hover:border-cyan-500/40 transition-colors flex items-center justify-center cursor-grab active:cursor-grabbing"
-                      title="Drag to reposition panel"
-                    >
-                      <GripHorizontal className="w-3.5 h-3.5 text-[#888888]" />
-                    </div>
-                  </div>
-                </div>
-
-              {/* Geometry Toggle */}
-              <div className="px-3 pt-3 pb-1.5">
-                <div className="text-[9px] text-[#555555] font-mono uppercase tracking-widest mb-1.5">Shape</div>
-                <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626] w-full">
-                  <button
-                    onClick={() => setGeometryType('cylinder')}
-                    className={cn(
-                      "flex-1 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
-                      geometryType === 'cylinder' ? "bg-white text-black font-bold shadow" : "text-[#666666] hover:text-white"
-                    )}
-                  >Cylinder</button>
-                  <button
-                    onClick={() => setGeometryType('cuboid')}
-                    className={cn(
-                      "flex-1 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
-                      geometryType === 'cuboid' ? "bg-white text-black font-bold shadow" : "text-[#666666] hover:text-white"
-                    )}
-                  >Cuboid</button>
-                </div>
-              </div>
-
-              {/* Variable Selector */}
-              <div className="px-3 pb-2">
-                <div className="text-[9px] text-[#555555] font-mono uppercase tracking-widest mb-1.5">Variable</div>
-                <div className="grid grid-cols-2 gap-1">
-                  {([
-                    { key: 'temperature', label: 'θ₀ Temp' },
-                    { key: 'salinity',    label: 'S₀ Salinity' },
-                    { key: 'currents',    label: 'Velocity' },
-                    { key: 'chlorophyll', label: '🌿 Chl-a' },
-                  ] as const).map(({ key, label }) => (
-                    <button
-                      key={key}
-                      onClick={() => setActiveVariable(key)}
-                      className={cn(
-                        "py-1 px-2 text-[10px] font-medium rounded-lg border transition-all cursor-pointer text-center",
-                        activeVariable === key
-                          ? key === 'chlorophyll'
-                            ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold"
-                            : "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 font-bold"
-                          : "bg-[#141414] border-[#262626] text-[#666666] hover:text-white hover:border-[#333333]"
-                      )}
-                    >{label}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Color Scale Legend */}
-              <div className="px-3 pb-2.5 border-t border-[#1a1a1a] pt-2.5">
-                <div className="flex justify-between items-center text-[10px] font-mono mb-1.5">
-                  <span className="text-[#888888] font-bold">{legendConfig.title}</span>
-                  <span className="flex items-center gap-1.5 text-cyan-300 font-bold">
-                    <span className="w-2 h-2 rounded-full border border-white/30" style={{ backgroundColor: legendConfig.hexCol }} />
-                    {legendConfig.valStr}
-                  </span>
-                </div>
-                <div className="relative w-full h-2 rounded-full border border-white/10 overflow-visible">
-                  <div className="w-full h-full rounded-full" style={{ background: legendConfig.gradCss }} />
-                  <div
-                    className="absolute -top-1 w-1.5 h-4 bg-white rounded-full shadow-[0_0_6px_#fff] -translate-x-1/2 pointer-events-none transition-all duration-300"
-                    style={{ left: `${legendConfig.pct}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-[9px] text-[#555555] font-mono mt-1">
-                  {legendConfig.ticks.map((t) => <span key={t}>{t}</span>)}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="mx-3 h-px bg-[#1e1e1e]" />
-
-              {/* Telemetry Rows */}
-              <div className="px-3 py-2.5 space-y-1.5">
-                {[
-                  { label: 'Temperature', value: `${activeLayer.thetao.toFixed(2)} °C` },
-                  { label: 'Salinity',    value: `${activeLayer.so.toFixed(2)} PSU` },
-                  { label: 'Current',     value: `${activeLayer.current_speed.toFixed(3)} m/s` },
-                  { label: 'Direction',   value: `${Math.round(activeLayer.dirDeg)}° ${activeLayer.dirStr}` },
-                  { label: 'Chl-a',       value: `${activeLayer.chlorophyll.toFixed(3)} mg/m³` },
-                ].map(({ label, value }) => (
-                  <div key={label} className="flex justify-between items-center">
-                    <span className="text-[10px] text-[#666666]">{label}</span>
-                    <span className="text-[10px] font-bold font-mono text-white">{value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Reset Camera Footer */}
-              <div className="px-3 pb-3">
-                <button
-                  onClick={handleResetCamera}
-                  className="w-full py-1.5 rounded-lg bg-[#141414] hover:bg-[#1e1e1e] border border-[#262626] hover:border-[#333333] text-[10px] font-mono text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  Reset Camera
-                </button>
+          {/* Top Left: Coordinates Badge */}
+          <div className="absolute top-4 left-4 z-10 pointer-events-none">
+            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-3.5 py-2 shadow-xl flex items-center gap-2">
+              <div className="font-mono text-xs text-[#e0e0e0]">
+                <strong className="text-white">{basePrediction.location.regionName}</strong> • {lat.toFixed(4)}°N, {lon.toFixed(4)}°E
               </div>
             </div>
-          )}
           </div>
 
-          {/* Collapse Trigger (When side panel is minimized - docked to right edge) */}
+          {/* Top Right: Geometry & Variable Controls */}
+          <div className="absolute top-4 right-4 z-10 pointer-events-none">
+            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl p-1.5 shadow-xl flex items-center gap-2">
+              {/* Geometry Toggle */}
+              <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626]">
+                <button
+                  onClick={() => setGeometryType('cylinder')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
+                    geometryType === 'cylinder'
+                      ? "bg-white text-black font-bold shadow"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  Cylinder
+                </button>
+                <button
+                  onClick={() => setGeometryType('cuboid')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
+                    geometryType === 'cuboid'
+                      ? "bg-white text-black font-bold shadow"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  Cuboid
+                </button>
+              </div>
+
+              {/* Variable Toggle */}
+              <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626]">
+                <button
+                  onClick={() => setActiveVariable('temperature')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                    activeVariable === 'temperature'
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  θ₀ Temp
+                </button>
+                <button
+                  onClick={() => setActiveVariable('salinity')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                    activeVariable === 'salinity'
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  S₀ Salinity
+                </button>
+                <button
+                  onClick={() => setActiveVariable('currents')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                    activeVariable === 'currents'
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  Velocity
+                </button>
+                <button
+                  onClick={() => setActiveVariable('chlorophyll')}
+                  className={cn(
+                    "px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                    activeVariable === 'chlorophyll'
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold"
+                      : "text-[#888888] hover:text-white"
+                  )}
+                >
+                  🌿 Chl-a
+                </button>
+              </div>
+
+              {/* Reset Camera */}
+              <button
+                onClick={handleResetCamera}
+                className="p-1.5 rounded-lg bg-[#181818] hover:bg-[#252525] border border-[#2a2a2a] text-[#aaaaaa] hover:text-white transition-all cursor-pointer"
+                title="Reset Camera View"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Floating Dynamic Color Scale Legend Widget (Bottom Left) */}
+          <div className="absolute bottom-16 left-4 z-10 pointer-events-none">
+            <div className="pointer-events-auto bg-[#090909]/92 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-3 shadow-2xl w-60 font-mono text-xs flex flex-col gap-1.5">
+              <div className="flex justify-between items-center text-[11px] font-bold text-white">
+                <span>{legendConfig.title}</span>
+                <span className="flex items-center gap-1.5 text-cyan-300">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full inline-block border border-white/40 shadow-sm"
+                    style={{ backgroundColor: legendConfig.hexCol }}
+                  />
+                  <span>{legendConfig.valStr}</span>
+                </span>
+              </div>
+              <div className="relative w-full h-2.5 rounded-full border border-white/20 overflow-visible my-0.5">
+                <div
+                  className="w-full h-full rounded-full"
+                  style={{ background: legendConfig.gradCss }}
+                />
+                <div
+                  className="absolute -top-1 w-1.5 h-4.5 bg-white rounded-full shadow-[0_0_8px_#ffffff] -translate-x-1/2 pointer-events-none transition-all duration-300"
+                  style={{ left: `${legendConfig.pct}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[9px] text-[#888888]">
+                {legendConfig.ticks.map((t) => (
+                  <span key={t}>{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Controls: Depth Range Bar + Orbit Hint */}
+          <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
+            {/* Orbit Hint */}
+            <div className="pointer-events-auto hidden md:flex items-center gap-2 bg-[#090909]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-mono text-[#888888]">
+              <Compass className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Left-click drag to orbit • Scroll to zoom • Right-click to pan</span>
+            </div>
+
+            {/* Floating Depth Bar */}
+            <div className="pointer-events-auto bg-[#090909]/90 backdrop-blur-xl border border-[#222222] rounded-xl px-4 py-2 flex items-center gap-3.5 shadow-2xl mx-auto md:mx-0">
+              <span className="text-xs font-mono text-cyan-400 font-bold whitespace-nowrap">
+                Depth: <strong className="text-white">{activeLayer.depth}m</strong>
+              </span>
+              <input
+                type="range"
+                min="0"
+                max={waterColumn.length - 1}
+                step="1"
+                value={selectedIndex}
+                onChange={(e) => {
+                  const idx = parseInt(e.target.value, 10);
+                  if (waterColumn[idx]) setSelectedDepth(waterColumn[idx].depth);
+                }}
+                className="w-36 sm:w-48 accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
+              />
+              <span className="text-[11px] font-mono text-[#888888] hidden sm:inline">
+                {getZoneLabel(activeLayer.depth)}
+              </span>
+            </div>
+          </div>
+
+          {/* Collapse Trigger (When panel is minimized) */}
           {panelCollapsed && (
             <button
               onClick={() => setPanelCollapsed(false)}
-              className="absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-[#0c0c0c]/95 backdrop-blur-xl border border-r-0 border-cyan-500/40 rounded-l-xl py-3 px-2.5 text-xs font-bold text-cyan-400 shadow-2xl hover:bg-[#161616] transition-all cursor-pointer flex items-center gap-1.5"
-              title="Expand Water Column Intel"
+              className="absolute top-20 right-4 z-20 bg-[#0c0c0c]/95 backdrop-blur-xl border border-cyan-500/40 rounded-xl px-4 py-2.5 text-xs font-bold text-cyan-400 shadow-2xl hover:bg-[#161616] transition-all cursor-pointer flex items-center gap-2"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="max-sm:hidden">Show Telemetry ({activeLayer.depth}m)</span>
+              <span>Show Telemetry ({activeLayer.depth}m)</span>
             </button>
           )}
-
         </div>
 
         {/* ── SIDE TELEMETRY DATA PANEL (Exact Main Repo Layout) ── */}
         <aside
           className={cn(
-            "w-full sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-l border-[#222222] flex flex-col z-30 shadow-2xl transition-all duration-300 shrink-0 max-md:absolute max-md:right-0 max-md:top-0 max-md:bottom-0 max-md:h-full",
-            panelCollapsed && "translate-x-full max-md:pointer-events-none opacity-0 md:opacity-0 md:absolute md:right-0 md:top-0 md:bottom-0"
+            "w-88 sm:w-96 lg:w-[420px] bg-[#0c0c0c] border-l border-[#222222] flex flex-col z-20 shadow-2xl transition-all duration-300 shrink-0",
+            panelCollapsed && "translate-x-full absolute right-0 top-0 bottom-0 pointer-events-none opacity-0"
           )}
         >
           {/* Panel Header */}

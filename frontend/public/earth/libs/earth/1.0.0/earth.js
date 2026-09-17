@@ -65,6 +65,24 @@
     var configuration = µ.buildConfiguration(d3.set(globes.keys()), d3.set(["off"]));
 
     /**
+     * Data bounding is enforced across all globe projections.
+     */
+    function isConcentricBounded(globeObj) {
+        return true;
+    }
+
+    /**
+     * Checks if coordinates fall within the supported maritime data coverage bounds:
+     * Longitude: 53°E to 99°E, Latitude: 4°N to 25°N
+     */
+    function isCoordWithinDataBounds(coord) {
+        if (!coord || !_.isFinite(coord[0]) || !_.isFinite(coord[1])) return false;
+        var lon = ((coord[0] + 180) % 360 + 360) % 360 - 180;
+        var lat = coord[1];
+        return lon >= 53 && lon <= 99 && lat >= 4 && lat <= 25;
+    }
+
+    /**
      * Maps user drag and zoom interactions to globe rotation.
      */
     function buildInputController() {
@@ -88,10 +106,10 @@
                     var distanceMoved = µ.distance(currentMouse, op.startMouse);
                     if (currentScale === op.startScale && distanceMoved < MIN_MOVE) {
                         op.type = distanceMoved > 0 ? "click" : "spurious";
-                        return;
                     }
-                    dispatch.trigger("moveStart");
-                    op.type = "drag";
+                    else {
+                        op.type = "drag";
+                    }
                 }
                 if (currentScale !== op.startScale) {
                     op.type = "zoom";
@@ -108,6 +126,11 @@
                     if (invertCoord && _.isFinite(invertCoord[0]) && _.isFinite(invertCoord[1])) {
                         // Normalize longitude to [-180, 180]
                         invertCoord[0] = ((invertCoord[0] + 180) % 360 + 360) % 360 - 180;
+                        // If concentric bounded projection is active, strictly disallow clicks outside data region
+                        if (isConcentricBounded(globe) && !isCoordWithinDataBounds(invertCoord)) {
+                            op = null;
+                            return; // Unclickable in the monochromatic / out-of-bounds area
+                        }
                         dispatch.trigger("click", op.startMouse, invertCoord);
                     }
                 }
@@ -125,6 +148,49 @@
         }, MOVE_END_WAIT);
 
         d3.select("#display").call(zoom);
+
+        // Visual feedback cursor & Live Floating Coordinate HUD Chip
+        d3.select("#display").on("mousemove", function() {
+            var g = globeAgent.value();
+            var mouse = d3.mouse(this);
+            var hud = d3.select("#cursor-hud");
+            if (g && isConcentricBounded(g)) {
+                var inv = g.projection.invert(mouse);
+                if (inv && isCoordWithinDataBounds(inv)) {
+                    d3.select(this).style("cursor", "crosshair");
+                    var lon = ((inv[0] + 180) % 360 + 360) % 360 - 180;
+                    var lat = inv[1];
+                    var latStr = lat >= 0 ? lat.toFixed(2) + "°N" : Math.abs(lat).toFixed(2) + "°S";
+                    var lonStr = lon >= 0 ? lon.toFixed(2) + "°E" : Math.abs(lon).toFixed(2) + "°W";
+                    d3.select("#cursor-lat").text(latStr);
+                    d3.select("#cursor-lon").text(lonStr);
+                    hud.style("display", "block")
+                       .style("transform", "translate3d(" + (mouse[0] + 16) + "px, " + (mouse[1] + 16) + "px, 0)");
+                } else {
+                    d3.select(this).style("cursor", "not-allowed");
+                    hud.style("display", "none");
+                }
+            } else {
+                d3.select(this).style("cursor", null);
+                hud.style("display", "none");
+            }
+        });
+
+        d3.select("#display").on("mouseleave", function() {
+            d3.select("#cursor-hud").style("display", "none");
+        });
+
+        // Intercept native clicks that might bubble up past the zoom controller
+        d3.select("#display").on("click", function() {
+            var g = globeAgent.value();
+            if (g && isConcentricBounded(g)) {
+                var inv = g.projection.invert(d3.mouse(this));
+                if (inv && !isCoordWithinDataBounds(inv)) {
+                    d3.event.stopPropagation();
+                    d3.event.preventDefault();
+                }
+            }
+        }, true);
 
         function reorient() {
             var options = arguments[3] || {};
@@ -191,6 +257,46 @@
 
     var currentRendererDispatch = null;
 
+    function updateSectorCorners(g) {
+        var currentGlobe = g || globeAgent.value();
+        if (!currentGlobe || !currentGlobe.projection) {
+            d3.select(".sector-hud-overlay").style("display", "none");
+            return;
+        }
+        d3.select(".sector-hud-overlay").style("display", null);
+        var proj = currentGlobe.projection;
+        var centerLon = 0;
+        var centerLat = 0;
+        if (proj.rotate) {
+            var rot = proj.rotate();
+            centerLon = -rot[0];
+            centerLat = -rot[1];
+        }
+        var corners = [
+            { id: "nw", coord: [53, 25] },
+            { id: "ne", coord: [99, 25] },
+            { id: "se", coord: [99, 4] },
+            { id: "sw", coord: [53, 4] }
+        ];
+        corners.forEach(function(c) {
+            var isVisible = true;
+            if (proj.clipAngle && proj.clipAngle() < 180) {
+                var dist = d3.geo.distance(c.coord, [centerLon, centerLat]) * 180 / Math.PI;
+                if (dist > proj.clipAngle() - 1) {
+                    isVisible = false;
+                }
+            }
+            var pt = proj(c.coord);
+            if (isVisible && pt && _.isFinite(pt[0]) && _.isFinite(pt[1])) {
+                d3.select("#corner-group-" + c.id)
+                    .attr("transform", "translate(" + pt[0] + "," + pt[1] + ")")
+                    .style("display", null);
+            } else {
+                d3.select("#corner-group-" + c.id).style("display", "none");
+            }
+        });
+    }
+
     function buildRenderer(mesh, globe) {
         if (!mesh || !globe) return null;
 
@@ -207,9 +313,9 @@
         globe.defineMap(d3.select("#map"), d3.select("#foreground"));
 
         var path = d3.geo.path().projection(globe.projection).pointRadius(7);
-        var land = d3.select(".land");
-        var coastline = d3.select(".coastline");
-        var lakes = d3.select(".lakes");
+        var land = d3.selectAll(".land");
+        var coastline = d3.selectAll(".coastline");
+        var lakes = d3.selectAll(".lakes");
 
         land.datum(mesh.land);
         coastline.datum(mesh.coastHi);
@@ -221,13 +327,30 @@
             updateLocationMarker(activeLocation.coord, true);
         }
 
-        var REDRAW_WAIT = 5;
-        var doDraw_throttled = _.throttle(doDraw, REDRAW_WAIT, {leading: false});
+        updateSectorCorners(globe);
+
+        var isDrawPending = false;
+        function scheduleDraw() {
+            if (!isDrawPending) {
+                isDrawPending = true;
+                requestAnimationFrame(function() {
+                    isDrawPending = false;
+                    doDraw();
+                });
+            }
+        }
 
         function doDraw() {
             d3.selectAll("path").attr("d", path);
+            if (activeLocation && activeLocation.coord) {
+                var pt = globe.projection(activeLocation.coord);
+                if (pt && _.isFinite(pt[0]) && _.isFinite(pt[1])) {
+                    d3.select(".sonar-ring-1").attr("cx", pt[0]).attr("cy", pt[1]);
+                    d3.select(".sonar-ring-2").attr("cx", pt[0]).attr("cy", pt[1]);
+                }
+            }
+            updateSectorCorners(globe);
             rendererAgent.trigger("redraw");
-            doDraw_throttled = _.throttle(doDraw, REDRAW_WAIT, {leading: false});
         }
 
         dispatch.listenTo(
@@ -238,7 +361,7 @@
                     rendererAgent.trigger("start");
                 },
                 move: function() {
-                    doDraw_throttled();
+                    scheduleDraw();
                 },
                 moveEnd: function() {
                     coastline.datum(mesh.coastHi);
@@ -283,8 +406,25 @@
         // Ensure longitude is normalized to [-180, 180]
         coord[0] = ((coord[0] + 180) % 360 + 360) % 360 - 180;
 
+        // Disallow location markers or HUD updates outside data bounds when in concentric mode
+        if (isConcentricBounded(globe) && !isCoordWithinDataBounds(coord)) {
+            return;
+        }
+
         var pt = globe.projection(coord);
         activeLocation = {point: pt, coord: coord};
+
+        // Tactical Sonar Ripple (expanding pulse wave)
+        if (pt && _.isFinite(pt[0]) && _.isFinite(pt[1])) {
+            var fg = d3.select("#foreground");
+            var sonar1 = d3.select(".sonar-ring-1");
+            if (!sonar1.node()) {
+                fg.append("circle").attr("class", "sonar-pulse-ring sonar-ring-1");
+                fg.append("circle").attr("class", "sonar-pulse-ring sonar-ring-2");
+            }
+            d3.select(".sonar-ring-1").attr("cx", pt[0]).attr("cy", pt[1]);
+            d3.select(".sonar-ring-2").attr("cx", pt[0]).attr("cy", pt[1]);
+        }
 
         var path = d3.geo.path().projection(globe.projection).pointRadius(7);
         var mark = d3.select(".location-mark");
@@ -345,6 +485,7 @@
         if (clearEverything) {
             activeLocation = {};
             d3.select(".location-mark").remove();
+            d3.selectAll(".sonar-pulse-ring").remove();
         }
         try {
             var clearMsg = { type: "earth:clear" };
