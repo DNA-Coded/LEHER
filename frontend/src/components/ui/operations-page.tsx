@@ -1205,10 +1205,20 @@ export default function OperationsPage() {
           />
 
           {/* Center Floating Coordinate HUD */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <div className="bg-[#000000]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-mono text-[#aaaaaa] flex items-center gap-2 pointer-events-auto shadow-xl">
-              <span>Target: <strong className="text-white">{inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}</strong> @ {workbenchDepth}m</span>
-              <span className="text-neutral-500 hidden md:inline">• Click on map to inspect</span>
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+            <div className="bg-[#000000]/85 backdrop-blur-lg px-5 py-3 rounded-2xl border border-white/10 shadow-2xl pointer-events-auto flex flex-col items-center gap-1 min-w-[220px]">
+              <div className="flex items-center gap-2 font-mono">
+                <span className="text-white font-bold text-base tracking-tight">
+                  {inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}
+                  <span className="text-neutral-500 mx-1.5">·</span>
+                  {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
+                <span className="text-neutral-300 font-semibold">{prediction.location.regionName}</span>
+                <span className="text-neutral-600">·</span>
+                <span>{workbenchDepth}m depth</span>
+              </div>
             </div>
           </div>
         </div>
