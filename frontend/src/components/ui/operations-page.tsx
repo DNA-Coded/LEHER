@@ -577,9 +577,6 @@ export default function OperationsPage() {
               <Activity className="w-3.5 h-3.5 text-neutral-400" />
               <span>MARITIME INTELLIGENCE HUD</span>
             </h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#161616] border border-[#262626] text-neutral-400">
-              LIVE SENSORS
-            </span>
           </div>
 
           {/* Card 1: Tactical Basin & Depth Profile (Always Top) */}
