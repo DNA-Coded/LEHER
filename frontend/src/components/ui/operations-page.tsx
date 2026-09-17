@@ -249,23 +249,29 @@ export default function OperationsPage() {
 
     // Tropical Cyclogenesis Energy Potential (SST 26.5°C threshold)
     let threatLevel: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' = 'LOW';
-    let riskColor = 'text-white';
-    let riskBg = 'bg-[#161616] border-[#262626]';
-    let badgeText = 'LOW CYCLONE RISK';
-    let advisoryNote = 'Atmospheric-oceanic coupling is calm. Standard navigational watches apply.';
+    let riskColor = 'text-emerald-400';
+    let riskBg = 'bg-emerald-950/40 border-emerald-800/50';
+    let badgeText = 'LOW RISK';
+    let advisoryNote = 'Conditions calm. Standard navigational watches apply.';
 
     if (sst >= 29.0 && currentSpeed > 0.8) {
       threatLevel = 'CRITICAL';
-      badgeText = 'CRITICAL THREAT';
-      advisoryNote = 'Extreme heat reservoir detected with rapid hydrodynamic shear. High cyclogenesis probability.';
+      riskColor = 'text-red-400';
+      riskBg = 'bg-red-950/50 border-red-700/60';
+      badgeText = 'CRITICAL';
+      advisoryNote = 'Extreme heat reservoir with high shear. High cyclogenesis probability.';
     } else if (sst >= 28.0 && currentSpeed > 0.4) {
       threatLevel = 'HIGH';
-      badgeText = 'ELEVATED RISK';
-      advisoryNote = 'SST exceeds 28°C threshold. Ocean thermal reservoir supportive of tropical depressions.';
+      riskColor = 'text-red-400';
+      riskBg = 'bg-red-950/50 border-red-700/60';
+      badgeText = 'HIGH RISK';
+      advisoryNote = 'SST exceeds 28°C. Thermal reservoir supportive of tropical depressions.';
     } else if (sst >= 26.5) {
       threatLevel = 'MODERATE';
-      badgeText = 'WATCH STATUS';
-      advisoryNote = 'SST exceeds 26.5°C cyclonic threshold. Monitor regional barometric pressure gradients.';
+      riskColor = 'text-amber-400';
+      riskBg = 'bg-amber-950/40 border-amber-700/50';
+      badgeText = 'WATCH';
+      advisoryNote = 'SST at 26.5°C threshold. Monitor barometric pressure gradients.';
     }
 
     // Cyclone Heat Potential proxy (kJ/cm²)
@@ -306,17 +312,25 @@ export default function OperationsPage() {
     score = Math.max(10, Math.min(100, Math.round(score)));
 
     let status: 'PRISTINE' | 'HEALTHY' | 'MODERATE STRESS' | 'VULNERABLE' = 'HEALTHY';
-    let statusColor = 'text-white';
-    let barColor = 'bg-white/80';
+    let statusColor = 'text-emerald-400';
+    let barColor = 'bg-emerald-500';
 
     if (score >= 85) {
       status = 'PRISTINE';
+      statusColor = 'text-emerald-400';
+      barColor = 'bg-emerald-500';
     } else if (score >= 70) {
       status = 'HEALTHY';
+      statusColor = 'text-emerald-400';
+      barColor = 'bg-emerald-500';
     } else if (score >= 50) {
       status = 'MODERATE STRESS';
+      statusColor = 'text-amber-400';
+      barColor = 'bg-amber-500';
     } else {
       status = 'VULNERABLE';
+      statusColor = 'text-red-400';
+      barColor = 'bg-red-500';
     }
 
     // Coral Bleaching Degree Heating Weeks (DHW) Proxy
@@ -411,16 +425,25 @@ export default function OperationsPage() {
     safetyScore = Math.max(10, Math.min(100, safetyScore));
 
     let status: 'SAFE ZONE' | 'CAUTION ZONE' | 'HAZARDOUS / RESTRICTED' = 'SAFE ZONE';
-    let statusColor = 'text-white';
-    let statusBg = 'bg-[#161616] border-[#262626]';
-    let iconColor = 'text-neutral-400';
+    let statusColor = 'text-emerald-400';
+    let statusBg = 'bg-emerald-950/40 border-emerald-800/50';
+    let iconColor = 'text-emerald-400';
 
     if (safetyScore >= 78) {
       status = 'SAFE ZONE';
+      statusColor = 'text-emerald-400';
+      statusBg = 'bg-emerald-950/40 border-emerald-800/50';
+      iconColor = 'text-emerald-400';
     } else if (safetyScore >= 50) {
       status = 'CAUTION ZONE';
+      statusColor = 'text-amber-400';
+      statusBg = 'bg-amber-950/40 border-amber-700/50';
+      iconColor = 'text-amber-400';
     } else {
       status = 'HAZARDOUS / RESTRICTED';
+      statusColor = 'text-red-400';
+      statusBg = 'bg-red-950/50 border-red-700/60';
+      iconColor = 'text-red-400';
     }
 
     const underwaterVisibility = mld > 35 ? 'Clear Acoustic & Optical (>45m)' : 'Moderate Turbidity (15-30m)';
@@ -545,7 +568,7 @@ export default function OperationsPage() {
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY (MATCHING RIGHT PANEL SPACING & WIDTH) */}
         <div className={cn(
-          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
+          "w-full lg:w-[310px] xl:w-[330px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3 space-y-2.5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
           activeMobileTab === 'hud' ? "flex-1 block" : "hidden lg:block"
         )}>
           {/* Header */}
@@ -579,17 +602,14 @@ export default function OperationsPage() {
             </div>
           </div>
 
-          {/* Card 2: Operational Assessment & Risk Overview */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">OPERATIONAL ASSESSMENT</span>
-              <span className="text-white font-bold text-[10px] font-mono">
+          {/* Card 2: Risk Status */}
+          <div className={`border rounded-xl p-3 space-y-1 ${prediction.summary.riskStatus === 'HIGH RISK' || prediction.summary.riskStatus === 'CRITICAL' ? 'bg-red-950/30 border-red-800/50' : prediction.summary.riskStatus === 'MODERATE' ? 'bg-amber-950/30 border-amber-700/40' : 'bg-emerald-950/30 border-emerald-800/40'}`}>
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="uppercase tracking-wide text-neutral-400">RISK STATUS</span>
+              <span className={`font-bold text-[10px] font-mono ${prediction.summary.riskStatus === 'HIGH RISK' || prediction.summary.riskStatus === 'CRITICAL' ? 'text-red-400' : prediction.summary.riskStatus === 'MODERATE' ? 'text-amber-400' : 'text-emerald-400'}`}>
                 {prediction.summary.riskStatus}
               </span>
             </div>
-            <p className="text-[11px] text-neutral-300 leading-relaxed">
-              {prediction.summary.riskMessage}
-            </p>
           </div>
 
           {/* HIGH-IMPACT OPTION SELECTOR TABS (The core feature requested by user) */}
@@ -685,7 +705,7 @@ export default function OperationsPage() {
               </button>
             </div>
 
-            {/* Quick 4-Metric Live Status Banner (Clickable to switch tab!) */}
+            {/* Quick 4-Metric Live Status Banner */}
             <div className="grid grid-cols-4 gap-1 pt-0.5">
               <button
                 type="button"
@@ -696,7 +716,7 @@ export default function OperationsPage() {
                 )}
               >
                 <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Cyclone</div>
-                <div className="text-[10px] font-bold font-mono truncate text-white">
+                <div className={`text-[10px] font-bold font-mono truncate ${cycloneTrackerData.riskColor}`}>
                   {cycloneTrackerData.threatLevel}
                 </div>
               </button>
@@ -709,8 +729,8 @@ export default function OperationsPage() {
                   activeIntelOption === 'ecosystem' ? "border-white/80 bg-[#222222]" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
                 )}
               >
-                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Eco Score</div>
-                <div className="text-[10px] font-bold font-mono truncate text-white">
+                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Eco</div>
+                <div className={`text-[10px] font-bold font-mono truncate ${ecosystemHealthData.statusColor}`}>
                   {ecosystemHealthData.score}%
                 </div>
               </button>
@@ -737,8 +757,8 @@ export default function OperationsPage() {
                   activeIntelOption === 'safezone' ? "border-white/80 bg-[#222222]" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
                 )}
               >
-                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Safe Zone</div>
-                <div className="text-[10px] font-bold font-mono truncate text-white">
+                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Safety</div>
+                <div className={`text-[10px] font-bold font-mono truncate ${safeZoneData.statusColor}`}>
                   {safeZoneData.status === 'SAFE ZONE' ? 'SAFE' : safeZoneData.status === 'CAUTION ZONE' ? 'CAUTION' : 'ALERT'}
                 </div>
               </button>
@@ -749,26 +769,23 @@ export default function OperationsPage() {
 
           {/* === OPTION 1: HAZARD & CYCLONE TRACKER DEEP DIVE === */}
           {(activeIntelOption === 'cyclone' || activeIntelOption === 'all') && (
-            <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
-              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+            <div className={`border rounded-xl p-3 space-y-2.5 ${cycloneTrackerData.riskBg}`}>
+              <div className="flex items-center justify-between text-[10px] font-mono">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <AlertTriangle className="w-3.5 h-3.5 text-neutral-400" />
-                  HAZARD &amp; CYCLONE TRACKER
+                  <AlertTriangle className={`w-3.5 h-3.5 ${cycloneTrackerData.riskColor}`} />
+                  CYCLONE TRACKER
                 </span>
-                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${cycloneTrackerData.riskBg} ${cycloneTrackerData.riskColor}`}>
                   {cycloneTrackerData.badgeText}
                 </span>
               </div>
 
               {/* Status Banner */}
-              <div className="rounded-lg border border-[#222222] bg-[#161616] p-2.5 space-y-2">
+              <div className={`rounded-lg border p-2.5 space-y-1.5 ${cycloneTrackerData.riskBg}`}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-white/70 inline-block" />
-                    <span className="text-xs font-bold text-white tracking-tight">
-                      Cyclogenesis Risk: <span className="text-white">{cycloneTrackerData.threatLevel}</span>
-                    </span>
-                  </div>
+                  <span className={`text-xs font-bold tracking-tight ${cycloneTrackerData.riskColor}`}>
+                    {cycloneTrackerData.threatLevel}
+                  </span>
                   <span className="text-[10px] font-mono text-neutral-400">TCHP: {cycloneTrackerData.tchp} kJ/cm²</span>
                 </div>
                 <p className="text-[11px] text-neutral-300 leading-snug">
@@ -829,12 +846,12 @@ export default function OperationsPage() {
           {/* === OPTION 2: MARINE ECOSYSTEM HEALTH DEEP DIVE === */}
           {(activeIntelOption === 'ecosystem' || activeIntelOption === 'all') && (
             <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
-              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+              <div className="flex items-center justify-between text-[10px] font-mono">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <Leaf className="w-3.5 h-3.5 text-neutral-400" />
-                  MARINE ECOSYSTEM HEALTH
+                  <Leaf className={`w-3.5 h-3.5 ${ecosystemHealthData.statusColor}`} />
+                  ECOSYSTEM HEALTH
                 </span>
-                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] ${ecosystemHealthData.statusColor}`}>
                   {ecosystemHealthData.status}
                 </span>
               </div>
@@ -842,21 +859,16 @@ export default function OperationsPage() {
               {/* Gauge Progress Bar */}
               <div className="space-y-1.5 bg-[#161616] border border-[#222222] rounded-lg p-2.5">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-neutral-300 font-medium">Composite Ocean Health Index</span>
-                  <span className="font-mono font-bold text-white">
+                  <span className="text-neutral-300 font-medium">Health Index</span>
+                  <span className={`font-mono font-bold ${ecosystemHealthData.statusColor}`}>
                     {ecosystemHealthData.score} / 100
                   </span>
                 </div>
                 <div className="w-full h-2 bg-[#0c0c0c] rounded-full overflow-hidden p-0.5 border border-white/5">
                   <div
-                    className="h-full rounded-full bg-white/80 transition-all duration-700"
+                    className={`h-full rounded-full transition-all duration-700 ${ecosystemHealthData.barColor}`}
                     style={{ width: `${ecosystemHealthData.score}%` }}
                   />
-                </div>
-                <div className="flex justify-between text-[9px] font-mono text-neutral-500 pt-0.5">
-                  <span>Degraded</span>
-                  <span>Moderate</span>
-                  <span className="text-neutral-400">Pristine Marine</span>
                 </div>
               </div>
 
@@ -967,29 +979,26 @@ export default function OperationsPage() {
 
           {/* === OPTION 4: SAFE ZONE ASSESSMENT DEEP DIVE === */}
           {(activeIntelOption === 'safezone' || activeIntelOption === 'all') && (
-            <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
-              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+            <div className={`border rounded-xl p-3 space-y-2.5 ${safeZoneData.statusBg}`}>
+              <div className="flex items-center justify-between text-[10px] font-mono">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <ShieldCheck className="w-3.5 h-3.5 text-neutral-400" />
-                  SAFE ZONE &amp; NAVIGATION ENVELOPE
+                  <ShieldCheck className={`w-3.5 h-3.5 ${safeZoneData.iconColor}`} />
+                  SAFE ZONE
                 </span>
-                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${safeZoneData.statusBg} ${safeZoneData.statusColor}`}>
                   {safeZoneData.status}
                 </span>
               </div>
 
               {/* Safe Zone Alert Box */}
-              <div className="rounded-lg border border-[#222222] bg-[#161616] p-2.5 space-y-1.5">
+              <div className={`rounded-lg border p-2.5 space-y-1.5 ${safeZoneData.statusBg}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />
-                    <span>Maritime Envelope: {safeZoneData.safetyScore}%</span>
+                  <span className={`text-xs font-bold flex items-center gap-1.5 ${safeZoneData.statusColor}`}>
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${safeZoneData.iconColor}`} />
+                    <span>Safety Score: {safeZoneData.safetyScore}%</span>
                   </span>
                   <span className="text-[10px] font-mono text-neutral-400">{safeZoneData.navigationalMargin}</span>
                 </div>
-                <p className="text-[11px] text-neutral-300 leading-snug">
-                  Hydrodynamic forces, wave shear, and thermal stability are within certified maritime operational bounds.
-                </p>
               </div>
 
               {/* Matrix */}
@@ -1206,7 +1215,7 @@ export default function OperationsPage() {
 
         {/* RIGHT DOCKED PANEL: OPERATIONS & ANALYTICS WORKBENCH (EXACT SAME WIDTH & MATCHING CARDS) */}
         <div className={cn(
-          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
+          "w-full lg:w-[310px] xl:w-[330px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-3 space-y-2.5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
           activeMobileTab === 'controls' ? "flex-1 block" : "hidden lg:block"
         )}>
           {/* Header */}
