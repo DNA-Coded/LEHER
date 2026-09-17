@@ -3,8 +3,6 @@ import Globe from "@/components/ui/globe";
 import { cn } from "@/lib/utils";
 import { 
   X, 
-  Play, 
-  Pause, 
   Maximize2,
   Menu,
   Locate,
@@ -170,9 +168,10 @@ const parsePercent = (str: string): number => parseFloat(str.replace('%', ''));
 
 export default function LeherLandingPage() {
   const [activeSection, setActiveSection] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [globeTransform, setGlobeTransform] = useState("");
-  const [globeOpacity, setGlobeOpacity] = useState(0.95);
+  const activeSectionRef = useRef(0);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const globeContainerRef = useRef<HTMLDivElement>(null);
+  const lastPageMoveTimeRef = useRef(0);
   const [isPlatformOpen, setIsPlatformOpen] = useState(false);
   const [isEarthFullscreen, setIsEarthFullscreen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -261,12 +260,12 @@ export default function LeherLandingPage() {
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
     { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
-    { label: "Equator / IO", lat: 0.0, lon: 80.5 },
-    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
-    { label: "South IO", lat: -25.0, lon: 75.0 },
-    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
+    { label: "Indian Ocean", lat: 0.0, lon: 80.5 },
     { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
     { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
+    { label: "Gulf of Mannar", lat: 8.8, lon: 79.0 },
+    { label: "Maldives", lat: 3.2, lon: 73.2 },
+    { label: "South Sri Lanka", lat: 5.5, lon: 80.5 },
   ];
 
   // Listen for coordinates from Earth iframe inspection
@@ -389,7 +388,7 @@ export default function LeherLandingPage() {
     setActiveProjection(projKey);
     sendToEarthIframe({ action: "setProjection", projection: projKey });
   }, [sendToEarthIframe]);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+
   const [activeLayers, setActiveLayers] = useState({
     model: true,
     argo: true,
@@ -416,13 +415,20 @@ export default function LeherLandingPage() {
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? Math.min(Math.max(scrollTop / docHeight, 0), 1) : 0;
     
-    setScrollProgress(progress);
+    // Smooth, zero-render scroll progress bar update via direct DOM ref
+    if (progressBarRef.current) {
+      progressBarRef.current.style.transform = `scaleX(${progress})`;
+    }
 
     // Whenever user scrolls or moves the page, restore globe to its natural state and resume normal rotation
-    if (Math.abs(scrollTop - lastScrollPosRef.current) > 1 || scrollTop > 2) {
-      const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
-      globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
-      setIsGlobePaused(false);
+    if (Math.abs(scrollTop - lastScrollPosRef.current) > 2) {
+      const now = Date.now();
+      if (now - lastPageMoveTimeRef.current > 350) {
+        lastPageMoveTimeRef.current = now;
+        const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
+        globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
+        setIsGlobePaused(false);
+      }
     }
     lastScrollPosRef.current = scrollTop;
 
@@ -444,37 +450,35 @@ export default function LeherLandingPage() {
     });
 
     // Section-aware globe positioning:
-    // Sections 0 & 1 (Hero through Step 1, 2, 3): globe remains strictly static at top: 50%, left: 70%, scale: 1.2
-    // Reaching Step 4: globe decreases its size and transitions smoothly to center (50vw) to merge into the Operations Console
+    // Sections 0 & 1 (Hero through Step 1, 2, 3):
+    // Desktop: globe remains strictly static at top: 50%, left: 70%, scale: 1.2
+    // Mobile/Tablet (< 1024px): sits comfortably lower at top: 66%, left: 50%, scale: 0.78 so text is fully readable
+    const isMobile = window.innerWidth < 1024;
     const secSteps = sectionRefs.current[1];
     const secWorkbench = sectionRefs.current[2];
 
-    let currentLeft = 70;
-    let currentTop = 50;
-    let currentScale = 1.2;
+    let currentLeft = isMobile ? 50 : 70;
+    let currentTop = isMobile ? 66 : 50;
+    let currentScale = isMobile ? 0.78 : 1.2;
     let currentOpacity = 0.95;
 
     if (secSteps && secWorkbench) {
       const topSteps = secSteps.offsetTop;
       const topWorkbench = secWorkbench.offsetTop;
-      // Step 4 is reached towards the lower part of Section 1
       const step4Trigger = topSteps + Math.max((topWorkbench - topSteps) * 0.55, 300);
 
       if (scrollTop <= step4Trigger) {
-        // Strictly static in Hero and Steps 1, 2, 3 until Step 4 is reached
-        currentLeft = 70;
-        currentTop = 50;
-        currentScale = 1.2;
+        currentLeft = isMobile ? 50 : 70;
+        currentTop = isMobile ? 66 : 50;
+        currentScale = isMobile ? 0.78 : 1.2;
         currentOpacity = 0.95;
       } else if (scrollTop < topWorkbench) {
-        // When reaching Step 4 and progressing towards Operations Console:
-        // Decrease size, move horizontally towards center (50vw), and merge into console display
         const progress = Math.min(Math.max((scrollTop - step4Trigger) / (topWorkbench - step4Trigger), 0), 1);
-        const ease = progress * progress * (3 - 2 * progress); // smoothstep easing
-        currentLeft = 70 + (50 - 70) * ease;
-        currentTop = 50;
-        currentScale = 1.2 * (1 - 0.72 * ease); // decreases from 1.2 down to ~0.34
-        currentOpacity = 0.95 * (1 - ease); // dissolves into console's active 3D workbench
+        const ease = progress * progress * (3 - 2 * progress);
+        currentLeft = isMobile ? 50 : (70 + (50 - 70) * ease);
+        currentTop = isMobile ? (66 + (50 - 66) * ease) : 50;
+        currentScale = (isMobile ? 0.78 : 1.2) * (1 - 0.72 * ease);
+        currentOpacity = 0.95 * (1 - ease);
       } else {
         currentLeft = 50;
         currentTop = 50;
@@ -485,10 +489,17 @@ export default function LeherLandingPage() {
 
     const transform = `translate3d(${currentLeft.toFixed(2)}vw, ${currentTop.toFixed(2)}vh, 0) translate3d(-50%, -50%, 0) scale3d(${currentScale.toFixed(3)}, ${currentScale.toFixed(3)}, 1)`;
     
-    setGlobeTransform(transform);
-    setGlobeOpacity(currentOpacity);
-    setActiveSection(newActiveSection);
-  }, []);
+    // Direct DOM ref update prevents re-rendering all 1400 lines of LandingPage at 60fps during scroll
+    if (globeContainerRef.current) {
+      globeContainerRef.current.style.transform = transform;
+      globeContainerRef.current.style.opacity = (isEarthFullscreen || isPlatformOpen) ? '0' : String(currentOpacity);
+    }
+
+    if (newActiveSection !== activeSectionRef.current) {
+      activeSectionRef.current = newActiveSection;
+      setActiveSection(newActiveSection);
+    }
+  }, [isEarthFullscreen, isPlatformOpen]);
 
   useEffect(() => {
     let ticking = false;
@@ -503,28 +514,38 @@ export default function LeherLandingPage() {
     };
 
     const handlePageMove = () => {
-      const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
-      globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
-      setIsGlobePaused(false);
+      const now = Date.now();
+      if (now - lastPageMoveTimeRef.current > 350) {
+        lastPageMoveTimeRef.current = now;
+        const globeIframe = document.getElementById("leher-globe-iframe") as HTMLIFrameElement | null;
+        globeIframe?.contentWindow?.postMessage({ type: "LEHER_RESUME_ROTATION" }, "*");
+        setIsGlobePaused(false);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("wheel", handlePageMove, { passive: true });
     window.addEventListener("touchmove", handlePageMove, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
     updateScrollPosition();
     
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("wheel", handlePageMove);
       window.removeEventListener("touchmove", handlePageMove);
+      window.removeEventListener("resize", handleScroll);
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
   }, [updateScrollPosition]);
 
   useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
     const initialPos = calculatedPositions[0];
-    if (initialPos) {
-      setGlobeTransform(`translate3d(${initialPos.left}vw, ${initialPos.top}vh, 0) translate3d(-50%, -50%, 0) scale3d(${initialPos.scale}, ${initialPos.scale}, 1)`);
+    if (initialPos && globeContainerRef.current) {
+      const left = isMobile ? 50 : initialPos.left;
+      const top = isMobile ? 66 : initialPos.top;
+      const scale = isMobile ? 0.78 : initialPos.scale;
+      globeContainerRef.current.style.transform = `translate3d(${left}vw, ${top}vh, 0) translate3d(-50%, -50%, 0) scale3d(${scale}, ${scale}, 1)`;
     }
   }, [calculatedPositions]);
 
@@ -785,7 +806,7 @@ export default function LeherLandingPage() {
       </div>
 
       {/* Action Buttons: Open Direction (Primary) and View Details (Secondary) in New Page */}
-      <div className="grid grid-cols-2 gap-2 pt-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
         <ShinyButton
           type="button"
           onClick={() => {
@@ -854,11 +875,12 @@ export default function LeherLandingPage() {
       className="relative w-full max-w-screen overflow-x-hidden min-h-screen text-white font-sans selection:bg-white/20 selection:text-white"
     >
       {/* Scroll Progress Bar */}
-      <div className="fixed top-0 left-0 w-full h-[2px] bg-[#1a1a1a] z-50">
+      <div className="fixed top-0 left-0 w-full h-[2px] bg-[#1a1a1a] z-50 pointer-events-none">
         <div 
+          ref={progressBarRef}
           className="h-full bg-white will-change-transform"
           style={{ 
-            transform: `scaleX(${scrollProgress})`,
+            transform: 'scaleX(0)',
             transformOrigin: 'left center',
             transition: 'transform 0.1s ease-out'
           }}
@@ -870,17 +892,18 @@ export default function LeherLandingPage() {
 
       {/* 3D GLOBE BACKDROP (Hidden when fullscreen or at 3D workbench section) */}
       <div
+        ref={globeContainerRef}
         className={cn(
           "fixed pointer-events-none will-change-transform",
-          activeSection === 0 ? "z-25" : "z-10"
+          activeSection === 0 ? "z-10 lg:z-25" : "z-10"
         )}
         style={{
-          transform: globeTransform,
+          transform: "translate3d(70vw, 50vh, 0) translate3d(-50%, -50%, 0) scale3d(1.2, 1.2, 1)",
           transition: "transform 0.4s ease-out, opacity 0.4s ease-out",
-          opacity: (isEarthFullscreen || isPlatformOpen) ? 0 : globeOpacity,
+          opacity: (isEarthFullscreen || isPlatformOpen) ? 0 : 0.95,
         }}
       >
-        <div className="scale-75 sm:scale-90 lg:scale-100 pointer-events-auto">
+        <div className="scale-65 sm:scale-80 lg:scale-100 pointer-events-auto">
           <Globe />
         </div>
       </div>
@@ -890,14 +913,14 @@ export default function LeherLandingPage() {
          ======================================================== */}
       <section
         ref={(el) => { sectionRefs.current[0] = el; }}
-        className="relative min-h-screen flex flex-col justify-center px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto pointer-events-none"
+        className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-12 z-20 pt-24 pb-16 max-w-7xl mx-auto pointer-events-none"
       >
-        <div className="max-w-2xl space-y-7 pointer-events-auto">
+        <div className="max-w-2xl space-y-5 sm:space-y-7 pointer-events-auto">
           <div className="space-y-1">
-            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.05]">
+            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold tracking-tight text-white leading-[1.05]">
               LEHER
             </h1>
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-[#888888] leading-[1.05]">
+            <h2 className="text-2xl sm:text-4xl lg:text-7xl font-semibold tracking-tight text-[#888888] leading-[1.05]">
               Indian Ocean Maritime Safety & Hazard Intelligence
             </h2>
           </div>
@@ -996,18 +1019,7 @@ export default function LeherLandingPage() {
 
             {/* Column 2: Center 3D Earth Display */}
             <div className="col-span-12 lg:col-span-4 bg-[#040404] relative flex flex-col justify-between overflow-hidden border-b lg:border-b-0 min-h-[480px]">
-              <div className="absolute top-3 left-4 right-4 z-10 flex justify-between items-center gap-2 pointer-events-none">
-                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] text-xs font-mono text-[#cccccc] pointer-events-auto shadow-md">
-                  Domain: <span className="text-white uppercase font-bold">{PROJECTION_METADATA[activeProjection] ? "BOUNDED" : activeProjection}</span> @ {workbenchDepth}m
-                </div>
 
-                <div className="bg-[#080808]/85 backdrop-blur-md px-3 py-1 rounded-lg border border-[#262626] flex items-center gap-2 text-[11px] font-mono text-[#888888] pointer-events-auto shadow-md">
-                  <button onClick={() => setIsPlaying(!isPlaying)} className="hover:text-white flex items-center gap-1.5 cursor-pointer">
-                    {isPlaying ? <Pause className="w-3 h-3 text-emerald-400" /> : <Play className="w-3 h-3 text-white" />}
-                    <span className="font-semibold text-[#e0e0e0]">{isPlaying ? "LIVE" : "PAUSED"}</span>
-                  </button>
-                </div>
-              </div>
 
               {/* CENTER 3D EARTH IFRAME */}
               <div className="w-full h-full min-h-[500px] relative">

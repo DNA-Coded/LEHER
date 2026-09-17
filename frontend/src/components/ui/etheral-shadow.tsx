@@ -77,18 +77,34 @@ export function Component({
 
     useEffect(() => {
         if (!feColorMatrixRef.current || !animationEnabled) return;
+
+        // Respect reduced motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) return;
+
         let animationFrameId: number;
         let startTime: number | null = null;
+        let lastUpdate = 0;
         const totalDuration = (animationDuration / 25) * 1000;
 
         const loop = (time: number) => {
-            if (startTime === null) startTime = time;
-            const elapsed = time - startTime;
-            const progress = (elapsed % totalDuration) / totalDuration;
-            const value = progress * 360;
-            if (feColorMatrixRef.current) {
-                feColorMatrixRef.current.setAttribute("values", String(value));
+            if (document.hidden) {
+                animationFrameId = requestAnimationFrame(loop);
+                return;
             }
+
+            // Cap updates to ~30fps to reduce SVG filter re-rasterization workload on GPU
+            if (time - lastUpdate >= 32) {
+                if (startTime === null) startTime = time;
+                const elapsed = time - startTime;
+                const progress = (elapsed % totalDuration) / totalDuration;
+                const value = Math.round(progress * 360);
+                if (feColorMatrixRef.current) {
+                    feColorMatrixRef.current.setAttribute("values", String(value));
+                }
+                lastUpdate = time;
+            }
+
             animationFrameId = requestAnimationFrame(loop);
         };
 

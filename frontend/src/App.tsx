@@ -1,11 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import LandingPage from "@/components/ui/landing-page";
 import FlowFieldBackground from "@/components/ui/flow-field-background";
 import MaritimePattern from "@/components/ui/maritime-pattern";
-import OperationsPage from "@/components/ui/operations-page";
-import DetailsPage from "@/components/ui/details-page";
-import DepthSlicePage from "@/components/ui/depth-slice-page";
-import AboutLeherPage from "@/components/ui/about-page";
+
+const OperationsPage = lazy(() => import("@/components/ui/operations-page"));
+const DetailsPage = lazy(() => import("@/components/ui/details-page"));
+const DepthSlicePage = lazy(() => import("@/components/ui/depth-slice-page"));
+const AboutLeherPage = lazy(() => import("@/components/ui/about-page").then(m => ({ default: m.AboutLeherPage })));
+
+function RouteLoadingFallback() {
+  return (
+    <div className="min-h-screen w-full bg-[#080808] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
+        <span className="text-[11px] font-mono tracking-widest text-[#666666] uppercase">Loading Leher...</span>
+      </div>
+    </div>
+  );
+}
 
 function getRoute(): 'home' | 'about' | 'operations' | 'details' | 'depth-slice' {
   const path = window.location.pathname.toLowerCase();
@@ -41,19 +53,35 @@ function App() {
   }, []);
 
   if (route === 'about') {
-    return <AboutLeherPage />;
+    return (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <AboutLeherPage />
+      </Suspense>
+    );
   }
 
   if (route === 'depth-slice') {
-    return <DepthSlicePage />;
+    return (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <DepthSlicePage />
+      </Suspense>
+    );
   }
 
   if (route === 'operations') {
-    return <OperationsPage />;
+    return (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <OperationsPage />
+      </Suspense>
+    );
   }
 
   if (route === 'details') {
-    return <DetailsPage />;
+    return (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <DetailsPage />
+      </Suspense>
+    );
   }
 
   return (

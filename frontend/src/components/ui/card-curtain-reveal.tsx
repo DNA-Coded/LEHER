@@ -52,17 +52,19 @@ const CardCurtainReveal = React.forwardRef<
   const [isMouseIn, setIsMouseIn] = React.useState(false)
   const handleMouseEnter = React.useCallback(() => setIsMouseIn(true), [])
   const handleMouseLeave = React.useCallback(() => setIsMouseIn(false), [])
+  const handleClick = React.useCallback(() => setIsMouseIn((prev) => !prev), [])
 
   return (
     <CardCurtainRevealContext.Provider value={{ isMouseIn }}>
       <div
         ref={ref}
         className={cn(
-          "relative flex flex-col gap-2 overflow-hidden",
+          "relative flex flex-col gap-2 overflow-hidden cursor-pointer",
           className
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
         {...props}
       >
         {children}

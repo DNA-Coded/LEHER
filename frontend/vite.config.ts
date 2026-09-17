@@ -35,4 +35,14 @@ export default defineConfig({
     },
     extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'three-vendor': ['three'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600,
+  },
 })

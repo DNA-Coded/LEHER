@@ -42,6 +42,7 @@ export const WaterSplashCanvas = forwardRef<WaterSplashCanvasRef, WaterSplashCan
     // Active waves (only one per hover)
     const activeWaveRef = useRef<RollingWave | null>(null);
     const hasTriggeredRef = useRef(false);
+    const startRenderRef = useRef<() => void>(() => {});
 
     // Helper: calculate distance to furthest card corner ensuring UNRESTRICTED propagation
     const getFurthestDistance = (x: number, y: number, w: number, h: number) => {
@@ -105,6 +106,8 @@ export const WaterSplashCanvas = forwardRef<WaterSplashCanvasRef, WaterSplashCan
         alpha: 0,
         foamBubbles: createFoamBubbles(spread),
       };
+
+      startRenderRef.current();
     };
 
     useImperativeHandle(ref, () => ({
@@ -352,10 +355,19 @@ export const WaterSplashCanvas = forwardRef<WaterSplashCanvasRef, WaterSplashCan
           }
         }
 
-        animFrameId = requestAnimationFrame(render);
+        if (activeWaveRef.current) {
+          animFrameId = requestAnimationFrame(render);
+        } else {
+          ctx.clearRect(0, 0, width, height);
+          animFrameId = null;
+        }
       };
 
-      animFrameId = requestAnimationFrame(render);
+      startRenderRef.current = () => {
+        if (!animFrameId && isRunning) {
+          animFrameId = requestAnimationFrame(render);
+        }
+      };
 
       return () => {
         isRunning = false;

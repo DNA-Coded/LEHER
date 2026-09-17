@@ -4,8 +4,11 @@ import {
   ChevronDown, 
   RefreshCw, 
   ArrowUpRight,
+  ExternalLink,
   Clock,
-  ExternalLink
+  Activity,
+  Map as MapIcon,
+  Sliders
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
@@ -37,7 +40,17 @@ export default function OperationsPage() {
   const [inputLat, setInputLat] = useState<number>(params.lat);
   const [inputLon, setInputLon] = useState<number>(params.lon);
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
+
+  const handleLatBlur = () => {
+    setInputLat((prev) => Math.min(25, Math.max(4, prev)));
+  };
+
+  const handleLonBlur = () => {
+    setInputLon((prev) => Math.min(99, Math.max(53, prev)));
+  };
+
   const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
+  const [activeMobileTab, setActiveMobileTab] = useState<'hud' | 'map' | 'controls'>('map');
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
@@ -60,12 +73,12 @@ export default function OperationsPage() {
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
     { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
-    { label: "Equator / IO", lat: 0.0, lon: 80.5 },
-    { label: "Malacca Strait", lat: 3.5, lon: 100.2 },
-    { label: "South IO", lat: -25.0, lon: 75.0 },
-    { label: "Gulf of Aden", lat: 12.5, lon: 48.0 },
+    { label: "Indian Ocean", lat: 0.0, lon: 80.5 },
     { label: "Lakshadweep", lat: 10.5, lon: 72.6 },
     { label: "Andaman Sea", lat: 11.7, lon: 93.0 },
+    { label: "Gulf of Mannar", lat: 8.8, lon: 79.0 },
+    { label: "Maldives", lat: 3.2, lon: 73.2 },
+    { label: "South Sri Lanka", lat: 5.5, lon: 80.5 },
   ];
 
   // Send message to Earth iframe
@@ -186,6 +199,23 @@ export default function OperationsPage() {
     return "Abyssal Plain Subsurface (>1000m)";
   }, [workbenchDepth]);
 
+  // Acoustic sound speed calculation (Mackenzie formulation)
+  const soundSpeed = useMemo(() => {
+    const T = prediction.variables.thetao.value;
+    const S = prediction.variables.so.value;
+    const D = workbenchDepth;
+    const c = 1448.96 + 4.591 * T - 0.05304 * (T ** 2) + 0.0002374 * (T ** 3) + 1.340 * (S - 35) + 0.0163 * D + 1.675e-7 * (D ** 2);
+    return c.toFixed(1);
+  }, [prediction.variables.thetao.value, prediction.variables.so.value, workbenchDepth]);
+
+  // Seawater in-situ density approximation (kg/m3)
+  const seawaterDensity = useMemo(() => {
+    const T = prediction.variables.thetao.value;
+    const S = prediction.variables.so.value;
+    const rho = 1000 + 28.15 - 0.18 * (T - 15) + 0.78 * (S - 35) + 0.0044 * workbenchDepth;
+    return rho.toFixed(2);
+  }, [prediction.variables.thetao.value, prediction.variables.so.value, workbenchDepth]);
+
   const handleBackToHome = () => {
     window.location.href = '/';
   };
@@ -244,12 +274,58 @@ export default function OperationsPage() {
         </div>
       </header>
 
+      {/* MOBILE PANEL SWITCHER (< lg only; hidden on desktop) */}
+      <div className="flex lg:hidden bg-[#0c0c0c] border-b border-[#222222] p-1.5 gap-1 shrink-0 z-20">
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('hud')}
+          className={cn(
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            activeMobileTab === 'hud'
+              ? "bg-[#181818] text-white border border-[#333333] shadow-sm"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <Activity className="w-3.5 h-3.5 text-cyan-400" />
+          <span>HUD Intel</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('map')}
+          className={cn(
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            activeMobileTab === 'map'
+              ? "bg-[#181818] text-white border border-[#333333] shadow-sm"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <MapIcon className="w-3.5 h-3.5 text-sky-400" />
+          <span>3D Map</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('controls')}
+          className={cn(
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            activeMobileTab === 'controls'
+              ? "bg-[#181818] text-white border border-[#333333] shadow-sm"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Operations</span>
+        </button>
+      </div>
+
       {/* MAIN WORKSPACE: 3-COLUMN SYMMETRIC LAYOUT (LEFT FIXED PANEL | CENTER 3D MAP | RIGHT FIXED PANEL) */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY */}
-        <div className="w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+        <div className={cn(
+          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 z-20 shadow-2xl shrink-0 overflow-y-auto max-h-none lg:max-h-full",
+          activeMobileTab === 'hud' ? "flex-1 block" : "hidden lg:block"
+        )}>
           {/* Header */}
-          <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
+          <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
               <span>MARITIME INTELLIGENCE HUD</span>
             </h3>
@@ -374,10 +450,41 @@ export default function OperationsPage() {
             </div>
           </div>
 
-          {/* Card 4: Networks & Action Links */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
+          {/* Card 4: Acoustic & Subsurface Intelligence */}
+          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">OBSERVATION NETWORKS</span>
+              <span className="uppercase tracking-wide">ACOUSTIC &amp; SENSOR INTEL</span>
+              <span className="text-neutral-400">SONAR / SVP</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Sound Speed */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                <div className="text-[10px] text-neutral-400">
+                  <span>Sound Speed (c)</span>
+                </div>
+                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                  <span>{soundSpeed}</span>
+                  <span className="text-[10px] font-normal text-neutral-400">m/s</span>
+                </div>
+                <div className="text-[9px] text-neutral-500 truncate">
+                  {workbenchDepth < 80 ? 'Surface Sonic Layer' : workbenchDepth < 350 ? 'Thermocline Gradient' : 'Deep SOFAR Channel'}
+                </div>
+              </div>
+
+              {/* In-Situ Density */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                <div className="text-[10px] text-neutral-400">
+                  <span>In-situ Density (ρ)</span>
+                </div>
+                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                  <span>{seawaterDensity}</span>
+                  <span className="text-[9px] text-neutral-400">kg/m³</span>
+                </div>
+                <div className="text-[9px] text-neutral-500 truncate">
+                  Pycnocline gradient
+                </div>
+              </div>
             </div>
 
             <div className="space-y-1.5 pt-0.5">
@@ -400,10 +507,14 @@ export default function OperationsPage() {
               </a>
             </div>
           </div>
+
         </div>
 
         {/* CENTER COLUMN: 3D EARTH MAP (CENTERED IN THE PAGE) */}
-        <div className="flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[350px]">
+        <div className={cn(
+          "flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[300px]",
+          activeMobileTab === 'map' ? "block" : "hidden lg:block"
+        )}>
           <iframe
             key={activeProjection}
             src={earthIframeUrl}
@@ -428,7 +539,10 @@ export default function OperationsPage() {
         </div>
 
         {/* RIGHT DOCKED PANEL: OPERATIONS & ANALYTICS WORKBENCH (EXACT SAME WIDTH & MATCHING CARDS) */}
-        <div className="w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+        <div className={cn(
+          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
+          activeMobileTab === 'controls' ? "flex-1 block" : "hidden lg:block"
+        )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
