@@ -140,11 +140,11 @@ const Card = ({
       {/* Interactive Hover Popup positioned below the card in the generous vertical gap */}
       {popup && (
         <div
-          className={`absolute z-[100] w-[270px] sm:w-[290px] p-3.5 rounded-2xl bg-[#080d16]/95 backdrop-blur-2xl border border-cyan-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(6,182,212,0.25)] transition-all duration-300 pointer-events-none top-full mt-3 ${
+          className={`absolute z-[100] w-[270px] sm:w-[290px] p-3.5 rounded-2xl bg-[#080d16]/95 backdrop-blur-2xl border border-cyan-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(6,182,212,0.25)] transition-all duration-300 top-full mt-3 ${
             popupPosition === "top-right" ? "right-0" : "left-0"
           } ${
             isHovered
-              ? "opacity-100 scale-100 translate-y-0"
+              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-95 pointer-events-none -translate-y-2"
           }`}
         >

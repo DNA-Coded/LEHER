@@ -4,7 +4,10 @@ import {
   ChevronDown, 
   RefreshCw, 
   ArrowUpRight,
-  Clock
+  Clock,
+  Activity,
+  Map as MapIcon,
+  Sliders
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
@@ -37,6 +40,7 @@ export default function OperationsPage() {
   const [inputLon, setInputLon] = useState<number>(params.lon);
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
   const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
+  const [activeMobileTab, setActiveMobileTab] = useState<'hud' | 'map' | 'controls'>('map');
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
@@ -246,10 +250,56 @@ export default function OperationsPage() {
         </div>
       </header>
 
+      {/* MOBILE PANEL SWITCHER (< lg only; hidden on desktop) */}
+      <div className="flex lg:hidden bg-[#0c0c0c] border-b border-[#222222] p-1.5 gap-1 shrink-0 z-20">
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('hud')}
+          className={cn(
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            activeMobileTab === 'hud'
+              ? "bg-[#181818] text-white border border-[#333333] shadow-sm"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <Activity className="w-3.5 h-3.5 text-cyan-400" />
+          <span>HUD Intel</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('map')}
+          className={cn(
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            activeMobileTab === 'map'
+              ? "bg-[#181818] text-white border border-[#333333] shadow-sm"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <MapIcon className="w-3.5 h-3.5 text-sky-400" />
+          <span>3D Map</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMobileTab('controls')}
+          className={cn(
+            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            activeMobileTab === 'controls'
+              ? "bg-[#181818] text-white border border-[#333333] shadow-sm"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Operations</span>
+        </button>
+      </div>
+
       {/* MAIN WORKSPACE: 3-COLUMN SYMMETRIC LAYOUT (LEFT FIXED PANEL | CENTER 3D MAP | RIGHT FIXED PANEL) */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY */}
-        <div className="w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 overflow-hidden z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+        <div className={cn(
+          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 z-20 shadow-2xl shrink-0 overflow-y-auto max-h-none lg:max-h-full",
+          activeMobileTab === 'hud' ? "flex-1 block" : "hidden lg:block"
+        )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
@@ -443,7 +493,10 @@ export default function OperationsPage() {
         </div>
 
         {/* CENTER COLUMN: 3D EARTH MAP (CENTERED IN THE PAGE) */}
-        <div className="flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[350px]">
+        <div className={cn(
+          "flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[300px]",
+          activeMobileTab === 'map' ? "block" : "hidden lg:block"
+        )}>
           <iframe
             key={activeProjection}
             src={earthIframeUrl}
@@ -460,7 +513,10 @@ export default function OperationsPage() {
         </div>
 
         {/* RIGHT DOCKED PANEL: OPERATIONS & ANALYTICS WORKBENCH (EXACT SAME WIDTH & MATCHING CARDS) */}
-        <div className="w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-[50vh] lg:max-h-full">
+        <div className={cn(
+          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
+          activeMobileTab === 'controls' ? "flex-1 block" : "hidden lg:block"
+        )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">

@@ -198,7 +198,7 @@ export function FlowFieldBackground({
     const init = () => {
       width = container.clientWidth || window.innerWidth;
       height = container.clientHeight || window.innerHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -211,17 +211,20 @@ export function FlowFieldBackground({
       ctx.fillRect(0, 0, width, height);
 
       particles = [];
-      const count = Math.min(particleCount, Math.floor((width * height) / 1200));
+      const isMobile = width < 768;
+      const effectiveParticleCount = isMobile ? Math.min(particleCount, 420) : particleCount;
+      const count = Math.min(effectiveParticleCount, Math.floor((width * height) / (isMobile ? 1800 : 1200)));
       for (let i = 0; i < count; i++) {
         particles.push(new Particle(i % 2 === 0));
       }
     };
 
     let isVisible = true;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // --- ANIMATION LOOP ---
     const animate = () => {
-      if (!isVisible) return;
+      if (!isVisible || document.hidden || prefersReducedMotion) return;
 
       // Trail fade effect: semi-transparent black overlay
       ctx.fillStyle = `rgba(0, 0, 0, ${trailOpacity})`;
@@ -236,9 +239,11 @@ export function FlowFieldBackground({
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    // --- EVENT LISTENERS ---
+    // --- EVENT LISTENERS (DEBOUNCED RESIZE) ---
+    let resizeTimer: number;
     const handleResize = () => {
-      init();
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(init, 150);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -265,12 +270,21 @@ export function FlowFieldBackground({
       mouse.y = -1000;
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationFrameId);
+      } else if (isVisible && !prefersReducedMotion) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+
     init();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
-        if (isVisible) {
+        if (isVisible && !document.hidden && !prefersReducedMotion) {
           cancelAnimationFrame(animationFrameId);
           animationFrameId = requestAnimationFrame(animate);
         } else {
@@ -284,24 +298,29 @@ export function FlowFieldBackground({
       observer.observe(container);
     }
 
-    animate();
+    if (!prefersReducedMotion) {
+      animate();
+    }
 
     window.addEventListener("resize", handleResize);
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     window.addEventListener("mouseleave", handleMouseLeave);
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       observer.disconnect();
+      clearTimeout(resizeTimer);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [palette, trailOpacity, particleCount, speed]);
+  }, [palette.join(","), trailOpacity, particleCount, speed]);
 
   return (
     <div

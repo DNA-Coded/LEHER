@@ -81,10 +81,17 @@ function degreesToCompass(deg: number): string {
   return directions[index];
 }
 
+const predictionCache = new Map<string, OceanPredictionResult>();
+const MAX_CACHE_ENTRIES = 120;
+
 /**
  * Predicts oceanographic parameters based on Copernicus Marine and CMEMS physics models
  */
 export function predictOceanState(lat: number, lon: number, depth: number): OceanPredictionResult {
+  const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)},${Math.round(depth)}`;
+  const cached = predictionCache.get(cacheKey);
+  if (cached) return cached;
+
   const region = getRegionName(lat, lon);
   const isPolar = Math.abs(lat) >= 60;
   const isTropical = Math.abs(lat) <= 23.5;
@@ -328,4 +335,12 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
       riskMessage,
     },
   };
+
+  if (predictionCache.size >= MAX_CACHE_ENTRIES) {
+    const firstKey = predictionCache.keys().next().value;
+    if (firstKey) predictionCache.delete(firstKey);
+  }
+  predictionCache.set(cacheKey, result);
+
+  return result;
 }
