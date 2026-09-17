@@ -1157,22 +1157,19 @@ export default function OperationsPage() {
         )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-              <span>OPERATIONS &amp; ANALYTICS</span>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+              ANALYTICS
             </h3>
           </div>
 
           {/* Card 1: Projection & Display */}
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex justify-between items-center text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">MAP PROJECTION</span>
-              <span className="text-neutral-400">{PROJECTION_METADATA[activeProjection] || activeProjection}</span>
-            </div>
+            <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wide">MAP PROJECTION</div>
             <div className="relative">
               <select
                 value={activeProjection}
                 onChange={(e) => handleSelectProjection(e.target.value)}
-                className="w-full bg-[#161616] text-white text-xs font-mono rounded-lg px-3 py-2 border border-[#262626] hover:border-[#444444] focus:border-white focus:outline-none cursor-pointer transition-all appearance-none pr-8"
+                className="w-full bg-[#161616] text-white text-xs font-mono rounded-lg px-3 py-2 border border-[#262626] hover:border-[#444444] focus:border-white focus:outline-none cursor-pointer transition-all appearance-none pr-8 truncate"
               >
                 {PROJECTION_LIST.map((p) => (
                   <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
@@ -1184,18 +1181,11 @@ export default function OperationsPage() {
                 <ChevronDown className="w-3.5 h-3.5" />
               </div>
             </div>
-            <div className="pt-1.5 border-t border-[#1c1c1c] flex items-center justify-between text-[11px] text-neutral-400">
-              <span>Display Grid: <strong className="text-white font-mono">Hydrodynamic</strong></span>
-              <span className="text-neutral-400 text-[10px]">Copernicus PHY</span>
-            </div>
           </div>
 
           {/* Card 2: Target Coordinates & Quick Presets */}
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">TARGET COORDINATES</span>
-              <span>GEO-DATUM WGS84</span>
-            </div>
+            <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wide">COORDINATES</div>
 
             {/* Latitude */}
             <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/80 transition-colors">
