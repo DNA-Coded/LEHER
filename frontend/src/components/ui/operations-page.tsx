@@ -8,7 +8,23 @@ import {
   Clock,
   Activity,
   Map as MapIcon,
-  Sliders
+  Sliders,
+  AlertTriangle,
+  Leaf,
+  Fish,
+  ShieldCheck,
+  Compass,
+  Waves,
+  Gauge,
+  LifeBuoy,
+  Anchor,
+  Radio,
+  Eye,
+  CheckCircle2,
+  AlertCircle,
+  Thermometer,
+  Droplets,
+  Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, PROJECTION_METADATA, type TimeZone } from '@/components/ui/landing-page';
@@ -23,23 +39,31 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
   SGT: { name: 'SGT (Singapore)', timeZone: 'Asia/Singapore', offsetLabel: 'UTC+08:00' },
 };
 
+export type IntelOption = 'all' | 'cyclone' | 'ecosystem' | 'fishing' | 'safezone' | 'physics';
+
 export default function OperationsPage() {
-  // Read coordinates and depth from URL query parameters (or fallback to defaults)
+  // Read coordinates, depth, and active tab from URL query parameters
   const [params] = useState(() => {
     const search = new URLSearchParams(window.location.search);
     const lat = parseFloat(search.get('lat') || '15.4');
     const lon = parseFloat(search.get('lon') || '71.2');
     const depth = parseInt(search.get('depth') || '150', 10);
+    const tabParam = (search.get('tab') || 'all') as IntelOption;
+    const validTab = (['all', 'cyclone', 'ecosystem', 'fishing', 'safezone', 'physics'] as IntelOption[]).includes(tabParam)
+      ? tabParam
+      : 'all';
     return {
       lat: isNaN(lat) ? 15.4 : lat,
       lon: isNaN(lon) ? 71.2 : lon,
       depth: isNaN(depth) ? 150 : depth,
+      tab: validTab,
     };
   });
 
   const [inputLat, setInputLat] = useState<number>(params.lat);
   const [inputLon, setInputLon] = useState<number>(params.lon);
   const [workbenchDepth, setWorkbenchDepth] = useState<number>(params.depth);
+  const [activeIntelOption, setActiveIntelOption] = useState<IntelOption>(params.tab);
 
   const handleLatBlur = () => {
     setInputLat((prev) => Math.min(25, Math.max(4, prev)));
@@ -50,25 +74,13 @@ export default function OperationsPage() {
   };
 
   const [activeProjection, setActiveProjection] = useState<string>('concentric_region');
-  const [activeMobileTab, setActiveMobileTab] = useState<'hud' | 'map' | 'controls'>('map');
+  const [activeMobileTab, setActiveMobileTab] = useState<'hud' | 'map' | 'controls'>('hud');
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
 
-  const handleLatBlur = () => {
-    let lat = inputLat;
-    if (lat < 4) lat = 4;
-    if (lat > 25) lat = 25;
-    setInputLat(lat);
-  };
 
-  const handleLonBlur = () => {
-    let lon = inputLon;
-    if (lon < 53) lon = 53;
-    if (lon > 99) lon = 99;
-    setInputLon(lon);
-  };
 
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
@@ -216,6 +228,247 @@ export default function OperationsPage() {
     return rho.toFixed(2);
   }, [prediction.variables.thetao.value, prediction.variables.so.value, workbenchDepth]);
 
+  // --- 1. HAZARD & CYCLONE TRACKER METRICS ---
+  const cycloneTrackerData = useMemo(() => {
+    const sst = prediction.variables.thetao.value;
+    const currentSpeed = Number(prediction.summary.currentSpeedKnots) || 0;
+    const mld = prediction.variables.mlotst.value;
+    
+    // Wave height approximation based on drift and pressure gradient
+    const baseWave = 0.5 + currentSpeed * 2.2;
+    const waveHeight = Math.min(baseWave, 8.5).toFixed(1);
+    const waveNum = parseFloat(waveHeight);
+
+    // Douglas Sea State Scale
+    let seaStateLabel = 'Slight (0.5 - 1.25m)';
+    if (waveNum < 0.5) seaStateLabel = 'Calm Glassy (<0.5m)';
+    else if (waveNum <= 1.25) seaStateLabel = 'Smooth to Slight (0.5-1.25m)';
+    else if (waveNum <= 2.5) seaStateLabel = 'Moderate (1.25-2.5m)';
+    else if (waveNum <= 4.0) seaStateLabel = 'Rough (2.5-4.0m)';
+    else seaStateLabel = 'Very Rough to High (>4.0m)';
+
+    // Tropical Cyclogenesis Energy Potential (SST 26.5°C threshold)
+    let threatLevel: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' = 'LOW';
+    let riskColor = 'text-emerald-400';
+    let riskBg = 'bg-emerald-500/10 border-emerald-500/30';
+    let badgeText = 'LOW CYCLONE RISK';
+    let advisoryNote = 'Atmospheric-oceanic coupling is calm. Standard navigational watches apply.';
+
+    if (sst >= 29.0 && currentSpeed > 0.8) {
+      threatLevel = 'CRITICAL';
+      riskColor = 'text-rose-400';
+      riskBg = 'bg-rose-500/15 border-rose-500/40 animate-pulse';
+      badgeText = 'CRITICAL THREAT';
+      advisoryNote = 'Extreme heat reservoir detected with rapid hydrodynamic shear. High cyclogenesis probability.';
+    } else if (sst >= 28.0 && currentSpeed > 0.4) {
+      threatLevel = 'HIGH';
+      riskColor = 'text-amber-400';
+      riskBg = 'bg-amber-500/15 border-amber-500/35';
+      badgeText = 'ELEVATED RISK';
+      advisoryNote = 'SST exceeds 28°C threshold. Ocean thermal reservoir supportive of tropical depressions.';
+    } else if (sst >= 26.5) {
+      threatLevel = 'MODERATE';
+      riskColor = 'text-yellow-400';
+      riskBg = 'bg-yellow-500/10 border-yellow-500/30';
+      badgeText = 'WATCH STATUS';
+      advisoryNote = 'SST exceeds 26.5°C cyclonic threshold. Monitor regional barometric pressure gradients.';
+    }
+
+    // Cyclone Heat Potential proxy (kJ/cm²)
+    const tchp = Math.max(15, Math.round(sst * 2.8 + mld * 0.4));
+
+    return {
+      threatLevel,
+      riskColor,
+      riskBg,
+      badgeText,
+      advisoryNote,
+      sst: sst.toFixed(1),
+      waveHeight,
+      seaStateLabel,
+      tchp,
+      currentSpeed: prediction.summary.currentSpeedKnots,
+      windShearStatus: currentSpeed > 0.9 ? 'Strong Vertical Shear' : 'Low to Moderate Shear',
+      evacuationWindow: threatLevel === 'CRITICAL' ? 'Immediate 6h Window' : threatLevel === 'HIGH' ? '12h Advisory Horizon' : 'Clear Maritime Corridor',
+    };
+  }, [prediction.variables.thetao.value, prediction.summary.currentSpeedKnots, prediction.variables.mlotst.value]);
+
+  // --- 2. MARINE ECOSYSTEM HEALTH METRICS ---
+  const ecosystemHealthData = useMemo(() => {
+    const sst = prediction.variables.thetao.value;
+    const salinity = prediction.variables.so.value;
+    const mld = prediction.variables.mlotst.value;
+    
+    // Composite Health Score (0 - 100)
+    let score = 96;
+    if (sst > 29.5) score -= 22; // thermal stress
+    else if (sst > 28.5) score -= 10;
+    else if (sst < 18.0) score -= 14;
+
+    if (salinity < 32.0) score -= 18; // freshwater dilution / estuarine shock
+    else if (salinity > 37.0) score -= 12; // hyper-saline
+
+    if (mld < 15) score -= 12; // stratified euphotic zone
+    score = Math.max(10, Math.min(100, Math.round(score)));
+
+    let status: 'PRISTINE' | 'HEALTHY' | 'MODERATE STRESS' | 'VULNERABLE' = 'HEALTHY';
+    let statusColor = 'text-emerald-400';
+    let barColor = 'bg-emerald-500';
+
+    if (score >= 85) {
+      status = 'PRISTINE';
+      statusColor = 'text-emerald-400';
+      barColor = 'bg-emerald-400';
+    } else if (score >= 70) {
+      status = 'HEALTHY';
+      statusColor = 'text-teal-400';
+      barColor = 'bg-teal-400';
+    } else if (score >= 50) {
+      status = 'MODERATE STRESS';
+      statusColor = 'text-amber-400';
+      barColor = 'bg-amber-400';
+    } else {
+      status = 'VULNERABLE';
+      statusColor = 'text-rose-400';
+      barColor = 'bg-rose-400';
+    }
+
+    // Coral Bleaching Degree Heating Weeks (DHW) Proxy
+    const dhw = sst >= 29.5 ? 'Warning (DHW 4-8)' : sst >= 28.8 ? 'Watch (DHW 1-4)' : 'No Thermal Stress';
+    const primaryProd = mld < 35 && sst >= 24 && sst <= 28.5 ? 'High (Upwelling Enriched)' : 'Moderate Pelagic';
+    const hypoxiaStatus = workbenchDepth > 200 && sst < 15 ? 'Hypoxic Layer (OMZ Core)' : 'Normoxic Aerated';
+
+    return {
+      score,
+      status,
+      statusColor,
+      barColor,
+      dhw,
+      primaryProd,
+      hypoxiaStatus,
+      sst: sst.toFixed(1),
+      salinity: salinity.toFixed(1),
+      mld: mld.toFixed(0),
+      phProxy: (8.15 - (sst - 20) * 0.015).toFixed(2),
+      chlorophyllProxy: mld < 30 ? '0.84 mg/m³ (Rich)' : '0.28 mg/m³ (Clear)',
+    };
+  }, [prediction.variables.thetao.value, prediction.variables.so.value, prediction.variables.mlotst.value, workbenchDepth]);
+
+  // --- 3. FISHING ADVISORY (POTENTIAL FISHING ZONE - PFZ) ---
+  const fishingAdvisoryData = useMemo(() => {
+    const sst = prediction.variables.thetao.value;
+    const salinity = prediction.variables.so.value;
+    const mld = prediction.variables.mlotst.value;
+    const currentSpeed = Number(prediction.summary.currentSpeedKnots) || 0;
+    
+    // Upwelling front detection: moderate drift + shallow thermocline boundary + optimal SST (23-28°C)
+    const isUpwellingFront = mld <= 40 && currentSpeed >= 0.25 && currentSpeed <= 1.1;
+    const optimalTemp = sst >= 22.0 && sst <= 28.2;
+    const optimalSalinity = salinity >= 34.0 && salinity <= 36.5;
+
+    let rating: 'EXCELLENT' | 'HIGH' | 'MODERATE' | 'POOR' = 'MODERATE';
+    let ratingColor = 'text-emerald-400';
+    let ratingBg = 'bg-emerald-500/15 border-emerald-500/40';
+
+    if (isUpwellingFront && optimalTemp && optimalSalinity) {
+      rating = 'EXCELLENT';
+      ratingColor = 'text-emerald-400';
+      ratingBg = 'bg-emerald-500/20 border-emerald-400/50';
+    } else if (optimalTemp && (isUpwellingFront || optimalSalinity)) {
+      rating = 'HIGH';
+      ratingColor = 'text-cyan-400';
+      ratingBg = 'bg-cyan-500/15 border-cyan-400/40';
+    } else if (sst > 29.5 || currentSpeed > 1.4) {
+      rating = 'POOR';
+      ratingColor = 'text-rose-400';
+      ratingBg = 'bg-rose-500/15 border-rose-500/30';
+    }
+
+    // Commercial species forecast based on thermal layer
+    let speciesList = ['Indian Mackerel', 'Yellowfin Tuna', 'Oil Sardine'];
+    if (sst < 24) speciesList = ['Skipjack Tuna', 'Carangids', 'Ribbonfish'];
+    else if (sst > 28) speciesList = ['Pelagic Squid', 'Anchovies', 'Seer Fish'];
+
+    const optimalDepthHorizon = workbenchDepth <= 40 ? 'Surface Seine (0-40m)' : workbenchDepth <= 120 ? 'Mesopelagic Longline (40-120m)' : 'Deep Demersal Trawl';
+
+    return {
+      rating,
+      ratingColor,
+      ratingBg,
+      species: speciesList.join(', '),
+      frontType: isUpwellingFront ? 'Active Ocean Front / Upwelling' : 'Dispersed Pelagic Zone',
+      optimalDepthHorizon,
+      feedingAggregation: isUpwellingFront ? 'High Plankton Density' : 'Moderate Biomass',
+      advisoryText: rating === 'EXCELLENT'
+        ? 'High probability of pelagic schooling near frontal temperature gradient. Optimal fishing window.'
+        : rating === 'HIGH'
+        ? 'Favorable sea conditions with active nutrient convergence. Good catch expected.'
+        : rating === 'POOR'
+        ? 'High thermal stratification or rapid drift dispersing fish schools. Limited catch yield.'
+        : 'Moderate potential. Target coastal convergence zones and thermocline depth margin.',
+      driftStrategy: 'Deploy gillnets & longlines along ESE oceanic shear lines during dawn/dusk twilight.',
+    };
+  }, [prediction.variables.thetao.value, prediction.variables.so.value, prediction.variables.mlotst.value, prediction.summary.currentSpeedKnots, workbenchDepth]);
+
+  // --- 4. SAFE ZONE & MARITIME NAVIGATION METRICS ---
+  const safeZoneData = useMemo(() => {
+    const currentSpeed = Number(prediction.summary.currentSpeedKnots) || 0;
+    const sst = prediction.variables.thetao.value;
+    const mld = prediction.variables.mlotst.value;
+    const waveHeight = parseFloat(cycloneTrackerData.waveHeight);
+
+    let safetyScore = 98;
+    if (currentSpeed > 1.2) safetyScore -= 30;
+    else if (currentSpeed > 0.7) safetyScore -= 12;
+
+    if (waveHeight > 3.0) safetyScore -= 35;
+    else if (waveHeight > 1.8) safetyScore -= 15;
+
+    if (cycloneTrackerData.threatLevel === 'CRITICAL') safetyScore -= 45;
+    else if (cycloneTrackerData.threatLevel === 'HIGH') safetyScore -= 25;
+    else if (cycloneTrackerData.threatLevel === 'MODERATE') safetyScore -= 10;
+
+    safetyScore = Math.max(10, Math.min(100, safetyScore));
+
+    let status: 'SAFE ZONE' | 'CAUTION ZONE' | 'HAZARDOUS / RESTRICTED' = 'SAFE ZONE';
+    let statusColor = 'text-emerald-400';
+    let statusBg = 'bg-emerald-500/10 border-emerald-500/30';
+    let iconColor = 'text-emerald-400';
+
+    if (safetyScore >= 78) {
+      status = 'SAFE ZONE';
+      statusColor = 'text-emerald-400';
+      statusBg = 'bg-emerald-500/10 border-emerald-500/30';
+      iconColor = 'text-emerald-400';
+    } else if (safetyScore >= 50) {
+      status = 'CAUTION ZONE';
+      statusColor = 'text-amber-400';
+      statusBg = 'bg-amber-500/10 border-amber-500/30';
+      iconColor = 'text-amber-400';
+    } else {
+      status = 'HAZARDOUS / RESTRICTED';
+      statusColor = 'text-rose-400';
+      statusBg = 'bg-rose-500/15 border-rose-500/40 animate-pulse';
+      iconColor = 'text-rose-400';
+    }
+
+    const underwaterVisibility = mld > 35 ? 'Clear Acoustic & Optical (>45m)' : 'Moderate Turbidity (15-30m)';
+    const hullStress = currentSpeed > 1.0 ? 'Elevated Shear Margin' : 'Nominal Resistance (<5%)';
+
+    return {
+      safetyScore,
+      status,
+      statusColor,
+      statusBg,
+      iconColor,
+      waveHeight: `${waveHeight}m`,
+      underwaterVisibility,
+      hullStress,
+      navigationalMargin: status === 'SAFE ZONE' ? 'Full Operational Envelope' : status === 'CAUTION ZONE' ? 'Restricted Speed / Watch Required' : 'Immediate Port Egress Recommended',
+      sarRisk: currentSpeed > 0.8 ? 'High Drift Divergence' : 'Controlled Drift Basin',
+    };
+  }, [prediction.summary.currentSpeedKnots, prediction.variables.thetao.value, prediction.variables.mlotst.value, cycloneTrackerData]);
+
   const handleBackToHome = () => {
     window.location.href = '/';
   };
@@ -321,17 +574,21 @@ export default function OperationsPage() {
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY */}
         <div className={cn(
-          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 z-20 shadow-2xl shrink-0 overflow-y-auto max-h-none lg:max-h-full",
+          "w-full lg:w-[380px] xl:w-[410px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 z-20 shadow-2xl shrink-0 overflow-y-auto max-h-none lg:max-h-full",
           activeMobileTab === 'hud' ? "flex-1 block" : "hidden lg:block"
         )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-cyan-400" />
               <span>MARITIME INTELLIGENCE HUD</span>
             </h3>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">
+              LIVE SENSORS
+            </span>
           </div>
 
-          {/* Card 1: Tactical Basin & Depth Profile */}
+          {/* Card 1: Tactical Basin & Depth Profile (Always Top) */}
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
               <span className="uppercase tracking-wide">TACTICAL REGION</span>
@@ -339,8 +596,9 @@ export default function OperationsPage() {
                 {inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}, {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}
               </span>
             </div>
-            <div className="text-sm font-bold text-white tracking-tight">
+            <div className="text-sm font-bold text-white tracking-tight flex items-center justify-between">
               <span className="truncate">{prediction.location.regionName}</span>
+              <span className="text-[10px] font-mono font-normal text-neutral-400">GEO-WGS84</span>
             </div>
             <div className="pt-1.5 border-t border-[#1c1c1c] flex items-center justify-between text-[11px] text-neutral-400">
               <span>Depth Level: <strong className="text-white font-mono">{workbenchDepth}m</strong></span>
@@ -350,164 +608,604 @@ export default function OperationsPage() {
             </div>
           </div>
 
-          {/* Card 2: Operational Assessment & Safety Advisory */}
+          {/* Card 2: Operational Assessment & Risk Overview */}
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
               <span className="uppercase tracking-wide">OPERATIONAL ASSESSMENT</span>
+              <span className="text-emerald-400 font-bold text-[10px] font-mono">
+                {prediction.summary.riskStatus}
+              </span>
             </div>
-            <p className="text-[11px] text-neutral-300 leading-relaxed line-clamp-3">
+            <p className="text-[11px] text-neutral-300 leading-relaxed">
               {prediction.summary.riskMessage}
             </p>
           </div>
 
-          {/* Card 3: Hydrodynamic Telemetry Matrix */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">HYDRODYNAMIC METRICS</span>
-              <span className="text-neutral-400">PHYSICAL MODEL</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              {/* Current Velocity & Drift */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Current Drift</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
-                  <span>{prediction.summary.currentSpeedKnots}</span>
-                  <span className="text-[10px] font-normal text-neutral-400">kts</span>
-                  <span className="text-[9px] font-mono text-neutral-500">({prediction.summary.currentSpeedMs} m/s)</span>
-                </div>
-                <div className="text-[9px] font-mono text-neutral-300">
-                  <span>{prediction.summary.currentDirectionCompass} ({prediction.summary.currentDirectionDeg}°)</span>
-                </div>
-              </div>
-
-              {/* Water Temp */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Water Temp (θ)</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white">
-                  {prediction.variables.thetao.formattedValue}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  {workbenchDepth < 50 ? 'Upper Mixed' : workbenchDepth < 250 ? 'Thermocline' : 'Abyssal Deep'}
-                </div>
-              </div>
-
-              {/* Salinity */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Salinity (Sp)</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white">
-                  {prediction.variables.so.formattedValue}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  {prediction.location.regionName.includes('Bay of Bengal') ? 'Runoff Dilution' : 'Normal Oceanic'}
-                </div>
-              </div>
-
-              {/* Mixed Layer */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Mixed Layer</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white">
-                  {prediction.variables.mlotst.formattedValue}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  Pycnocline boundary
-                </div>
-              </div>
-
-              {/* Dynamic Height */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Dynamic Height</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white">
-                  {prediction.variables.zos.formattedValue}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  Geoid deviation
-                </div>
-              </div>
-
-              {/* Benthic Temp */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Benthic Temp</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white">
-                  {prediction.variables.bottomT.formattedValue}
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  Deep sea-floor layer
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Acoustic & Subsurface Intelligence */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-              <span className="uppercase tracking-wide">ACOUSTIC &amp; SENSOR INTEL</span>
-              <span className="text-neutral-400">SONAR / SVP</span>
+          {/* HIGH-IMPACT OPTION SELECTOR TABS (The core feature requested by user) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 px-0.5">
+              <span className="uppercase tracking-wider font-bold text-white">HUD INTELLIGENCE OPTIONS</span>
+              <span className="text-neutral-500">Left Panel Mode</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {/* Sound Speed */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>Sound Speed (c)</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
-                  <span>{soundSpeed}</span>
-                  <span className="text-[10px] font-normal text-neutral-400">m/s</span>
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  {workbenchDepth < 80 ? 'Surface Sonic Layer' : workbenchDepth < 350 ? 'Thermocline Gradient' : 'Deep SOFAR Channel'}
-                </div>
-              </div>
-
-              {/* In-Situ Density */}
-              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
-                <div className="text-[10px] text-neutral-400">
-                  <span>In-situ Density (ρ)</span>
-                </div>
-                <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
-                  <span>{seawaterDensity}</span>
-                  <span className="text-[9px] text-neutral-400">kg/m³</span>
-                </div>
-                <div className="text-[9px] text-neutral-500 truncate">
-                  Pycnocline gradient
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1.5 pt-0.5">
+            <div className="grid grid-cols-3 gap-1 bg-[#101010] p-1 rounded-xl border border-[#222222]">
               <button
                 type="button"
-                onClick={handlePredict}
-                disabled={isPredicting}
-                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+                onClick={() => setActiveIntelOption('all')}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
+                  activeIntelOption === 'all'
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
+                )}
               >
-                <span>Open 3D Depth Slice ({workbenchDepth}m)</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-black" />
+                <Layers className="w-3 h-3" />
+                <span>All Intel</span>
               </button>
 
-              <a
-                href={`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`}
-                className="w-full py-1.5 px-3 rounded-lg bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] text-neutral-300 hover:text-white text-[10px] font-mono flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('cyclone')}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
+                  activeIntelOption === 'cyclone'
+                    ? "bg-rose-500 text-white shadow-md shadow-rose-500/20"
+                    : "text-neutral-400 hover:text-rose-300 hover:bg-rose-500/10"
+                )}
               >
-                <span>Inspect Copernicus Variable Matrix</span>
-                <ExternalLink className="w-3 h-3 text-neutral-500" />
-              </a>
+                <AlertTriangle className="w-3 h-3 text-rose-400" />
+                <span>Cyclone</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('ecosystem')}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
+                  activeIntelOption === 'ecosystem'
+                    ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/20"
+                    : "text-neutral-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                )}
+              >
+                <Leaf className="w-3 h-3 text-emerald-400" />
+                <span>Eco Health</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('fishing')}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
+                  activeIntelOption === 'fishing'
+                    ? "bg-sky-500 text-black shadow-md shadow-sky-500/20"
+                    : "text-neutral-400 hover:text-sky-300 hover:bg-sky-500/10"
+                )}
+              >
+                <Fish className="w-3 h-3 text-sky-400" />
+                <span>Fishing</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('safezone')}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
+                  activeIntelOption === 'safezone'
+                    ? "bg-emerald-400 text-black shadow-md shadow-emerald-400/20"
+                    : "text-neutral-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                )}
+              >
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span>Safe Zone</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('physics')}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
+                  activeIntelOption === 'physics'
+                    ? "bg-cyan-500 text-black shadow-md shadow-cyan-500/20"
+                    : "text-neutral-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                )}
+              >
+                <Compass className="w-3 h-3 text-cyan-400" />
+                <span>Physics</span>
+              </button>
+            </div>
+
+            {/* Quick 4-Metric Live Status Banner (Clickable to switch tab!) */}
+            <div className="grid grid-cols-4 gap-1 pt-0.5">
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('cyclone')}
+                className={cn(
+                  "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
+                  activeIntelOption === 'cyclone' ? "border-rose-400 bg-rose-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                )}
+              >
+                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Cyclone</div>
+                <div className={`text-[10px] font-bold font-mono truncate ${cycloneTrackerData.riskColor}`}>
+                  {cycloneTrackerData.threatLevel}
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('ecosystem')}
+                className={cn(
+                  "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
+                  activeIntelOption === 'ecosystem' ? "border-emerald-400 bg-emerald-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                )}
+              >
+                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Eco Score</div>
+                <div className={`text-[10px] font-bold font-mono truncate ${ecosystemHealthData.statusColor}`}>
+                  {ecosystemHealthData.score}%
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('fishing')}
+                className={cn(
+                  "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
+                  activeIntelOption === 'fishing' ? "border-sky-400 bg-sky-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                )}
+              >
+                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Fishing</div>
+                <div className={`text-[10px] font-bold font-mono truncate ${fishingAdvisoryData.ratingColor}`}>
+                  {fishingAdvisoryData.rating}
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveIntelOption('safezone')}
+                className={cn(
+                  "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
+                  activeIntelOption === 'safezone' ? "border-emerald-400 bg-emerald-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                )}
+              >
+                <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Safe Zone</div>
+                <div className={`text-[10px] font-bold font-mono truncate ${safeZoneData.statusColor}`}>
+                  {safeZoneData.status === 'SAFE ZONE' ? 'SAFE' : safeZoneData.status === 'CAUTION ZONE' ? 'CAUTION' : 'ALERT'}
+                </div>
+              </button>
             </div>
           </div>
 
+          {/* DYNAMIC CONTENT AREA BASED ON SELECTED OPTION */}
+
+          {/* === OPTION 1: HAZARD & CYCLONE TRACKER DEEP DIVE === */}
+          {(activeIntelOption === 'cyclone' || activeIntelOption === 'all') && (
+            <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                  HAZARD &amp; CYCLONE TRACKER
+                </span>
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${cycloneTrackerData.riskBg} ${cycloneTrackerData.riskColor}`}>
+                  {cycloneTrackerData.badgeText}
+                </span>
+              </div>
+
+              {/* Status Banner */}
+              <div className={cn("rounded-lg border p-2.5 space-y-2", cycloneTrackerData.riskBg)}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", cycloneTrackerData.threatLevel === 'LOW' ? 'bg-emerald-400' : 'bg-rose-400')} />
+                      <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", cycloneTrackerData.threatLevel === 'LOW' ? 'bg-emerald-500' : 'bg-rose-500')} />
+                    </span>
+                    <span className="text-xs font-bold text-white tracking-tight">
+                      Cyclogenesis Risk: <span className={cycloneTrackerData.riskColor}>{cycloneTrackerData.threatLevel}</span>
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-neutral-400">TCHP: {cycloneTrackerData.tchp} kJ/cm²</span>
+                </div>
+                <p className="text-[11px] text-neutral-300 leading-snug">
+                  {cycloneTrackerData.advisoryNote}
+                </p>
+              </div>
+
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">SEA SURFACE (SST)</div>
+                  <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                    <span>{cycloneTrackerData.sst}</span>
+                    <span className="text-[9px] font-normal text-neutral-400">°C</span>
+                  </div>
+                  <div className="text-[8px] text-neutral-500">Threshold: 26.5°C</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">EST. WAVE HT (Hs)</div>
+                  <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                    <span>~{cycloneTrackerData.waveHeight}</span>
+                    <span className="text-[9px] font-normal text-neutral-400">m</span>
+                  </div>
+                  <div className="text-[8px] text-neutral-500 truncate">{cycloneTrackerData.seaStateLabel.split(' ')[0]}</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">DRIFT CURRENT</div>
+                  <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                    <span>{cycloneTrackerData.currentSpeed}</span>
+                    <span className="text-[9px] font-normal text-neutral-400">kts</span>
+                  </div>
+                  <div className="text-[8px] text-neutral-500 truncate">{prediction.summary.currentDirectionCompass} ({prediction.summary.currentDirectionDeg}°)</div>
+                </div>
+              </div>
+
+              {/* Additional Context details when deep dived */}
+              {activeIntelOption === 'cyclone' && (
+                <div className="space-y-2 pt-1 border-t border-[#1c1c1c]">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-neutral-400">Atmospheric-Ocean Shear</span>
+                    <span className="text-white font-mono text-[10px]">{cycloneTrackerData.windShearStatus}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-neutral-400">Vessel Evacuation Window</span>
+                    <span className="text-emerald-400 font-mono text-[10px]">{cycloneTrackerData.evacuationWindow}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-neutral-400">Basin Cyclone History</span>
+                    <span className="text-neutral-300 font-mono text-[10px]">North Indian Ocean Monsoonal</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* === OPTION 2: MARINE ECOSYSTEM HEALTH DEEP DIVE === */}
+          {(activeIntelOption === 'ecosystem' || activeIntelOption === 'all') && (
+            <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
+                  <Leaf className="w-3.5 h-3.5 text-emerald-400" />
+                  MARINE ECOSYSTEM HEALTH
+                </span>
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-emerald-500/10 border-emerald-500/30 ${ecosystemHealthData.statusColor}`}>
+                  {ecosystemHealthData.status}
+                </span>
+              </div>
+
+              {/* Gauge Progress Bar */}
+              <div className="space-y-1.5 bg-[#161616] border border-[#222222] rounded-lg p-2.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-neutral-300 font-medium">Composite Ocean Health Index</span>
+                  <span className={`font-mono font-bold ${ecosystemHealthData.statusColor}`}>
+                    {ecosystemHealthData.score} / 100
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-[#0c0c0c] rounded-full overflow-hidden p-0.5 border border-white/5">
+                  <div
+                    className={cn("h-full rounded-full transition-all duration-700", ecosystemHealthData.barColor)}
+                    style={{ width: `${ecosystemHealthData.score}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[9px] font-mono text-neutral-500 pt-0.5">
+                  <span>Degraded</span>
+                  <span>Moderate</span>
+                  <span className="text-emerald-400">Pristine Marine</span>
+                </div>
+              </div>
+
+              {/* Ecological Parameters Matrix */}
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">CORAL STRESS</div>
+                  <div className="text-[11px] font-bold text-white truncate">{ecosystemHealthData.dhw.split(' ')[0]}</div>
+                  <div className="text-[8px] text-neutral-500 truncate">{ecosystemHealthData.dhw}</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">PRIMARY PROD.</div>
+                  <div className="text-[11px] font-bold text-emerald-400 truncate">{ecosystemHealthData.primaryProd.split(' ')[0]}</div>
+                  <div className="text-[8px] text-neutral-500 truncate">Chlorophyll Proxy</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">OXYGEN STATE</div>
+                  <div className="text-[11px] font-bold text-cyan-300 truncate">{ecosystemHealthData.hypoxiaStatus.split(' ')[0]}</div>
+                  <div className="text-[8px] text-neutral-500 truncate">{workbenchDepth > 150 ? 'Subsurface OMZ' : 'Aerated Epipelagic'}</div>
+                </div>
+              </div>
+
+              {/* Extra details when deep dived */}
+              {activeIntelOption === 'ecosystem' && (
+                <div className="space-y-1.5 pt-1 border-t border-[#1c1c1c] text-[11px]">
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Chlorophyll Concentration</span>
+                    <span className="text-white font-mono text-[10px]">{ecosystemHealthData.chlorophyllProxy}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Estimated Seawater pH</span>
+                    <span className="text-white font-mono text-[10px]">{ecosystemHealthData.phProxy} (Normal Oceanic)</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Pycnocline MLD Barrier</span>
+                    <span className="text-white font-mono text-[10px]">{ecosystemHealthData.mld}m (Nutrient Trap)</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* === OPTION 3: FISHING ADVISORY (PFZ) DEEP DIVE === */}
+          {(activeIntelOption === 'fishing' || activeIntelOption === 'all') && (
+            <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
+                  <Fish className="w-3.5 h-3.5 text-sky-400" />
+                  FISHING ADVISORY (PFZ)
+                </span>
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${fishingAdvisoryData.ratingBg} ${fishingAdvisoryData.ratingColor}`}>
+                  {fishingAdvisoryData.rating} POTENTIAL
+                </span>
+              </div>
+
+              {/* Target Catch Card */}
+              <div className="bg-[#161616] border border-[#222222] rounded-lg p-2.5 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="text-[9px] text-neutral-400 font-mono">TARGET COMMERCIAL SPECIES</div>
+                    <div className="text-xs font-bold text-white mt-0.5">{fishingAdvisoryData.species}</div>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 whitespace-nowrap">
+                    PFZ Active
+                  </span>
+                </div>
+                <p className="text-[11px] text-neutral-300 leading-snug border-t border-[#222222] pt-1.5">
+                  {fishingAdvisoryData.advisoryText}
+                </p>
+              </div>
+
+              {/* Grid: Front Type & Horizon */}
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">THERMAL FRONT</div>
+                  <div className="text-[11px] font-bold text-white truncate">{fishingAdvisoryData.frontType}</div>
+                  <div className="text-[8px] text-neutral-500">Upwelling Convergence</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">OPTIMAL HORIZON</div>
+                  <div className="text-[11px] font-bold text-sky-300 truncate">{fishingAdvisoryData.optimalDepthHorizon}</div>
+                  <div className="text-[8px] text-neutral-500">Feed Layer Depth</div>
+                </div>
+              </div>
+
+              {/* Extra details when deep dived */}
+              {activeIntelOption === 'fishing' && (
+                <div className="space-y-1.5 pt-1 border-t border-[#1c1c1c] text-[11px]">
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Tactical Drift Setting</span>
+                    <span className="text-neutral-200 text-right text-[10px] max-w-[200px]">Dawn (04:30) &amp; Twilight along ESE drift</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Plankton Concentration</span>
+                    <span className="text-emerald-400 font-mono text-[10px]">{fishingAdvisoryData.feedingAggregation}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Artisanal Vessel Suitability</span>
+                    <span className="text-white font-mono text-[10px]">Favorable (Safe Seastate)</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* === OPTION 4: SAFE ZONE ASSESSMENT DEEP DIVE === */}
+          {(activeIntelOption === 'safezone' || activeIntelOption === 'all') && (
+            <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  SAFE ZONE &amp; NAVIGATION ENVELOPE
+                </span>
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${safeZoneData.statusBg} ${safeZoneData.statusColor}`}>
+                  {safeZoneData.status}
+                </span>
+              </div>
+
+              {/* Safe Zone Alert Box */}
+              <div className={cn("rounded-lg border p-2.5 space-y-1.5", safeZoneData.statusBg)}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Maritime Envelope: {safeZoneData.safetyScore}%</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-neutral-400">{safeZoneData.navigationalMargin}</span>
+                </div>
+                <p className="text-[11px] text-neutral-300 leading-snug">
+                  Hydrodynamic forces, wave shear, and thermal stability are within certified maritime operational bounds.
+                </p>
+              </div>
+
+              {/* Matrix */}
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">WAVE ENVELOPE</div>
+                  <div className="text-xs font-bold font-mono text-white">{safeZoneData.waveHeight}</div>
+                  <div className="text-[8px] text-neutral-500">Low Hull Resistance</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">SONAR CLARITY</div>
+                  <div className="text-[11px] font-bold text-white truncate">Clear (Sound SVP)</div>
+                  <div className="text-[8px] text-neutral-500">c: {soundSpeed} m/s</div>
+                </div>
+
+                <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                  <div className="text-[9px] text-neutral-400 font-mono">SAR DRIFT RISK</div>
+                  <div className="text-[11px] font-bold text-emerald-400 truncate">{safeZoneData.sarRisk.split(' ')[0]}</div>
+                  <div className="text-[8px] text-neutral-500">Stable Boundary</div>
+                </div>
+              </div>
+
+              {/* Extra details when deep dived */}
+              {activeIntelOption === 'safezone' && (
+                <div className="space-y-1.5 pt-1 border-t border-[#1c1c1c] text-[11px]">
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Hull Dynamic Stress Factor</span>
+                    <span className="text-white font-mono text-[10px]">{safeZoneData.hullStress}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Underwater Acoustic Transmission</span>
+                    <span className="text-emerald-400 font-mono text-[10px]">{safeZoneData.underwaterVisibility}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Emergency Shelter Corridor</span>
+                    <span className="text-neutral-300 font-mono text-[10px]">Bearing 045° to Indian Coastline</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* === OPTION 5: HYDRODYNAMIC & ACOUSTIC PHYSICAL MODEL === */}
+          {(activeIntelOption === 'physics' || activeIntelOption === 'all') && (
+            <>
+              {/* Card: Hydrodynamic Telemetry Matrix */}
+              <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+                  <span className="uppercase tracking-wide flex items-center gap-1.5 text-white font-bold">
+                    <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                    HYDRODYNAMIC METRICS
+                  </span>
+                  <span className="text-neutral-400 font-mono">PHYSICAL MODEL</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Current Velocity & Drift */}
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Current Drift</div>
+                    <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                      <span>{prediction.summary.currentSpeedKnots}</span>
+                      <span className="text-[10px] font-normal text-neutral-400">kts</span>
+                      <span className="text-[9px] font-mono text-neutral-500">({prediction.summary.currentSpeedMs} m/s)</span>
+                    </div>
+                    <div className="text-[9px] font-mono text-neutral-300">
+                      <span>{prediction.summary.currentDirectionCompass} ({prediction.summary.currentDirectionDeg}°)</span>
+                    </div>
+                  </div>
+
+                  {/* Water Temp */}
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Water Temp (θ)</div>
+                    <div className="text-xs font-bold font-mono text-white">
+                      {prediction.variables.thetao.formattedValue}
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      {workbenchDepth < 50 ? 'Upper Mixed Layer' : workbenchDepth < 250 ? 'Thermocline' : 'Abyssal Deep'}
+                    </div>
+                  </div>
+
+                  {/* Salinity */}
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Salinity (Sp)</div>
+                    <div className="text-xs font-bold font-mono text-white">
+                      {prediction.variables.so.formattedValue}
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      {prediction.location.regionName.includes('Bay of Bengal') ? 'Runoff Dilution' : 'Normal Oceanic'}
+                    </div>
+                  </div>
+
+                  {/* Mixed Layer */}
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Mixed Layer</div>
+                    <div className="text-xs font-bold font-mono text-white">
+                      {prediction.variables.mlotst.formattedValue}
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      Pycnocline boundary
+                    </div>
+                  </div>
+
+                  {/* Dynamic Height */}
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Dynamic Height</div>
+                    <div className="text-xs font-bold font-mono text-white">
+                      {prediction.variables.zos.formattedValue}
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      Geoid deviation
+                    </div>
+                  </div>
+
+                  {/* Benthic Temp */}
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Benthic Temp</div>
+                    <div className="text-xs font-bold font-mono text-white">
+                      {prediction.variables.bottomT.formattedValue}
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      Deep sea-floor layer
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card: Acoustic & Sensor Intel */}
+              <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+                  <span className="uppercase tracking-wide flex items-center gap-1.5 text-white font-bold">
+                    <Radio className="w-3.5 h-3.5 text-sky-400" />
+                    ACOUSTIC &amp; SENSOR INTEL
+                  </span>
+                  <span className="text-neutral-400 font-mono">SONAR / SVP</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">Sound Speed (c)</div>
+                    <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                      <span>{soundSpeed}</span>
+                      <span className="text-[10px] font-normal text-neutral-400">m/s</span>
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      {workbenchDepth < 80 ? 'Surface Sonic Layer' : workbenchDepth < 350 ? 'Thermocline Gradient' : 'Deep SOFAR Channel'}
+                    </div>
+                  </div>
+
+                  <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
+                    <div className="text-[10px] text-neutral-400">In-situ Density (ρ)</div>
+                    <div className="text-xs font-bold font-mono text-white flex items-baseline gap-1">
+                      <span>{seawaterDensity}</span>
+                      <span className="text-[9px] font-neutral-400">kg/m³</span>
+                    </div>
+                    <div className="text-[9px] text-neutral-500 truncate">
+                      Pycnocline gradient
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Action Buttons (Always Present at Bottom of HUD) */}
+          <div className="space-y-1.5 pt-1">
+            <button
+              type="button"
+              onClick={handlePredict}
+              disabled={isPredicting}
+              className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+            >
+              <span>Open 3D Depth Slice ({workbenchDepth}m)</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-black" />
+            </button>
+
+            <a
+              href={`/details?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}`}
+              className="w-full py-1.5 px-3 rounded-lg bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] text-neutral-300 hover:text-white text-[10px] font-mono flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+            >
+              <span>Inspect Copernicus Variable Matrix</span>
+              <ExternalLink className="w-3 h-3 text-neutral-500" />
+            </a>
+          </div>
         </div>
 
         {/* CENTER COLUMN: 3D EARTH MAP (CENTERED IN THE PAGE) */}

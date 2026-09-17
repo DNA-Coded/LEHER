@@ -21,7 +21,10 @@ import {
   Eye,
   MousePointerClick,
   BrainCircuit,
-  Navigation
+  Navigation,
+  Leaf,
+  Fish,
+  ShieldCheck
 } from "lucide-react";
 import { leherDataService, type TraceablePointReport } from "@/lib/data/registry.ts";
 import { predictOceanState, type OceanPredictionResult } from "@/lib/api/oceanPredictionService";
@@ -803,6 +806,81 @@ export default function LeherLandingPage() {
             </span>
           </div>
         ))}
+      </div>
+
+      {/* Maritime Intelligence Sectors (Direct Link to Operations Page Tabs) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
+        <button
+          type="button"
+          onClick={() => {
+            window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}&tab=cyclone`, '_blank');
+          }}
+          className="p-1.5 rounded-xl bg-[#121212] hover:bg-[#181818] border border-neutral-800 hover:border-rose-500/50 text-left transition-all cursor-pointer group"
+          title="Open Cyclone & Hazard Tracker"
+        >
+          <div className="text-[9px] font-mono text-neutral-400 flex items-center gap-1 group-hover:text-rose-300">
+            <AlertTriangle className="w-2.5 h-2.5 text-rose-400" />
+            <span>Cyclone</span>
+          </div>
+          <div className="text-[10px] font-bold text-rose-400 font-mono mt-0.5 flex items-center justify-between">
+            <span>Tracker</span>
+            <span className="text-[8px] opacity-70 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}&tab=ecosystem`, '_blank');
+          }}
+          className="p-1.5 rounded-xl bg-[#121212] hover:bg-[#181818] border border-neutral-800 hover:border-emerald-500/50 text-left transition-all cursor-pointer group"
+          title="Open Marine Ecosystem Health"
+        >
+          <div className="text-[9px] font-mono text-neutral-400 flex items-center gap-1 group-hover:text-emerald-300">
+            <Leaf className="w-2.5 h-2.5 text-emerald-400" />
+            <span>Ecosystem</span>
+          </div>
+          <div className="text-[10px] font-bold text-emerald-400 font-mono mt-0.5 flex items-center justify-between">
+            <span>Health</span>
+            <span className="text-[8px] opacity-70 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}&tab=fishing`, '_blank');
+          }}
+          className="p-1.5 rounded-xl bg-[#121212] hover:bg-[#181818] border border-neutral-800 hover:border-sky-500/50 text-left transition-all cursor-pointer group"
+          title="Open Fishing Advisory & PFZ"
+        >
+          <div className="text-[9px] font-mono text-neutral-400 flex items-center gap-1 group-hover:text-sky-300">
+            <Fish className="w-2.5 h-2.5 text-sky-400" />
+            <span>Fishing</span>
+          </div>
+          <div className="text-[10px] font-bold text-sky-400 font-mono mt-0.5 flex items-center justify-between">
+            <span>Advisory</span>
+            <span className="text-[8px] opacity-70 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.open(`/operations?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}&tab=safezone`, '_blank');
+          }}
+          className="p-1.5 rounded-xl bg-[#121212] hover:bg-[#181818] border border-neutral-800 hover:border-emerald-500/50 text-left transition-all cursor-pointer group"
+          title="Open Safe Zone Assessment"
+        >
+          <div className="text-[9px] font-mono text-neutral-400 flex items-center gap-1 group-hover:text-emerald-300">
+            <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+            <span>Safe Zone</span>
+          </div>
+          <div className="text-[10px] font-bold text-emerald-400 font-mono mt-0.5 flex items-center justify-between">
+            <span>Envelope</span>
+            <span className="text-[8px] opacity-70 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          </div>
+        </button>
       </div>
 
       {/* Action Buttons: Open Direction (Primary) and View Details (Secondary) in New Page */}
