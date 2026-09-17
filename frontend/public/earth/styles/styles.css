@@ -236,15 +236,14 @@ svg {
     left: 0;
     pointer-events: none;
     z-index: 100;
-    padding: 5px 9px;
-    background: rgba(6, 11, 20, 0.92);
-    border: 1px solid rgba(56, 189, 248, 0.5);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), 0 0 12px rgba(56, 189, 248, 0.25);
-    border-radius: 7px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    padding: 8px 14px;
+    background: rgba(6, 11, 20, 0.94);
+    border: 1px solid rgba(56, 189, 248, 0.6);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 16px rgba(56, 189, 248, 0.35);
+    border-radius: 9px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 10px;
     color: #e2e8f0;
     white-space: nowrap;
     transition: opacity 0.15s ease;
@@ -252,23 +251,28 @@ svg {
 .hud-coords-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    font-size: 13px;
     font-weight: 700;
     color: #38bdf8;
+    line-height: 1.2;
 }
 .hud-dot {
-    width: 5px;
-    height: 5px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #00f0ff;
-    box-shadow: 0 0 6px #00f0ff;
+    box-shadow: 0 0 8px #00f0ff;
     animation: hud-dot-blink 1s ease-in-out infinite alternate;
 }
 .hud-sub-row {
-    font-size: 8px;
-    letter-spacing: 0.09em;
-    color: #94a3b8;
-    margin-top: 1px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    margin-top: 3px;
+    line-height: 1.2;
 }
 @keyframes hud-dot-blink {
     0% { opacity: 0.35; }

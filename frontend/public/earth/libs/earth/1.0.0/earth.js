@@ -83,6 +83,57 @@
     }
 
     /**
+     * Identifies the specific marine water body or geographical basin from coordinates.
+     */
+    function getWaterBody(lat, lon) {
+        // Specific gulfs & bays
+        if (lat >= 22.0 && lat <= 23.6 && lon >= 68.5 && lon <= 70.8) {
+            return "Gulf of Kutch";
+        }
+        if (lat >= 20.5 && lat <= 22.3 && lon >= 71.8 && lon <= 73.2) {
+            return "Gulf of Khambhat";
+        }
+        if (lat >= 22.0 && lat <= 26.0 && lon >= 56.0 && lon <= 61.0) {
+            return "Gulf of Oman";
+        }
+        if (lat >= 8.2 && lat <= 9.8 && lon >= 78.2 && lon <= 79.8) {
+            return "Gulf of Mannar";
+        }
+        if (lat >= 9.8 && lat <= 10.5 && lon >= 79.0 && lon <= 80.2) {
+            return "Palk Strait";
+        }
+        // Andaman Sea (east of Andaman-Nicobar archipelago)
+        if (lat >= 6.0 && lat <= 16.0 && lon >= 92.2 && lon <= 99.0) {
+            return "Andaman Sea";
+        }
+        // Lakshadweep Sea
+        if (lat >= 8.5 && lat <= 14.0 && lon >= 71.2 && lon <= 74.5) {
+            return "Lakshadweep Sea";
+        }
+        // Maldives Waters
+        if (lat >= 0.0 && lat <= 8.5 && lon >= 71.0 && lon <= 74.5) {
+            return "Maldives Waters";
+        }
+        // South Sri Lanka Basin
+        if (lat >= 4.0 && lat <= 7.8 && lon >= 79.5 && lon <= 82.5) {
+            return "South Sri Lanka Basin";
+        }
+        // Bay of Bengal (east of India, longitude > 80.2°E)
+        if (lon > 80.2 && lon <= 93.0 && lat >= 5.0 && lat <= 24.0) {
+            return "Bay of Bengal";
+        }
+        // Arabian Sea (west of India, longitude 53°E to 78.5°E)
+        if (lon >= 53.0 && lon <= 78.5 && lat >= 7.0 && lat <= 26.0) {
+            return "Arabian Sea";
+        }
+        // Equatorial Indian Ocean
+        if (lat < 7.0 && lon >= 53.0 && lon <= 99.0) {
+            return "Equatorial Indian Ocean";
+        }
+        return "Indian Ocean";
+    }
+
+    /**
      * Maps user drag and zoom interactions to globe rotation.
      */
     function buildInputController() {
@@ -164,8 +215,9 @@
                     var lonStr = lon >= 0 ? lon.toFixed(2) + "°E" : Math.abs(lon).toFixed(2) + "°W";
                     d3.select("#cursor-lat").text(latStr);
                     d3.select("#cursor-lon").text(lonStr);
+                    d3.select("#cursor-region").text(getWaterBody(lat, lon));
                     hud.style("display", "block")
-                       .style("transform", "translate3d(" + (mouse[0] + 16) + "px, " + (mouse[1] + 16) + "px, 0)");
+                       .style("transform", "translate3d(" + (mouse[0] + 18) + "px, " + (mouse[1] + 18) + "px, 0)");
                 } else {
                     d3.select(this).style("cursor", "not-allowed");
                     hud.style("display", "none");
