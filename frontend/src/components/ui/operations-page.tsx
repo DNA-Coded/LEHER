@@ -614,18 +614,18 @@ export default function OperationsPage() {
 
           {/* HUD INTELLIGENCE MODE DROPDOWN */}
           <div className="space-y-1.5">
-            <div className="relative">
+            <div className="relative w-[160px]">
               <select
                 value={activeIntelOption}
                 onChange={(e) => setActiveIntelOption(e.target.value as IntelOption)}
                 className="w-full bg-[#141414] text-white text-xs font-mono font-bold rounded-lg px-3 py-2 border border-[#2a2a2a] hover:border-[#444444] focus:border-white/60 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
               >
-                <option value="all">⬡ All Intel</option>
-                <option value="cyclone">⚠ Cyclone Tracker</option>
-                <option value="ecosystem">⊕ Ecosystem Health</option>
-                <option value="fishing">◎ Fishing Advisory</option>
-                <option value="safezone">⬡ Safe Zone</option>
-                <option value="physics">◉ Physics Model</option>
+                <option value="all">All Intel</option>
+                <option value="cyclone">Cyclone</option>
+                <option value="ecosystem">Ecosystem</option>
+                <option value="fishing">Fishing</option>
+                <option value="safezone">Safe Zone</option>
+                <option value="physics">Physics</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
                 <ChevronDown className="w-3.5 h-3.5" />
