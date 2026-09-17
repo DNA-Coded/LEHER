@@ -612,97 +612,24 @@ export default function OperationsPage() {
             </div>
           </div>
 
-          {/* HIGH-IMPACT OPTION SELECTOR TABS (The core feature requested by user) */}
+          {/* HUD INTELLIGENCE MODE DROPDOWN */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 px-0.5">
-              <span className="uppercase tracking-wider font-bold text-white">HUD INTELLIGENCE OPTIONS</span>
-              <span className="text-neutral-500">Left Panel Mode</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-1 bg-[#101010] p-1 rounded-xl border border-[#222222]">
-              <button
-                type="button"
-                onClick={() => setActiveIntelOption('all')}
-                className={cn(
-                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
-                  activeIntelOption === 'all'
-                    ? "bg-white text-black shadow-md"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-                )}
+            <div className="relative">
+              <select
+                value={activeIntelOption}
+                onChange={(e) => setActiveIntelOption(e.target.value as IntelOption)}
+                className="w-full bg-[#141414] text-white text-xs font-mono font-bold rounded-lg px-3 py-2 border border-[#2a2a2a] hover:border-[#444444] focus:border-white/60 focus:outline-none cursor-pointer transition-all appearance-none pr-8"
               >
-                <Layers className="w-3 h-3" />
-                <span>All Intel</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveIntelOption('cyclone')}
-                className={cn(
-                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
-                  activeIntelOption === 'cyclone'
-                    ? "bg-white text-black shadow-md"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-                )}
-              >
-                <AlertTriangle className={cn("w-3 h-3", activeIntelOption === 'cyclone' ? "text-black" : "text-neutral-400")} />
-                <span>Cyclone</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveIntelOption('ecosystem')}
-                className={cn(
-                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
-                  activeIntelOption === 'ecosystem'
-                    ? "bg-white text-black shadow-md"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-                )}
-              >
-                <Leaf className={cn("w-3 h-3", activeIntelOption === 'ecosystem' ? "text-black" : "text-neutral-400")} />
-                <span>Eco Health</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveIntelOption('fishing')}
-                className={cn(
-                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
-                  activeIntelOption === 'fishing'
-                    ? "bg-white text-black shadow-md"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-                )}
-              >
-                <Fish className={cn("w-3 h-3", activeIntelOption === 'fishing' ? "text-black" : "text-neutral-400")} />
-                <span>Fishing</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveIntelOption('safezone')}
-                className={cn(
-                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
-                  activeIntelOption === 'safezone'
-                    ? "bg-white text-black shadow-md"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-                )}
-              >
-                <ShieldCheck className={cn("w-3 h-3", activeIntelOption === 'safezone' ? "text-black" : "text-neutral-400")} />
-                <span>Safe Zone</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveIntelOption('physics')}
-                className={cn(
-                  "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
-                  activeIntelOption === 'physics'
-                    ? "bg-white text-black shadow-md"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
-                )}
-              >
-                <Compass className={cn("w-3 h-3", activeIntelOption === 'physics' ? "text-black" : "text-neutral-400")} />
-                <span>Physics</span>
-              </button>
+                <option value="all">⬡ All Intel</option>
+                <option value="cyclone">⚠ Cyclone Tracker</option>
+                <option value="ecosystem">⊕ Ecosystem Health</option>
+                <option value="fishing">◎ Fishing Advisory</option>
+                <option value="safezone">⬡ Safe Zone</option>
+                <option value="physics">◉ Physics Model</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
             </div>
 
             {/* Quick 4-Metric Live Status Banner */}
