@@ -249,27 +249,21 @@ export default function OperationsPage() {
 
     // Tropical Cyclogenesis Energy Potential (SST 26.5°C threshold)
     let threatLevel: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' = 'LOW';
-    let riskColor = 'text-emerald-400';
-    let riskBg = 'bg-emerald-500/10 border-emerald-500/30';
+    let riskColor = 'text-white';
+    let riskBg = 'bg-[#161616] border-[#262626]';
     let badgeText = 'LOW CYCLONE RISK';
     let advisoryNote = 'Atmospheric-oceanic coupling is calm. Standard navigational watches apply.';
 
     if (sst >= 29.0 && currentSpeed > 0.8) {
       threatLevel = 'CRITICAL';
-      riskColor = 'text-rose-400';
-      riskBg = 'bg-rose-500/15 border-rose-500/40 animate-pulse';
       badgeText = 'CRITICAL THREAT';
       advisoryNote = 'Extreme heat reservoir detected with rapid hydrodynamic shear. High cyclogenesis probability.';
     } else if (sst >= 28.0 && currentSpeed > 0.4) {
       threatLevel = 'HIGH';
-      riskColor = 'text-amber-400';
-      riskBg = 'bg-amber-500/15 border-amber-500/35';
       badgeText = 'ELEVATED RISK';
       advisoryNote = 'SST exceeds 28°C threshold. Ocean thermal reservoir supportive of tropical depressions.';
     } else if (sst >= 26.5) {
       threatLevel = 'MODERATE';
-      riskColor = 'text-yellow-400';
-      riskBg = 'bg-yellow-500/10 border-yellow-500/30';
       badgeText = 'WATCH STATUS';
       advisoryNote = 'SST exceeds 26.5°C cyclonic threshold. Monitor regional barometric pressure gradients.';
     }
@@ -312,25 +306,17 @@ export default function OperationsPage() {
     score = Math.max(10, Math.min(100, Math.round(score)));
 
     let status: 'PRISTINE' | 'HEALTHY' | 'MODERATE STRESS' | 'VULNERABLE' = 'HEALTHY';
-    let statusColor = 'text-emerald-400';
-    let barColor = 'bg-emerald-500';
+    let statusColor = 'text-white';
+    let barColor = 'bg-white/80';
 
     if (score >= 85) {
       status = 'PRISTINE';
-      statusColor = 'text-emerald-400';
-      barColor = 'bg-emerald-400';
     } else if (score >= 70) {
       status = 'HEALTHY';
-      statusColor = 'text-teal-400';
-      barColor = 'bg-teal-400';
     } else if (score >= 50) {
       status = 'MODERATE STRESS';
-      statusColor = 'text-amber-400';
-      barColor = 'bg-amber-400';
     } else {
       status = 'VULNERABLE';
-      statusColor = 'text-rose-400';
-      barColor = 'bg-rose-400';
     }
 
     // Coral Bleaching Degree Heating Weeks (DHW) Proxy
@@ -367,21 +353,15 @@ export default function OperationsPage() {
     const optimalSalinity = salinity >= 34.0 && salinity <= 36.5;
 
     let rating: 'EXCELLENT' | 'HIGH' | 'MODERATE' | 'POOR' = 'MODERATE';
-    let ratingColor = 'text-emerald-400';
-    let ratingBg = 'bg-emerald-500/15 border-emerald-500/40';
+    let ratingColor = 'text-white';
+    let ratingBg = 'bg-[#161616] border-[#262626]';
 
     if (isUpwellingFront && optimalTemp && optimalSalinity) {
       rating = 'EXCELLENT';
-      ratingColor = 'text-emerald-400';
-      ratingBg = 'bg-emerald-500/20 border-emerald-400/50';
     } else if (optimalTemp && (isUpwellingFront || optimalSalinity)) {
       rating = 'HIGH';
-      ratingColor = 'text-cyan-400';
-      ratingBg = 'bg-cyan-500/15 border-cyan-400/40';
     } else if (sst > 29.5 || currentSpeed > 1.4) {
       rating = 'POOR';
-      ratingColor = 'text-rose-400';
-      ratingBg = 'bg-rose-500/15 border-rose-500/30';
     }
 
     // Commercial species forecast based on thermal layer
@@ -431,25 +411,16 @@ export default function OperationsPage() {
     safetyScore = Math.max(10, Math.min(100, safetyScore));
 
     let status: 'SAFE ZONE' | 'CAUTION ZONE' | 'HAZARDOUS / RESTRICTED' = 'SAFE ZONE';
-    let statusColor = 'text-emerald-400';
-    let statusBg = 'bg-emerald-500/10 border-emerald-500/30';
-    let iconColor = 'text-emerald-400';
+    let statusColor = 'text-white';
+    let statusBg = 'bg-[#161616] border-[#262626]';
+    let iconColor = 'text-neutral-400';
 
     if (safetyScore >= 78) {
       status = 'SAFE ZONE';
-      statusColor = 'text-emerald-400';
-      statusBg = 'bg-emerald-500/10 border-emerald-500/30';
-      iconColor = 'text-emerald-400';
     } else if (safetyScore >= 50) {
       status = 'CAUTION ZONE';
-      statusColor = 'text-amber-400';
-      statusBg = 'bg-amber-500/10 border-amber-500/30';
-      iconColor = 'text-amber-400';
     } else {
       status = 'HAZARDOUS / RESTRICTED';
-      statusColor = 'text-rose-400';
-      statusBg = 'bg-rose-500/15 border-rose-500/40 animate-pulse';
-      iconColor = 'text-rose-400';
     }
 
     const underwaterVisibility = mld > 35 ? 'Clear Acoustic & Optical (>45m)' : 'Moderate Turbidity (15-30m)';
@@ -539,7 +510,7 @@ export default function OperationsPage() {
               : "text-[#888888] hover:text-white"
           )}
         >
-          <Activity className="w-3.5 h-3.5 text-cyan-400" />
+          <Activity className="w-3.5 h-3.5 text-neutral-400" />
           <span>HUD Intel</span>
         </button>
         <button
@@ -552,7 +523,7 @@ export default function OperationsPage() {
               : "text-[#888888] hover:text-white"
           )}
         >
-          <MapIcon className="w-3.5 h-3.5 text-sky-400" />
+          <MapIcon className="w-3.5 h-3.5 text-neutral-400" />
           <span>3D Map</span>
         </button>
         <button
@@ -565,25 +536,25 @@ export default function OperationsPage() {
               : "text-[#888888] hover:text-white"
           )}
         >
-          <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+          <Sliders className="w-3.5 h-3.5 text-neutral-400" />
           <span>Operations</span>
         </button>
       </div>
 
       {/* MAIN WORKSPACE: 3-COLUMN SYMMETRIC LAYOUT (LEFT FIXED PANEL | CENTER 3D MAP | RIGHT FIXED PANEL) */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
-        {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY */}
+        {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY (MATCHING RIGHT PANEL SPACING & WIDTH) */}
         <div className={cn(
-          "w-full lg:w-[380px] xl:w-[410px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3.5 space-y-2.5 z-20 shadow-2xl shrink-0 overflow-y-auto max-h-none lg:max-h-full",
+          "w-full lg:w-[370px] xl:w-[390px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
           activeMobileTab === 'hud' ? "flex-1 block" : "hidden lg:block"
         )}>
           {/* Header */}
-          <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
+          <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+              <Activity className="w-3.5 h-3.5 text-neutral-400" />
               <span>MARITIME INTELLIGENCE HUD</span>
             </h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#161616] border border-[#262626] text-neutral-400">
               LIVE SENSORS
             </span>
           </div>
@@ -612,7 +583,7 @@ export default function OperationsPage() {
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
               <span className="uppercase tracking-wide">OPERATIONAL ASSESSMENT</span>
-              <span className="text-emerald-400 font-bold text-[10px] font-mono">
+              <span className="text-white font-bold text-[10px] font-mono">
                 {prediction.summary.riskStatus}
               </span>
             </div>
@@ -649,11 +620,11 @@ export default function OperationsPage() {
                 className={cn(
                   "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
                   activeIntelOption === 'cyclone'
-                    ? "bg-rose-500 text-white shadow-md shadow-rose-500/20"
-                    : "text-neutral-400 hover:text-rose-300 hover:bg-rose-500/10"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
                 )}
               >
-                <AlertTriangle className="w-3 h-3 text-rose-400" />
+                <AlertTriangle className={cn("w-3 h-3", activeIntelOption === 'cyclone' ? "text-black" : "text-neutral-400")} />
                 <span>Cyclone</span>
               </button>
 
@@ -663,11 +634,11 @@ export default function OperationsPage() {
                 className={cn(
                   "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
                   activeIntelOption === 'ecosystem'
-                    ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/20"
-                    : "text-neutral-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
                 )}
               >
-                <Leaf className="w-3 h-3 text-emerald-400" />
+                <Leaf className={cn("w-3 h-3", activeIntelOption === 'ecosystem' ? "text-black" : "text-neutral-400")} />
                 <span>Eco Health</span>
               </button>
 
@@ -677,11 +648,11 @@ export default function OperationsPage() {
                 className={cn(
                   "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
                   activeIntelOption === 'fishing'
-                    ? "bg-sky-500 text-black shadow-md shadow-sky-500/20"
-                    : "text-neutral-400 hover:text-sky-300 hover:bg-sky-500/10"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
                 )}
               >
-                <Fish className="w-3 h-3 text-sky-400" />
+                <Fish className={cn("w-3 h-3", activeIntelOption === 'fishing' ? "text-black" : "text-neutral-400")} />
                 <span>Fishing</span>
               </button>
 
@@ -691,11 +662,11 @@ export default function OperationsPage() {
                 className={cn(
                   "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
                   activeIntelOption === 'safezone'
-                    ? "bg-emerald-400 text-black shadow-md shadow-emerald-400/20"
-                    : "text-neutral-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
                 )}
               >
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <ShieldCheck className={cn("w-3 h-3", activeIntelOption === 'safezone' ? "text-black" : "text-neutral-400")} />
                 <span>Safe Zone</span>
               </button>
 
@@ -705,11 +676,11 @@ export default function OperationsPage() {
                 className={cn(
                   "py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center gap-1 transition-all cursor-pointer",
                   activeIntelOption === 'physics'
-                    ? "bg-cyan-500 text-black shadow-md shadow-cyan-500/20"
-                    : "text-neutral-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
                 )}
               >
-                <Compass className="w-3 h-3 text-cyan-400" />
+                <Compass className={cn("w-3 h-3", activeIntelOption === 'physics' ? "text-black" : "text-neutral-400")} />
                 <span>Physics</span>
               </button>
             </div>
@@ -721,11 +692,11 @@ export default function OperationsPage() {
                 onClick={() => setActiveIntelOption('cyclone')}
                 className={cn(
                   "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
-                  activeIntelOption === 'cyclone' ? "border-rose-400 bg-rose-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                  activeIntelOption === 'cyclone' ? "border-white/80 bg-[#222222]" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
                 )}
               >
                 <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Cyclone</div>
-                <div className={`text-[10px] font-bold font-mono truncate ${cycloneTrackerData.riskColor}`}>
+                <div className="text-[10px] font-bold font-mono truncate text-white">
                   {cycloneTrackerData.threatLevel}
                 </div>
               </button>
@@ -735,11 +706,11 @@ export default function OperationsPage() {
                 onClick={() => setActiveIntelOption('ecosystem')}
                 className={cn(
                   "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
-                  activeIntelOption === 'ecosystem' ? "border-emerald-400 bg-emerald-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                  activeIntelOption === 'ecosystem' ? "border-white/80 bg-[#222222]" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
                 )}
               >
                 <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Eco Score</div>
-                <div className={`text-[10px] font-bold font-mono truncate ${ecosystemHealthData.statusColor}`}>
+                <div className="text-[10px] font-bold font-mono truncate text-white">
                   {ecosystemHealthData.score}%
                 </div>
               </button>
@@ -749,11 +720,11 @@ export default function OperationsPage() {
                 onClick={() => setActiveIntelOption('fishing')}
                 className={cn(
                   "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
-                  activeIntelOption === 'fishing' ? "border-sky-400 bg-sky-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                  activeIntelOption === 'fishing' ? "border-white/80 bg-[#222222]" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
                 )}
               >
                 <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Fishing</div>
-                <div className={`text-[10px] font-bold font-mono truncate ${fishingAdvisoryData.ratingColor}`}>
+                <div className="text-[10px] font-bold font-mono truncate text-white">
                   {fishingAdvisoryData.rating}
                 </div>
               </button>
@@ -763,11 +734,11 @@ export default function OperationsPage() {
                 onClick={() => setActiveIntelOption('safezone')}
                 className={cn(
                   "p-1.5 rounded-lg border text-center transition-all cursor-pointer",
-                  activeIntelOption === 'safezone' ? "border-emerald-400 bg-emerald-500/20" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
+                  activeIntelOption === 'safezone' ? "border-white/80 bg-[#222222]" : "border-[#222222] bg-[#141414] hover:border-neutral-700"
                 )}
               >
                 <div className="text-[8px] font-mono text-neutral-400 uppercase truncate">Safe Zone</div>
-                <div className={`text-[10px] font-bold font-mono truncate ${safeZoneData.statusColor}`}>
+                <div className="text-[10px] font-bold font-mono truncate text-white">
                   {safeZoneData.status === 'SAFE ZONE' ? 'SAFE' : safeZoneData.status === 'CAUTION ZONE' ? 'CAUTION' : 'ALERT'}
                 </div>
               </button>
@@ -781,24 +752,21 @@ export default function OperationsPage() {
             <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                  <AlertTriangle className="w-3.5 h-3.5 text-neutral-400" />
                   HAZARD &amp; CYCLONE TRACKER
                 </span>
-                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${cycloneTrackerData.riskBg} ${cycloneTrackerData.riskColor}`}>
+                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
                   {cycloneTrackerData.badgeText}
                 </span>
               </div>
 
               {/* Status Banner */}
-              <div className={cn("rounded-lg border p-2.5 space-y-2", cycloneTrackerData.riskBg)}>
+              <div className="rounded-lg border border-[#222222] bg-[#161616] p-2.5 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", cycloneTrackerData.threatLevel === 'LOW' ? 'bg-emerald-400' : 'bg-rose-400')} />
-                      <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", cycloneTrackerData.threatLevel === 'LOW' ? 'bg-emerald-500' : 'bg-rose-500')} />
-                    </span>
+                    <span className="h-2 w-2 rounded-full bg-white/70 inline-block" />
                     <span className="text-xs font-bold text-white tracking-tight">
-                      Cyclogenesis Risk: <span className={cycloneTrackerData.riskColor}>{cycloneTrackerData.threatLevel}</span>
+                      Cyclogenesis Risk: <span className="text-white">{cycloneTrackerData.threatLevel}</span>
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-neutral-400">TCHP: {cycloneTrackerData.tchp} kJ/cm²</span>
@@ -847,7 +815,7 @@ export default function OperationsPage() {
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-neutral-400">Vessel Evacuation Window</span>
-                    <span className="text-emerald-400 font-mono text-[10px]">{cycloneTrackerData.evacuationWindow}</span>
+                    <span className="text-white font-mono text-[10px]">{cycloneTrackerData.evacuationWindow}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-neutral-400">Basin Cyclone History</span>
@@ -863,10 +831,10 @@ export default function OperationsPage() {
             <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <Leaf className="w-3.5 h-3.5 text-emerald-400" />
+                  <Leaf className="w-3.5 h-3.5 text-neutral-400" />
                   MARINE ECOSYSTEM HEALTH
                 </span>
-                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-emerald-500/10 border-emerald-500/30 ${ecosystemHealthData.statusColor}`}>
+                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
                   {ecosystemHealthData.status}
                 </span>
               </div>
@@ -875,20 +843,20 @@ export default function OperationsPage() {
               <div className="space-y-1.5 bg-[#161616] border border-[#222222] rounded-lg p-2.5">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-neutral-300 font-medium">Composite Ocean Health Index</span>
-                  <span className={`font-mono font-bold ${ecosystemHealthData.statusColor}`}>
+                  <span className="font-mono font-bold text-white">
                     {ecosystemHealthData.score} / 100
                   </span>
                 </div>
                 <div className="w-full h-2 bg-[#0c0c0c] rounded-full overflow-hidden p-0.5 border border-white/5">
                   <div
-                    className={cn("h-full rounded-full transition-all duration-700", ecosystemHealthData.barColor)}
+                    className="h-full rounded-full bg-white/80 transition-all duration-700"
                     style={{ width: `${ecosystemHealthData.score}%` }}
                   />
                 </div>
                 <div className="flex justify-between text-[9px] font-mono text-neutral-500 pt-0.5">
                   <span>Degraded</span>
                   <span>Moderate</span>
-                  <span className="text-emerald-400">Pristine Marine</span>
+                  <span className="text-neutral-400">Pristine Marine</span>
                 </div>
               </div>
 
@@ -902,13 +870,13 @@ export default function OperationsPage() {
 
                 <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
                   <div className="text-[9px] text-neutral-400 font-mono">PRIMARY PROD.</div>
-                  <div className="text-[11px] font-bold text-emerald-400 truncate">{ecosystemHealthData.primaryProd.split(' ')[0]}</div>
+                  <div className="text-[11px] font-bold text-white truncate">{ecosystemHealthData.primaryProd.split(' ')[0]}</div>
                   <div className="text-[8px] text-neutral-500 truncate">Chlorophyll Proxy</div>
                 </div>
 
                 <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
                   <div className="text-[9px] text-neutral-400 font-mono">OXYGEN STATE</div>
-                  <div className="text-[11px] font-bold text-cyan-300 truncate">{ecosystemHealthData.hypoxiaStatus.split(' ')[0]}</div>
+                  <div className="text-[11px] font-bold text-white truncate">{ecosystemHealthData.hypoxiaStatus.split(' ')[0]}</div>
                   <div className="text-[8px] text-neutral-500 truncate">{workbenchDepth > 150 ? 'Subsurface OMZ' : 'Aerated Epipelagic'}</div>
                 </div>
               </div>
@@ -938,10 +906,10 @@ export default function OperationsPage() {
             <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <Fish className="w-3.5 h-3.5 text-sky-400" />
+                  <Fish className="w-3.5 h-3.5 text-neutral-400" />
                   FISHING ADVISORY (PFZ)
                 </span>
-                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${fishingAdvisoryData.ratingBg} ${fishingAdvisoryData.ratingColor}`}>
+                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
                   {fishingAdvisoryData.rating} POTENTIAL
                 </span>
               </div>
@@ -953,7 +921,7 @@ export default function OperationsPage() {
                     <div className="text-[9px] text-neutral-400 font-mono">TARGET COMMERCIAL SPECIES</div>
                     <div className="text-xs font-bold text-white mt-0.5">{fishingAdvisoryData.species}</div>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 whitespace-nowrap">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1e1e1e] text-neutral-300 border border-[#2e2e2e] whitespace-nowrap">
                     PFZ Active
                   </span>
                 </div>
@@ -972,7 +940,7 @@ export default function OperationsPage() {
 
                 <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
                   <div className="text-[9px] text-neutral-400 font-mono">OPTIMAL HORIZON</div>
-                  <div className="text-[11px] font-bold text-sky-300 truncate">{fishingAdvisoryData.optimalDepthHorizon}</div>
+                  <div className="text-[11px] font-bold text-white truncate">{fishingAdvisoryData.optimalDepthHorizon}</div>
                   <div className="text-[8px] text-neutral-500">Feed Layer Depth</div>
                 </div>
               </div>
@@ -986,7 +954,7 @@ export default function OperationsPage() {
                   </div>
                   <div className="flex justify-between text-neutral-400">
                     <span>Plankton Concentration</span>
-                    <span className="text-emerald-400 font-mono text-[10px]">{fishingAdvisoryData.feedingAggregation}</span>
+                    <span className="text-white font-mono text-[10px]">{fishingAdvisoryData.feedingAggregation}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
                     <span>Artisanal Vessel Suitability</span>
@@ -1002,19 +970,19 @@ export default function OperationsPage() {
             <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                 <span className="uppercase tracking-wide flex items-center gap-1.5 font-bold text-white">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-neutral-400" />
                   SAFE ZONE &amp; NAVIGATION ENVELOPE
                 </span>
-                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[9px] border ${safeZoneData.statusBg} ${safeZoneData.statusColor}`}>
+                <span className="px-2 py-0.5 rounded font-mono font-bold text-[9px] border bg-[#161616] border-[#262626] text-neutral-300">
                   {safeZoneData.status}
                 </span>
               </div>
 
               {/* Safe Zone Alert Box */}
-              <div className={cn("rounded-lg border p-2.5 space-y-1.5", safeZoneData.statusBg)}>
+              <div className="rounded-lg border border-[#222222] bg-[#161616] p-2.5 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />
                     <span>Maritime Envelope: {safeZoneData.safetyScore}%</span>
                   </span>
                   <span className="text-[10px] font-mono text-neutral-400">{safeZoneData.navigationalMargin}</span>
@@ -1040,7 +1008,7 @@ export default function OperationsPage() {
 
                 <div className="bg-[#161616] border border-[#222222] rounded-lg p-2 space-y-0.5">
                   <div className="text-[9px] text-neutral-400 font-mono">SAR DRIFT RISK</div>
-                  <div className="text-[11px] font-bold text-emerald-400 truncate">{safeZoneData.sarRisk.split(' ')[0]}</div>
+                  <div className="text-[11px] font-bold text-white truncate">{safeZoneData.sarRisk.split(' ')[0]}</div>
                   <div className="text-[8px] text-neutral-500">Stable Boundary</div>
                 </div>
               </div>
@@ -1054,7 +1022,7 @@ export default function OperationsPage() {
                   </div>
                   <div className="flex justify-between text-neutral-400">
                     <span>Underwater Acoustic Transmission</span>
-                    <span className="text-emerald-400 font-mono text-[10px]">{safeZoneData.underwaterVisibility}</span>
+                    <span className="text-white font-mono text-[10px]">{safeZoneData.underwaterVisibility}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
                     <span>Emergency Shelter Corridor</span>
@@ -1072,7 +1040,7 @@ export default function OperationsPage() {
               <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
                   <span className="uppercase tracking-wide flex items-center gap-1.5 text-white font-bold">
-                    <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                    <Compass className="w-3.5 h-3.5 text-neutral-400" />
                     HYDRODYNAMIC METRICS
                   </span>
                   <span className="text-neutral-400 font-mono">PHYSICAL MODEL</span>
@@ -1153,7 +1121,7 @@ export default function OperationsPage() {
               <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
                   <span className="uppercase tracking-wide flex items-center gap-1.5 text-white font-bold">
-                    <Radio className="w-3.5 h-3.5 text-sky-400" />
+                    <Radio className="w-3.5 h-3.5 text-neutral-400" />
                     ACOUSTIC &amp; SENSOR INTEL
                   </span>
                   <span className="text-neutral-400 font-mono">SONAR / SVP</span>
