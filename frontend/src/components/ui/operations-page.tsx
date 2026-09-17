@@ -46,6 +46,20 @@ export default function OperationsPage() {
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
 
+  const handleLatBlur = () => {
+    let lat = inputLat;
+    if (lat < 4) lat = 4;
+    if (lat > 25) lat = 25;
+    setInputLat(lat);
+  };
+
+  const handleLonBlur = () => {
+    let lon = inputLon;
+    if (lon < 53) lon = 53;
+    if (lon > 99) lon = 99;
+    setInputLon(lon);
+  };
+
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
     { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
@@ -566,10 +580,11 @@ export default function OperationsPage() {
                 <input
                   type="number"
                   step="0.01"
-                  min="-90"
-                  max="90"
+                  min="4"
+                  max="25"
                   value={inputLat}
                   onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
+                  onBlur={handleLatBlur}
                   className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
                   placeholder="15.40"
                 />
@@ -586,10 +601,11 @@ export default function OperationsPage() {
                 <input
                   type="number"
                   step="0.01"
-                  min="-180"
-                  max="180"
+                  min="53"
+                  max="99"
                   value={inputLon}
                   onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
+                  onBlur={handleLonBlur}
                   className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
                   placeholder="71.20"
                 />
@@ -603,19 +619,25 @@ export default function OperationsPage() {
             <div className="grid grid-cols-4 gap-1 pt-0.5">
               {LOCATION_PRESETS.map((loc) => {
                 const isSelected = Math.abs(inputLat - loc.lat) < 0.05 && Math.abs(inputLon - loc.lon) < 0.05;
+                const isOutOfBounds = loc.lat < 4 || loc.lat > 25 || loc.lon < 53 || loc.lon > 99;
                 return (
                   <button
                     key={loc.label}
                     type="button"
+                    disabled={isOutOfBounds}
                     onClick={() => {
+                      if (isOutOfBounds) return;
                       setInputLat(loc.lat);
                       setInputLon(loc.lon);
                     }}
+                    title={isOutOfBounds ? `${loc.label} is outside data coverage (4°N–25°N, 53°–99°E)` : loc.label}
                     className={cn(
-                      "px-1.5 py-1 rounded-lg text-[10px] border transition-all cursor-pointer text-center truncate font-sans",
-                      isSelected
-                        ? "bg-white text-black font-semibold border-white"
-                        : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333]"
+                      "px-1.5 py-1 rounded-lg text-[10px] border transition-all text-center truncate font-sans",
+                      isOutOfBounds
+                        ? "opacity-30 border-[#1a1a1a] bg-[#111111] text-[#555555] cursor-not-allowed"
+                        : isSelected
+                        ? "bg-white text-black font-semibold border-white cursor-pointer"
+                        : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333] cursor-pointer"
                     )}
                   >
                     {loc.label}
