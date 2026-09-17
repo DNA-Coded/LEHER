@@ -568,8 +568,8 @@ export default function OperationsPage() {
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* LEFT DOCKED PANEL: MARITIME INTELLIGENCE & OCEAN TELEMETRY (MATCHING RIGHT PANEL SPACING & WIDTH) */}
         <div className={cn(
-          "w-full lg:w-[310px] xl:w-[330px] lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3 space-y-2.5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
-          activeMobileTab === 'hud' ? "flex-1 block" : "hidden lg:block"
+          "w-full lg:w-[310px] xl:w-[320px] lg:flex-none lg:h-full bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-3 space-y-2.5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full min-w-0",
+          activeMobileTab === 'hud' ? "flex-1 block lg:flex-none" : "hidden lg:block"
         )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
@@ -1114,7 +1114,7 @@ export default function OperationsPage() {
 
         {/* CENTER COLUMN: 3D EARTH MAP (CENTERED IN THE PAGE) */}
         <div className={cn(
-          "flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[300px]",
+          "flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[300px] min-w-0",
           activeMobileTab === 'map' ? "block" : "hidden lg:block"
         )}>
           <iframe
@@ -1152,8 +1152,8 @@ export default function OperationsPage() {
 
         {/* RIGHT DOCKED PANEL: OPERATIONS & ANALYTICS WORKBENCH (EXACT SAME WIDTH & MATCHING CARDS) */}
         <div className={cn(
-          "w-full lg:w-[310px] xl:w-[330px] lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-3 space-y-2.5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full",
-          activeMobileTab === 'controls' ? "flex-1 block" : "hidden lg:block"
+          "w-full lg:w-[310px] xl:w-[320px] lg:flex-none lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-3 space-y-2.5 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full min-w-0",
+          activeMobileTab === 'controls' ? "flex-1 block lg:flex-none" : "hidden lg:block"
         )}>
           {/* Header */}
           <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
