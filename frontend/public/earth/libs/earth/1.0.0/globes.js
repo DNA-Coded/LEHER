@@ -45,7 +45,7 @@ var globes = function() {
         };
     }
 
-    var CONCENTRIC_BBOX = makeDenseBBox(20, -40, 130, 30, 0.5);
+    var CONCENTRIC_BBOX = makeDenseBBox(53, 4, 99, 25, 0.5);
 
     function standardGlobe() {
         return {
@@ -123,43 +123,138 @@ var globes = function() {
             defineMap: function(mapSvg, foregroundSvg) {
                 var path = d3.geo.path().projection(this.projection);
                 var defs = mapSvg.append("defs");
+
+                // Region boundary path
+                defs.append("path")
+                    .attr("id", "concentric-bounds")
+                    .datum(CONCENTRIC_BBOX)
+                    .attr("d", path);
+
+                defs.append("clipPath")
+                    .attr("id", "concentric-clip")
+                    .append("use")
+                    .attr("xlink:href", "#concentric-bounds");
+
+                var scanGrad = defs.append("linearGradient")
+                    .attr("id", "tactical-scanline-grad")
+                    .attr("x1", "0%").attr("y1", "0%")
+                    .attr("x2", "0%").attr("y2", "100%");
+                scanGrad.append("stop").attr("offset", "0%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+                scanGrad.append("stop").attr("offset", "50%").attr("stop-color", "#00f0ff").attr("stop-opacity", "0.35");
+                scanGrad.append("stop").attr("offset", "100%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+
                 defs.append("path")
                     .attr("id", "sphere")
                     .datum({type: "Sphere"})
                     .attr("d", path);
 
-                // Water / Ocean background sphere
+                // --- MONOCHROMATIC LAYER (Entire Globe/World Map) ---
                 mapSvg.append("use")
                     .attr("xlink:href", "#sphere")
-                    .attr("class", "background-sphere");
+                    .attr("class", "background-sphere mono-ocean");
 
-                // Landmasses
                 mapSvg.append("path")
-                    .attr("class", "land");
+                    .attr("class", "land mono-land");
 
-                // Coastlines
                 mapSvg.append("path")
-                    .attr("class", "coastline");
+                    .attr("class", "coastline mono-coastline");
 
-                // Lakes
                 mapSvg.append("path")
-                    .attr("class", "lakes");
+                    .attr("class", "lakes mono-lakes");
 
-                // Longitude & Latitude Graticule Grid
+                // Base Longitude & Latitude Graticule Grid (Muted)
                 mapSvg.append("path")
-                    .attr("class", "graticule")
+                    .attr("class", "graticule mono-graticule")
                     .datum(d3.geo.graticule().step([15, 15]))
                     .attr("d", path);
 
-                // Hemisphere Equator / Prime Meridian
+                // Base Hemisphere Equator / Prime Meridian (Muted)
                 mapSvg.append("path")
-                    .attr("class", "hemisphere")
+                    .attr("class", "hemisphere mono-hemisphere")
                     .datum(d3.geo.graticule().minorStep([0, 90]).majorStep([0, 90]))
                     .attr("d", path);
+
+                // --- COLORED ACTIVE LAYER (Group clipped strictly to Data Region) ---
+                var activeGroup = mapSvg.append("g")
+                    .attr("id", "concentric-active-layer")
+                    .attr("clip-path", "url(#concentric-clip)");
+
+                // Ocean fill inside the active data bounding box
+                activeGroup.append("use")
+                    .attr("xlink:href", "#concentric-bounds")
+                    .attr("class", "background-sphere concentric-ocean");
+
+                // Vibrant landmasses inside the active data region (India, Sri Lanka, etc.)
+                activeGroup.append("path")
+                    .attr("class", "land concentric-land");
+
+                // Vibrant coastlines inside the active data region
+                activeGroup.append("path")
+                    .attr("class", "coastline");
+
+                // Vibrant lakes inside the active data region
+                activeGroup.append("path")
+                    .attr("class", "lakes");
+
+                // Regional Graticule grid within this region
+                activeGroup.append("path")
+                    .attr("class", "graticule")
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .attr("d", path);
+
+                // Subtle sweeping tactical telemetry scan beam
+                activeGroup.append("rect")
+                    .attr("class", "tactical-scan-beam")
+                    .attr("x", -2000)
+                    .attr("y", -2000)
+                    .attr("width", 4000)
+                    .attr("height", 4000)
+                    .attr("fill", "url(#tactical-scanline-grad)");
+
+                // Distinct glowing region boundary border
+                mapSvg.append("use")
+                    .attr("xlink:href", "#concentric-bounds")
+                    .attr("class", "region-border");
 
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
+
+                // --- TACTICAL HUD SECTOR CORNERS & LABELS ---
+                var sectorHud = foregroundSvg.append("g")
+                    .attr("class", "sector-hud-overlay");
+
+                var corners = [
+                    { id: "nw", coord: [53, 25], label: "NW 25°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
+                    { id: "ne", coord: [99, 25], label: "NE 25°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
+                    { id: "se", coord: [99, 4],  label: "SE 4°N 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
+                    { id: "sw", coord: [53, 4],  label: "SW 4°N 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
+                ];
+
+                var proj = this.projection;
+                corners.forEach(function(c) {
+                    var pt = proj(c.coord);
+                    var isVis = pt && _.isFinite(pt[0]) && _.isFinite(pt[1]);
+                    var g = sectorHud.append("g")
+                        .attr("id", "corner-group-" + c.id)
+                        .attr("transform", "translate(" + (isVis ? pt[0] : -9999) + "," + (isVis ? pt[1] : -9999) + ")")
+                        .style("display", isVis ? null : "none");
+
+                    g.append("path")
+                        .attr("class", "sector-corner-bracket")
+                        .attr("d", c.path);
+
+                    g.append("circle")
+                        .attr("class", "sector-corner-dot")
+                        .attr("r", 2.5);
+
+                    g.append("text")
+                        .attr("class", "sector-corner-label")
+                        .attr("x", c.textDx)
+                        .attr("y", c.textDy)
+                        .attr("text-anchor", c.anchor)
+                        .text(c.label);
+                });
             }
         };
     }
@@ -174,17 +269,20 @@ var globes = function() {
 
     /**
      * Concentric regional projection specifically bounded from:
-     * Latitude: 40°S (-40°) to 30°N (+30°)
-     * Longitude: 20°E (+20°) to 130°E (+130°)
+     * Latitude: 4°N to 25°N
+     * Longitude: 53°E to 99°E
      * Concentric circular parallels and radial meridians, with only this region shown.
      */
     function concentricRegion(view) {
         return newGlobe({
+            isConcentric: true,
+            isBounded: true,
+            boundsGeo: { minLon: 53, maxLon: 99, minLat: 4, maxLat: 25 },
             newProjection: function(view) {
                 return d3.geo.conicEquidistant()
-                    .center([0, -5])
-                    .rotate([-75, 0])
-                    .parallels([0, 25])
+                    .center([0, 14.5])
+                    .rotate([-76, 0])
+                    .parallels([4, 25])
                     .precision(0.1);
             },
             bounds: function(view) {
@@ -223,7 +321,7 @@ var globes = function() {
                 var path = d3.geo.path().projection(this.projection);
                 var defs = mapSvg.append("defs");
 
-                // Region boundary path (40°S to 30°N, 20°E to 130°E)
+                // Region boundary path
                 defs.append("path")
                     .attr("id", "concentric-bounds")
                     .datum(CONCENTRIC_BBOX)
@@ -234,39 +332,76 @@ var globes = function() {
                     .append("use")
                     .attr("xlink:href", "#concentric-bounds");
 
-                // Normal vibrant water/ocean fill specifically for this region
+                var scanGrad = defs.append("linearGradient")
+                    .attr("id", "tactical-scanline-grad")
+                    .attr("x1", "0%").attr("y1", "0%")
+                    .attr("x2", "0%").attr("y2", "100%");
+                scanGrad.append("stop").attr("offset", "0%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+                scanGrad.append("stop").attr("offset", "50%").attr("stop-color", "#00f0ff").attr("stop-opacity", "0.35");
+                scanGrad.append("stop").attr("offset", "100%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+
+                // Full globe sphere for monochromatic background
+                defs.append("path")
+                    .attr("id", "mono-sphere")
+                    .datum({type: "Sphere"})
+                    .attr("d", path);
+
+                // --- MONOCHROMATIC LAYER (Entire Globe) ---
                 mapSvg.append("use")
+                    .attr("xlink:href", "#mono-sphere")
+                    .attr("class", "background-sphere mono-ocean");
+
+                mapSvg.append("path")
+                    .attr("class", "land mono-land");
+
+                mapSvg.append("path")
+                    .attr("class", "coastline mono-coastline");
+
+                mapSvg.append("path")
+                    .attr("class", "lakes mono-lakes");
+
+                // --- COLORED ACTIVE LAYER (Group clipped strictly to Data Region) ---
+                var activeGroup = mapSvg.append("g")
+                    .attr("id", "concentric-active-layer")
+                    .attr("clip-path", "url(#concentric-clip)");
+
+                // Ocean fill inside the active data bounding box
+                activeGroup.append("use")
                     .attr("xlink:href", "#concentric-bounds")
                     .attr("class", "background-sphere concentric-ocean");
 
-                // Normal vibrant landmasses clipped to this region only
-                mapSvg.append("path")
-                    .attr("class", "land concentric-land")
-                    .attr("clip-path", "url(#concentric-clip)");
+                // Vibrant landmasses inside the active data region (India, Sri Lanka, etc.)
+                activeGroup.append("path")
+                    .attr("class", "land concentric-land");
 
-                // Coastlines clipped to this region only
-                mapSvg.append("path")
-                    .attr("class", "coastline")
-                    .attr("clip-path", "url(#concentric-clip)");
+                // Vibrant coastlines inside the active data region
+                activeGroup.append("path")
+                    .attr("class", "coastline");
 
-                // Lakes clipped to this region only
-                mapSvg.append("path")
-                    .attr("class", "lakes")
-                    .attr("clip-path", "url(#concentric-clip)");
+                // Vibrant lakes inside the active data region
+                activeGroup.append("path")
+                    .attr("class", "lakes");
 
                 // Concentric Latitude & Longitude Graticule grid within this region
-                mapSvg.append("path")
+                activeGroup.append("path")
                     .attr("class", "graticule")
-                    .attr("clip-path", "url(#concentric-clip)")
-                    .datum(d3.geo.graticule().step([10, 10]).extent([[20, -40], [130, 30]]))
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
                     .attr("d", path);
 
                 // Equator and major division lines
-                mapSvg.append("path")
+                activeGroup.append("path")
                     .attr("class", "hemisphere")
-                    .attr("clip-path", "url(#concentric-clip)")
-                    .datum(d3.geo.graticule().minorStep([0, 10]).majorStep([0, 10]).extent([[20, -40], [130, 30]]))
+                    .datum(d3.geo.graticule().minorStep([0, 5]).majorStep([0, 5]).extent([[53, 4], [99, 25]]))
                     .attr("d", path);
+
+                // Subtle sweeping tactical telemetry scan beam
+                activeGroup.append("rect")
+                    .attr("class", "tactical-scan-beam")
+                    .attr("x", -2000)
+                    .attr("y", -2000)
+                    .attr("width", 4000)
+                    .attr("height", 4000)
+                    .attr("fill", "url(#tactical-scanline-grad)");
 
                 // Distinct glowing region boundary border
                 mapSvg.append("use")
@@ -276,6 +411,40 @@ var globes = function() {
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#concentric-bounds")
                     .attr("class", "foreground-sphere");
+
+                // --- TACTICAL HUD SECTOR CORNERS & LABELS ---
+                var sectorHud = foregroundSvg.append("g")
+                    .attr("class", "sector-hud-overlay");
+
+                var corners = [
+                    { id: "nw", coord: [53, 25], label: "NW 25°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
+                    { id: "ne", coord: [99, 25], label: "NE 25°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
+                    { id: "se", coord: [99, 4],  label: "SE 4°N 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
+                    { id: "sw", coord: [53, 4],  label: "SW 4°N 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
+                ];
+
+                var proj = this.projection;
+                corners.forEach(function(c) {
+                    var pt = proj(c.coord) || [0, 0];
+                    var g = sectorHud.append("g")
+                        .attr("id", "corner-group-" + c.id)
+                        .attr("transform", "translate(" + (pt ? pt[0] : 0) + "," + (pt ? pt[1] : 0) + ")");
+
+                    g.append("path")
+                        .attr("class", "sector-corner-bracket")
+                        .attr("d", c.path);
+
+                    g.append("circle")
+                        .attr("class", "sector-corner-dot")
+                        .attr("r", 2.5);
+
+                    g.append("text")
+                        .attr("class", "sector-corner-label")
+                        .attr("x", c.textDx)
+                        .attr("y", c.textDy)
+                        .attr("text-anchor", c.anchor)
+                        .text(c.label);
+                });
             }
         }, view);
     }
@@ -324,7 +493,26 @@ var globes = function() {
                 var path = d3.geo.path().projection(this.projection);
                 var defs = mapSvg.append("defs");
 
-                // Radial gradient for deep 3D ocean illumination
+                // Region boundary path for concentric clipping
+                defs.append("path")
+                    .attr("id", "concentric-bounds-ortho")
+                    .datum(CONCENTRIC_BBOX)
+                    .attr("d", path);
+
+                defs.append("clipPath")
+                    .attr("id", "concentric-clip-ortho")
+                    .append("use")
+                    .attr("xlink:href", "#concentric-bounds-ortho");
+
+                var scanGrad = defs.append("linearGradient")
+                    .attr("id", "tactical-scanline-grad-ortho")
+                    .attr("x1", "0%").attr("y1", "0%")
+                    .attr("x2", "0%").attr("y2", "100%");
+                scanGrad.append("stop").attr("offset", "0%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+                scanGrad.append("stop").attr("offset", "50%").attr("stop-color", "#00f0ff").attr("stop-opacity", "0.35");
+                scanGrad.append("stop").attr("offset", "100%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+
+                // Radial gradient for deep 3D ocean illumination (used as base)
                 var gradientFill = defs.append("radialGradient")
                     .attr("id", "orthographic-ocean-fill")
                     .attr("gradientUnits", "objectBoundingBox")
@@ -334,42 +522,72 @@ var globes = function() {
                 gradientFill.append("stop").attr("stop-color", "#070e1a").attr("offset", "100%");
 
                 defs.append("path")
-                    .attr("id", "sphere")
+                    .attr("id", "sphere-ortho")
                     .datum({type: "Sphere"})
                     .attr("d", path);
 
-                // Ocean water base
+                // --- MONOCHROMATIC LAYER ---
                 mapSvg.append("use")
-                    .attr("xlink:href", "#sphere")
+                    .attr("xlink:href", "#sphere-ortho")
                     .attr("fill", "url(#orthographic-ocean-fill)")
-                    .attr("class", "background-sphere");
+                    .attr("class", "background-sphere mono-ocean");
 
-                // Landmasses
                 mapSvg.append("path")
-                    .attr("class", "land");
+                    .attr("class", "land mono-land");
 
-                // Coastlines
                 mapSvg.append("path")
-                    .attr("class", "coastline");
+                    .attr("class", "coastline mono-coastline");
 
-                // Lakes
                 mapSvg.append("path")
-                    .attr("class", "lakes");
+                    .attr("class", "lakes mono-lakes");
 
-                // Latitude & Longitude Graticule lines
                 mapSvg.append("path")
-                    .attr("class", "graticule")
+                    .attr("class", "graticule mono-graticule")
                     .datum(d3.geo.graticule().step([15, 15]))
                     .attr("d", path);
 
-                // Major Hemisphere lines (Equator / Prime Meridian)
                 mapSvg.append("path")
-                    .attr("class", "hemisphere")
+                    .attr("class", "hemisphere mono-hemisphere")
                     .datum(d3.geo.graticule().minorStep([0, 90]).majorStep([0, 90]))
                     .attr("d", path);
 
+                // --- COLORED ACTIVE LAYER ---
+                var activeGroup = mapSvg.append("g")
+                    .attr("id", "ortho-active-layer")
+                    .attr("clip-path", "url(#concentric-clip-ortho)");
+
+                activeGroup.append("use")
+                    .attr("xlink:href", "#concentric-bounds-ortho")
+                    .attr("class", "background-sphere concentric-ocean");
+
+                activeGroup.append("path")
+                    .attr("class", "land concentric-land");
+
+                activeGroup.append("path")
+                    .attr("class", "coastline");
+
+                activeGroup.append("path")
+                    .attr("class", "lakes");
+
+                activeGroup.append("path")
+                    .attr("class", "graticule")
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .attr("d", path);
+
+                activeGroup.append("rect")
+                    .attr("class", "tactical-scan-beam")
+                    .attr("x", -2000)
+                    .attr("y", -2000)
+                    .attr("width", 4000)
+                    .attr("height", 4000)
+                    .attr("fill", "url(#tactical-scanline-grad-ortho)");
+
+                mapSvg.append("use")
+                    .attr("xlink:href", "#concentric-bounds-ortho")
+                    .attr("class", "region-border");
+
                 foregroundSvg.append("use")
-                    .attr("xlink:href", "#sphere")
+                    .attr("xlink:href", "#sphere-ortho")
                     .attr("class", "foreground-sphere");
             },
             locate: function(coord) {
@@ -398,39 +616,100 @@ var globes = function() {
             defineMap: function(mapSvg, foregroundSvg) {
                 var path = d3.geo.path().projection(this.projection);
                 var defs = mapSvg.append("defs");
+
+                // Region boundary path for concentric clipping
                 defs.append("path")
-                    .attr("id", "sphere")
+                    .attr("id", "concentric-bounds-water")
+                    .datum(CONCENTRIC_BBOX)
+                    .attr("d", path);
+
+                defs.append("clipPath")
+                    .attr("id", "concentric-clip-water")
+                    .append("use")
+                    .attr("xlink:href", "#concentric-bounds-water");
+
+                var scanGrad = defs.append("linearGradient")
+                    .attr("id", "tactical-scanline-grad-water")
+                    .attr("x1", "0%").attr("y1", "0%")
+                    .attr("x2", "0%").attr("y2", "100%");
+                scanGrad.append("stop").attr("offset", "0%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+                scanGrad.append("stop").attr("offset", "50%").attr("stop-color", "#00f0ff").attr("stop-opacity", "0.35");
+                scanGrad.append("stop").attr("offset", "100%").attr("stop-color", "#38bdf8").attr("stop-opacity", "0");
+
+                defs.append("path")
+                    .attr("id", "sphere-water")
                     .datum({type: "Sphere"})
                     .attr("d", path);
+
                 defs.append("clipPath")
-                    .attr("id", "clip")
+                    .attr("id", "clip-water")
                     .append("use")
-                    .attr("xlink:href", "#sphere");
+                    .attr("xlink:href", "#sphere-water");
 
+                // --- MONOCHROMATIC LAYER ---
                 mapSvg.append("use")
-                    .attr("xlink:href", "#sphere")
-                    .attr("class", "background-sphere");
+                    .attr("xlink:href", "#sphere-water")
+                    .attr("class", "background-sphere mono-ocean");
 
                 mapSvg.append("path")
-                    .attr("class", "land")
-                    .attr("clip-path", "url(#clip)");
+                    .attr("class", "land mono-land")
+                    .attr("clip-path", "url(#clip-water)");
 
                 mapSvg.append("path")
-                    .attr("class", "coastline")
-                    .attr("clip-path", "url(#clip)");
+                    .attr("class", "coastline mono-coastline")
+                    .attr("clip-path", "url(#clip-water)");
 
                 mapSvg.append("path")
-                    .attr("class", "lakes")
-                    .attr("clip-path", "url(#clip)");
+                    .attr("class", "lakes mono-lakes")
+                    .attr("clip-path", "url(#clip-water)");
 
                 mapSvg.append("path")
-                    .attr("class", "graticule")
-                    .attr("clip-path", "url(#clip)")
+                    .attr("class", "graticule mono-graticule")
+                    .attr("clip-path", "url(#clip-water)")
                     .datum(d3.geo.graticule().step([15, 15]))
                     .attr("d", path);
 
+                // --- COLORED ACTIVE LAYER ---
+                var activeGroup = mapSvg.append("g")
+                    .attr("id", "water-active-layer")
+                    .attr("clip-path", "url(#concentric-clip-water)");
+
+                activeGroup.append("use")
+                    .attr("xlink:href", "#concentric-bounds-water")
+                    .attr("class", "background-sphere concentric-ocean");
+
+                activeGroup.append("path")
+                    .attr("class", "land concentric-land")
+                    .attr("clip-path", "url(#clip-water)");
+
+                activeGroup.append("path")
+                    .attr("class", "coastline")
+                    .attr("clip-path", "url(#clip-water)");
+
+                activeGroup.append("path")
+                    .attr("class", "lakes")
+                    .attr("clip-path", "url(#clip-water)");
+
+                activeGroup.append("path")
+                    .attr("class", "graticule")
+                    .attr("clip-path", "url(#clip-water)")
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .attr("d", path);
+
+                activeGroup.append("rect")
+                    .attr("class", "tactical-scan-beam")
+                    .attr("x", -2000)
+                    .attr("y", -2000)
+                    .attr("width", 4000)
+                    .attr("height", 4000)
+                    .attr("fill", "url(#tactical-scanline-grad-water)");
+
+                mapSvg.append("use")
+                    .attr("xlink:href", "#concentric-bounds-water")
+                    .attr("class", "region-border");
+
                 foregroundSvg.append("use")
-                    .attr("xlink:href", "#sphere")
+                    .attr("xlink:href", "#sphere-water")
                     .attr("class", "foreground-sphere");
             }
         }, view);

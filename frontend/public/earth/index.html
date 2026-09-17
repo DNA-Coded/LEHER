@@ -37,6 +37,16 @@
     <div id="display">
         <svg id="map" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
         <svg id="foreground" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
+
+        <!-- Dynamic Floating Coordinate Cursor HUD Chip -->
+        <div id="cursor-hud" class="cursor-hud-chip" style="display: none;">
+            <div class="hud-coords-row">
+                <span class="hud-dot"></span>
+                <span id="cursor-lat">--</span>
+                <span id="cursor-lon">--</span>
+            </div>
+            <div class="hud-sub-row">LIVE DATA SECTOR • COPERNICUS</div>
+        </div>
     </div>
 
 

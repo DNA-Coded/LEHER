@@ -32,6 +32,17 @@ html, body {
     height: 100vh;
     background: #000000;
     cursor: grab;
+    overflow: hidden;
+}
+
+/* Subtle Tactical Mission Vignette Overlay */
+#display::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 35%, rgba(2, 6, 23, 0.45) 75%, rgba(2, 6, 23, 0.85) 100%);
+    z-index: 5;
 }
 
 #display:active {
@@ -131,20 +142,137 @@ svg {
 .location-mark {
     stroke: #00f0ff;
     stroke-width: 2.5;
-    fill: rgba(0, 240, 255, 0.35);
-    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.9));
+    fill: rgba(0, 240, 255, 0.45);
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.95));
     animation: marker-pulse 1.6s ease-in-out infinite alternate;
 }
 
 @keyframes marker-pulse {
     0% {
         stroke-width: 2.0;
-        fill: rgba(0, 240, 255, 0.2);
+        fill: rgba(0, 240, 255, 0.3);
     }
     100% {
         stroke-width: 4.0;
-        fill: rgba(0, 240, 255, 0.55);
+        fill: rgba(0, 240, 255, 0.65);
     }
+}
+
+/* Tactical Sonar Ping & Ripple Rings */
+.sonar-pulse-ring {
+    fill: none;
+    stroke: #00f0ff;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px #00f0ff);
+}
+.sonar-ring-1 {
+    animation: sonar-ripple 2.4s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
+}
+.sonar-ring-2 {
+    animation: sonar-ripple 2.4s cubic-bezier(0.1, 0.4, 0.2, 1) 1.2s infinite;
+}
+
+@keyframes sonar-ripple {
+    0% {
+        r: 6px;
+        opacity: 0.95;
+        stroke-width: 2.2px;
+    }
+    100% {
+        r: 52px;
+        opacity: 0;
+        stroke-width: 0.5px;
+    }
+}
+
+/* Tactical Sector Corner Brackets & Badges */
+.sector-corner-bracket {
+    fill: none;
+    stroke: #38bdf8;
+    stroke-width: 2.0px;
+    stroke-linecap: square;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+}
+.sector-corner-dot {
+    fill: #00f0ff;
+    stroke: #0284c7;
+    stroke-width: 1px;
+    filter: drop-shadow(0 0 4px #00f0ff);
+}
+.sector-corner-label {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    fill: #38bdf8;
+    letter-spacing: 0.08em;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.9));
+    pointer-events: none;
+}
+
+/* Tactical Scanning Telemetry Beam */
+.tactical-scan-beam {
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.22;
+    animation: scan-beam-pass 8s ease-in-out infinite;
+}
+
+@keyframes scan-beam-pass {
+    0% {
+        transform: translateY(-80%);
+    }
+    50% {
+        transform: translateY(80%);
+    }
+    100% {
+        transform: translateY(-80%);
+    }
+}
+
+/* Floating Live Coordinate Cursor HUD Chip */
+.cursor-hud-chip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 100;
+    padding: 5px 9px;
+    background: rgba(6, 11, 20, 0.92);
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), 0 0 12px rgba(56, 189, 248, 0.25);
+    border-radius: 7px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+    color: #e2e8f0;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+}
+.hud-coords-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: #38bdf8;
+}
+.hud-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #00f0ff;
+    box-shadow: 0 0 6px #00f0ff;
+    animation: hud-dot-blink 1s ease-in-out infinite alternate;
+}
+.hud-sub-row {
+    font-size: 8px;
+    letter-spacing: 0.09em;
+    color: #94a3b8;
+    margin-top: 1px;
+}
+@keyframes hud-dot-blink {
+    0% { opacity: 0.35; }
+    100% { opacity: 1; }
 }
 
 /**************************************************************************************************
@@ -438,4 +566,31 @@ svg {
     .dock-label {
         display: none;
     }
+}
+
+/* Monochromatic Base Layer (Disabled/Out of Bounds) */
+.mono-ocean {
+    fill: #11151a !important;
+}
+.mono-land {
+    fill: #1e293b !important;
+}
+.mono-coastline {
+    stroke: #334155 !important;
+    stroke-opacity: 0.5;
+}
+.mono-lakes {
+    fill: #11151a !important;
+    stroke: #334155 !important;
+    stroke-opacity: 0.5;
+}
+.mono-graticule {
+    stroke: rgba(148, 163, 184, 0.12) !important;
+    stroke-width: 0.5px !important;
+    fill: none !important;
+}
+.mono-hemisphere {
+    stroke: rgba(148, 163, 184, 0.22) !important;
+    stroke-width: 0.8px !important;
+    fill: none !important;
 }
