@@ -12,11 +12,19 @@ import {
   Maximize2,
   GripHorizontal,
   Home,
-  Minus
+  Minus,
+  Activity,
+  Radio,
+  MapPin,
+  X
 } from 'lucide-react';
 import { predictOceanState } from '@/lib/api/oceanPredictionService';
+import { computeMaritimeActivitySummary } from '@/lib/maritimeHazardAnalytics';
 import { cn } from '@/lib/utils';
 import { type TimeZone } from '@/components/ui/landing-page';
+import { IN_SITU_SENSORS, type InSituSensor } from '@/services/inSituSensorData';
+import { InSituSensorModal } from '@/components/ocean/InSituSensorModal';
+import { OCEAN_REGIONS } from '@/lib/ocean/regions';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -123,16 +131,18 @@ function getLayerColor(val: number, variable: 'temperature' | 'salinity' | 'curr
 }
 
 export default function DepthSlicePage() {
-  // Read lat, lon, depth from query params
+  // Read lat, lon, depth, sensor from query params
   const [queryParams] = useState(() => {
     const search = new URLSearchParams(window.location.search);
     const lat = parseFloat(search.get('lat') || '15.4');
     const lon = parseFloat(search.get('lon') || '71.2');
     const depth = parseInt(search.get('depth') || '150', 10);
+    const sensor = search.get('sensor') || '';
     return {
       lat: isNaN(lat) ? 15.4 : lat,
       lon: isNaN(lon) ? 71.2 : lon,
       depth: isNaN(depth) ? 150 : depth,
+      sensor,
     };
   });
 
@@ -142,111 +152,20 @@ export default function DepthSlicePage() {
   const [activeTab, setActiveTab] = useState<'telemetry' | 'layers' | 'profile'>('telemetry');
   const [geometryType, setGeometryType] = useState<'cylinder' | 'cuboid'>('cylinder');
   const [activeVariable, setActiveVariable] = useState<'temperature' | 'salinity' | 'currents' | 'chlorophyll'>('temperature');
-  const [panelCollapsed, setPanelCollapsed] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [panelCollapsed, setPanelCollapsed] = useState<boolean>(true);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
 
-  // Floating Movable Controls + Telemetry Card State
-  const [cardPos, setCardPos] = useState<{ x: number; y: number } | null>(null);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [isCardMinimized, setIsCardMinimized] = useState<boolean>(false);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const dragDataRef = useRef<{
-    startX: number;
-    startY: number;
-    initialCardX: number;
-    initialCardY: number;
-    pointerId: number;
-  } | null>(null);
+  // Changeable units state
+  const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
+  const [velocityUnit, setVelocityUnit] = useState<'ms' | 'knots'>('ms');
 
-  const handleCardPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    // Only handle primary pointer (left mouse click or touch)
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
+  // Minimize state for Left Panel & Right Card
+  const [isLeftPanelMinimized, setIsLeftPanelMinimized] = useState<boolean>(false);
+  const [isRightCardMinimized, setIsRightCardMinimized] = useState<boolean>(false);
 
-    const card = cardRef.current;
-    const parent = mountRef.current;
-    if (!card || !parent) return;
-
-    const cardRect = card.getBoundingClientRect();
-    const parentRect = parent.getBoundingClientRect();
-
-    const currentX = cardPos ? cardPos.x : (cardRect.left - parentRect.left);
-    const currentY = cardPos ? cardPos.y : (cardRect.top - parentRect.top);
-
-    dragDataRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      initialCardX: currentX,
-      initialCardY: currentY,
-      pointerId: e.pointerId,
-    };
-
-    setIsDragging(true);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      // ignore
-    }
-  }, [cardPos]);
-
-  const handleCardPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragDataRef.current) return;
-    const card = cardRef.current;
-    const parent = mountRef.current;
-    if (!card || !parent) return;
-
-    const parentRect = parent.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-
-    const deltaX = e.clientX - dragDataRef.current.startX;
-    const deltaY = e.clientY - dragDataRef.current.startY;
-
-    let nextX = dragDataRef.current.initialCardX + deltaX;
-    let nextY = dragDataRef.current.initialCardY + deltaY;
-
-    // Keep card within parent container with 8px margin
-    const minX = 8;
-    const maxX = Math.max(8, parentRect.width - cardRect.width - 8);
-    const minY = 8;
-    const maxY = Math.max(8, parentRect.height - cardRect.height - 8);
-
-    nextX = Math.max(minX, Math.min(maxX, nextX));
-    nextY = Math.max(minY, Math.min(maxY, nextY));
-
-    setCardPos({ x: nextX, y: nextY });
-  }, []);
-
-  const handleCardPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (dragDataRef.current) {
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        // ignore
-      }
-      dragDataRef.current = null;
-      setIsDragging(false);
-    }
-  }, []);
-
-  // Clamp position when window resizes
-  useEffect(() => {
-    const handleResize = () => {
-      if (!cardPos || !cardRef.current || !mountRef.current) return;
-      const parentRect = mountRef.current.getBoundingClientRect();
-      const cardRect = cardRef.current.getBoundingClientRect();
-      const maxX = Math.max(8, parentRect.width - cardRect.width - 8);
-      const maxY = Math.max(8, parentRect.height - cardRect.height - 8);
-      setCardPos((prev) => {
-        if (!prev) return null;
-        return {
-          x: Math.max(8, Math.min(maxX, prev.x)),
-          y: Math.max(8, Math.min(maxY, prev.y)),
-        };
-      });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [cardPos]);
+  // In-Situ Sensor Modal State
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Generate water column data using predictOceanState
   const waterColumn = useMemo<WaterColumnLayer[]>(() => {
@@ -293,6 +212,90 @@ export default function DepthSlicePage() {
 
   // Base prediction for region name and telemetry stats
   const basePrediction = useMemo(() => predictOceanState(lat, lon, selectedDepth), [lat, lon, selectedDepth]);
+
+  // Real-time marine activity and hazard summary for quick status on depth slice
+  const marineActivity = useMemo(() => {
+    return computeMaritimeActivitySummary(basePrediction, selectedDepth);
+  }, [basePrediction, selectedDepth]);
+
+  // Changeable Unit Formatting Helpers
+  const formatTemp = useCallback((celsius: number) => {
+    if (tempUnit === 'F') {
+      return `${((celsius * 9) / 5 + 32).toFixed(2)} °F`;
+    }
+    return `${celsius.toFixed(2)} °C`;
+  }, [tempUnit]);
+
+  const formatVelocity = useCallback((speedMs: number) => {
+    if (velocityUnit === 'knots') {
+      return `${(speedMs * 1.94384).toFixed(3)} kts`;
+    }
+    return `${speedMs.toFixed(3)} m/s`;
+  }, [velocityUnit]);
+
+  // Chen-Millero (1977) simplified ocean acoustic velocity calculation
+  const soundSpeed = useMemo(() => {
+    const t = activeLayer.thetao;
+    const s = activeLayer.so;
+    const d = activeLayer.depth;
+    return 1449.2 + 4.6 * t - 0.055 * Math.pow(t, 2) + 0.00029 * Math.pow(t, 3) + (1.34 - 0.01 * t) * (s - 35) + 0.016 * d;
+  }, [activeLayer]);
+
+  // Resolve selected In-Situ observation platform or synthesize station for custom coordinates
+  const activeSensor: InSituSensor = useMemo(() => {
+    if (queryParams.sensor) {
+      const direct = IN_SITU_SENSORS.find(s => s.id === queryParams.sensor);
+      if (direct) return direct;
+    }
+    // Find closest sensor by distance
+    const closest = IN_SITU_SENSORS.reduce((prev, curr) => {
+      const prevDist = Math.hypot(prev.lat - lat, prev.lon - lon);
+      const currDist = Math.hypot(curr.lat - lat, curr.lon - lon);
+      return currDist < prevDist ? curr : prev;
+    }, IN_SITU_SENSORS[0]);
+
+    if (Math.hypot(closest.lat - lat, closest.lon - lon) < 0.5) {
+      return closest;
+    }
+
+    const regionObj = OCEAN_REGIONS.find(r => 
+      lat >= r.bbox[1] && lat <= r.bbox[3] && lon >= r.bbox[0] && lon <= r.bbox[2]
+    );
+    const regionName = regionObj?.name || basePrediction.location.regionName || 'Indian Ocean Basin';
+    const regionDesc = regionObj?.description || 'Oceanographic deep-water research and observation sector under active spatial tracking.';
+
+    return {
+      id: `station-${lat.toFixed(2)}-${lon.toFixed(2)}`,
+      wmoId: `WMO-${Math.round(Math.abs(lat) * 100)}${Math.round(Math.abs(lon) * 10)}`,
+      name: `${regionName} Sounding Station`,
+      type: 'argo' as const,
+      institution: 'INCOIS / MoES Deep Ocean CTD Sounding',
+      basin: regionName,
+      lat,
+      lon,
+      lastPingTimestamp: new Date().toISOString(),
+      batteryPercent: 96,
+      qcFlag: '1 - Good' as const,
+      surfaceTemp: waterColumn[0]?.thetao ?? 28.5,
+      surfaceSalinity: waterColumn[0]?.so ?? 35.2,
+      maxDepth: 2000,
+      description: `${regionDesc} Monitored for thermocline stability, current velocity vectors, and halocline stratification across 0–2000m.`,
+      operationalRole: 'High-resolution ocean state prediction, CTD layer profiling, and acoustic velocity diagnostics.',
+      profile: waterColumn.map(w => ({
+        depth: w.depth,
+        temperature: w.thetao,
+        salinity: w.so,
+        pressure: parseFloat((w.depth * 1.01).toFixed(1)),
+        dissolvedOxygen: Math.max(12, Math.round(215 - (w.depth < 300 ? w.depth * 0.55 : 170))),
+        chlorophyll: w.chlorophyll,
+      })),
+      driftHistory: [
+        { lat: lat - 0.05, lon: lon - 0.04, daysAgo: 5 },
+        { lat: lat - 0.02, lon: lon - 0.02, daysAgo: 2 },
+        { lat: lat, lon: lon, daysAgo: 0 },
+      ]
+    };
+  }, [queryParams.sensor, lat, lon, basePrediction, waterColumn]);
 
   // Three.js References
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -1098,26 +1101,42 @@ export default function DepthSlicePage() {
     }
   }, []);
 
-  // Compute Color Scale Legend values
+  // Compute Color Scale Legend values with dynamic units
   const legendConfig = useMemo(() => {
-    let title = 'θ₀ Temperature';
+    let title = 'θ₀ Temperature (°C)';
     let valStr = `${activeLayer.thetao.toFixed(2)} °C`;
     let stops = TEMP_STOPS;
     let curVal = activeLayer.thetao;
     let ticks = ['1.5°C', '12°C', '22°C', '35°C'];
 
-    if (activeVariable === 'salinity') {
+    if (activeVariable === 'temperature') {
+      if (tempUnit === 'F') {
+        title = 'θ₀ Temperature (°F)';
+        valStr = `${((activeLayer.thetao * 9) / 5 + 32).toFixed(2)} °F`;
+        ticks = ['34.7°F', '53.6°F', '71.6°F', '95.0°F'];
+      } else {
+        title = 'θ₀ Temperature (°C)';
+        valStr = `${activeLayer.thetao.toFixed(2)} °C`;
+        ticks = ['1.5°C', '12°C', '22°C', '35°C'];
+      }
+    } else if (activeVariable === 'salinity') {
       title = 'S₀ Salinity';
       valStr = `${activeLayer.so.toFixed(2)} PSU`;
       stops = SALINITY_STOPS;
       curVal = activeLayer.so;
       ticks = ['33.0', '34.8', '35.7', '36.8 PSU'];
     } else if (activeVariable === 'currents') {
-      title = 'Current Velocity';
-      valStr = `${activeLayer.current_speed.toFixed(3)} m/s`;
       stops = CURRENT_STOPS;
       curVal = activeLayer.current_speed;
-      ticks = ['0.00', '0.08', '0.18', '0.32 m/s'];
+      if (velocityUnit === 'knots') {
+        title = 'Current Velocity (kts)';
+        valStr = `${(activeLayer.current_speed * 1.94384).toFixed(3)} kts`;
+        ticks = ['0.00', '0.16', '0.35', '0.62 kts'];
+      } else {
+        title = 'Current Velocity (m/s)';
+        valStr = `${activeLayer.current_speed.toFixed(3)} m/s`;
+        ticks = ['0.00', '0.08', '0.18', '0.32 m/s'];
+      }
     } else if (activeVariable === 'chlorophyll') {
       title = '🌿 Chlorophyll-a';
       valStr = `${activeLayer.chlorophyll.toFixed(3)} mg/m³`;
@@ -1139,20 +1158,21 @@ export default function DepthSlicePage() {
     const hexCol = '#' + layerCol.getHexString();
 
     return { title, valStr, gradCss, pct, ticks, hexCol };
-  }, [activeLayer, activeVariable]);
+  }, [activeLayer, activeVariable, tempUnit, velocityUnit]);
 
   return (
     <div className="h-screen w-full bg-[#080808] text-white flex flex-col overflow-hidden font-sans select-none">
       {/* ── TOP NAVIGATION BAR (Exact Main Repo Layout) ── */}
-      <header className="h-16 bg-[#090909]/95 backdrop-blur-xl border-b border-[#222222] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-md">
+      <header className="h-16 bg-[#060606]/25 backdrop-blur-2xl border-b border-white/[0.08] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-lg shadow-black/20">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Back to Previous Link */}
           <button
             onClick={() => {
+              sessionStorage.setItem('leher_ops_returned_from_subscreen', 'true');
               if (window.history.length > 1) {
                 window.history.back();
               } else {
-                window.location.href = `/operations?lat=${lat}&lon=${lon}&depth=${selectedDepth}`;
+                window.location.href = `/operations?lat=${lat}&lon=${lon}&depth=${selectedDepth}&from=depth-slice`;
               }
             }}
             className="p-2 rounded-xl bg-[#141414] hover:bg-[#202020] border border-[#262626] text-[#cccccc] hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
@@ -1232,13 +1252,13 @@ export default function DepthSlicePage() {
 
           <button
             onClick={() => {
-              window.open(`/details?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
+              window.open(`/hazards?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
             }}
-            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-xs font-medium text-white transition-all cursor-pointer flex items-center gap-1.5"
-            title="Open CMEMS Parameter Dossier"
+            className="px-3 py-1.5 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/70 border border-cyan-800/50 text-xs font-mono font-medium text-cyan-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+            title="Open Maritime Hazard Intelligence Dossier"
           >
-            <span>Parameter Dossier</span>
-            <Maximize2 className="w-3.5 h-3.5 text-[#aaaaaa]" />
+            <span>Hazard Dossier</span>
+            <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
           </button>
         </div>
       </header>
@@ -1246,227 +1266,393 @@ export default function DepthSlicePage() {
       {/* ── MAIN WORKSPACE: 3D CANVAS + TELEMETRY PANEL ── */}
       <div className="flex-1 flex relative overflow-hidden bg-[#1c1c1c]">
         {/* 3D Visualizer Area */}
-        <div ref={mountRef} className="flex-1 h-full relative overflow-hidden">
+        <div ref={mountRef} className="flex-1 h-full relative overflow-hidden -mt-16">
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
 
 
-          {/* ── UNIFIED TOP-RIGHT CARD: Controls + Telemetry (Draggable / Moveable & Minimizable across all screens) ── */}
-          <div
-            ref={cardRef}
-            style={
-              cardPos
-                ? {
-                    left: `${cardPos.x}px`,
-                    top: `${cardPos.y}px`,
-                    right: 'auto',
-                    bottom: 'auto',
-                  }
-                : undefined
-            }
-            className={cn(
-              "absolute z-20 pointer-events-none transition-shadow duration-150",
-              isCardMinimized ? "w-auto" : "w-60 sm:w-64 max-w-[calc(100vw-2rem)]",
-              !cardPos && "top-4 right-4",
-              isDragging && "opacity-95 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_24px_rgba(0,229,255,0.3)] ring-1 ring-cyan-500/50"
-            )}
-          >
-            {isCardMinimized ? (
-              /* Minimized small button of Leher (synchronizes with full card) */
-              <div
-                onPointerDown={handleCardPointerDown}
-                onPointerMove={handleCardPointerMove}
-                onPointerUp={handleCardPointerUp}
-                onPointerCancel={handleCardPointerUp}
-                className="pointer-events-auto bg-[#0c0c0c]/95 hover:bg-[#141414] backdrop-blur-xl border border-cyan-500/50 hover:border-cyan-400 rounded-2xl px-3 py-2 shadow-2xl transition-all cursor-grab active:cursor-grabbing flex items-center gap-2.5 group select-none touch-none ring-1 ring-cyan-500/20"
-                title="Drag to move • Click to expand Leher 3D Controls"
+          {/* ── LEFT SIDE PANEL: Parameters, Controls, Depth Controller, Changeable Units (Minimizable to Button) ── */}
+          {isLeftPanelMinimized ? (
+            <div className="absolute top-20 left-4 z-20 pointer-events-auto animate-in fade-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setIsLeftPanelMinimized(false)}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#0c0c0c]/90 hover:bg-[#161616] backdrop-blur-xl border border-[#262626] hover:border-white/40 text-white shadow-2xl transition-all cursor-pointer font-mono text-xs group"
+                title="Click to expand Parameters & Depth Controls"
               >
-                <div 
-                  onClick={() => setIsCardMinimized(false)}
-                  className="flex items-center gap-2.5 cursor-pointer"
-                >
-                  <div className="relative flex items-center justify-center">
-                    <img
-                      src="/logo.png"
-                      alt="Leher Logo"
-                      className="h-6 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.6)] group-hover:scale-105 transition-transform"
-                    />
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                  </div>
-                  <div className="text-left font-mono">
-                    <div className="text-[11px] font-bold text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-                      <span>Leher</span>
-                      <span className="text-[10px] text-cyan-400">• {activeLayer.depth}m</span>
+                <Sliders className="w-3.5 h-3.5 text-cyan-400 group-hover:rotate-90 transition-transform duration-300" />
+                <span className="font-bold">Parameters &amp; Depth</span>
+                <span className="text-cyan-400 text-[11px] font-mono">({selectedDepth}m)</span>
+              </button>
+            </div>
+          ) : (
+            <div className="absolute top-20 left-4 z-20 pointer-events-auto animate-in fade-in zoom-in-95 duration-200 w-80 sm:w-[350px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <div className="bg-[#0c0c0c]/95 backdrop-blur-2xl border border-[#222222] rounded-2xl p-4 shadow-2xl space-y-3.5 text-white font-sans">
+                {/* Panel Header */}
+                <div className="flex items-start justify-between gap-2 border-b border-[#1e1e1e] pb-2.5">
+                  <div>
+                    <div className="text-[10px] text-[#666666] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                      <Sliders className="w-3 h-3 text-cyan-400" />
+                      <span>PARAMETERS &amp; CONTROLS</span>
                     </div>
-                    <div className="text-[9px] text-[#888888] flex items-center gap-1">
-                      <span className="capitalize">{geometryType}</span>
-                      <span>•</span>
-                      <span>{activeVariable === 'temperature' ? 'θ₀ Temp' : activeVariable}</span>
+                    <div className="text-sm font-bold text-white mt-0.5">
+                      Depth &amp; Variable Telemetry
+                    </div>
+                    <div className="text-[10px] font-mono text-[#888888] mt-0.5">
+                      Level: <span className="text-cyan-400 font-bold">{selectedDepth}m</span> • {getZoneLabel(selectedDepth)}
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1 pl-1.5 border-l border-[#222222]">
                   <button
-                    onClick={() => setIsCardMinimized(false)}
-                    className="p-1 rounded-lg bg-[#141414] hover:bg-[#222222] border border-[#2a2a2a] text-[#888888] hover:text-cyan-300 transition-colors cursor-pointer"
-                    title="Expand Controls"
+                    type="button"
+                    onClick={() => setIsLeftPanelMinimized(true)}
+                    className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[#888888] hover:text-white transition-all cursor-pointer shrink-0"
+                    title="Minimize to button"
                   >
-                    <Maximize2 className="w-3.5 h-3.5" />
+                    <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <div className="p-1 text-[#666666] group-hover:text-[#aaaaaa] cursor-grab active:cursor-grabbing" title="Drag handle">
-                    <GripHorizontal className="w-3.5 h-3.5" />
+                </div>
+
+                {/* Depth Controller: Range Slider & Presets */}
+                <div className="bg-[#121215] border border-[#222222] rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-[#888888] uppercase tracking-wide font-bold">DEPTH CONTROLLER</span>
+                    <span className="text-white font-bold text-xs">{selectedDepth === 0 ? '0m (Surface)' : `${selectedDepth}m`}</span>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="pointer-events-auto bg-[#0c0c0c]/95 backdrop-blur-xl border border-[#222222] rounded-2xl overflow-hidden shadow-2xl">
 
-                {/* Region Header & Drag Handle */}
-                <div
-                  onPointerDown={handleCardPointerDown}
-                  onPointerMove={handleCardPointerMove}
-                  onPointerUp={handleCardPointerUp}
-                  onPointerCancel={handleCardPointerUp}
-                  onDoubleClick={() => setCardPos(null)}
-                  className={cn(
-                    "px-4 pt-3 pb-2 border-b border-[#1e1e1e] flex items-center justify-between select-none touch-none transition-colors",
-                    isDragging ? "cursor-grabbing bg-white/[0.06]" : "cursor-grab hover:bg-white/[0.03]"
-                  )}
-                  title="Click or touch and drag to move panel anywhere on screen (Double-click to reset)"
-                >
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="text-[10px] text-[#666666] font-mono flex items-center gap-1.5">
-                      <span className="truncate">{basePrediction.location.regionName}</span>
-                      <span className="text-[8px] text-cyan-400/90 font-mono tracking-wider px-1 py-0.2 rounded bg-cyan-500/10 border border-cyan-500/25">
-                        DRAG
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-white mt-0.5">{getZoneLabel(activeLayer.depth)}</div>
-                    <div className="text-[10px] font-mono text-[#555555] mt-0.5">
-                      {lat.toFixed(4)}°N, {lon.toFixed(4)}°E • <span className="text-cyan-500">{activeLayer.depth}m</span>
-                    </div>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsCardMinimized(true);
-                      }}
-                      className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center"
-                      title="Minimize to small Leher button"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <div 
-                      className="p-1.5 rounded-lg bg-[#141414] border border-[#262626] text-[#666666] hover:text-cyan-400 hover:border-cyan-500/40 transition-colors flex items-center justify-center cursor-grab active:cursor-grabbing"
-                      title="Drag to reposition panel"
-                    >
-                      <GripHorizontal className="w-3.5 h-3.5 text-[#888888]" />
-                    </div>
-                  </div>
-                </div>
-
-              {/* Geometry Toggle */}
-              <div className="px-3 pt-3 pb-1.5">
-                <div className="text-[9px] text-[#555555] font-mono uppercase tracking-widest mb-1.5">Shape</div>
-                <div className="flex bg-[#141414] rounded-lg p-0.5 border border-[#262626] w-full">
-                  <button
-                    onClick={() => setGeometryType('cylinder')}
-                    className={cn(
-                      "flex-1 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
-                      geometryType === 'cylinder' ? "bg-white text-black font-bold shadow" : "text-[#666666] hover:text-white"
-                    )}
-                  >Cylinder</button>
-                  <button
-                    onClick={() => setGeometryType('cuboid')}
-                    className={cn(
-                      "flex-1 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer",
-                      geometryType === 'cuboid' ? "bg-white text-black font-bold shadow" : "text-[#666666] hover:text-white"
-                    )}
-                  >Cuboid</button>
-                </div>
-              </div>
-
-              {/* Variable Selector */}
-              <div className="px-3 pb-2">
-                <div className="text-[9px] text-[#555555] font-mono uppercase tracking-widest mb-1.5">Variable</div>
-                <div className="grid grid-cols-2 gap-1">
-                  {([
-                    { key: 'temperature', label: 'θ₀ Temp' },
-                    { key: 'salinity',    label: 'S₀ Salinity' },
-                    { key: 'currents',    label: 'Velocity' },
-                    { key: 'chlorophyll', label: '🌿 Chl-a' },
-                  ] as const).map(({ key, label }) => (
-                    <button
-                      key={key}
-                      onClick={() => setActiveVariable(key)}
-                      className={cn(
-                        "py-1 px-2 text-[10px] font-medium rounded-lg border transition-all cursor-pointer text-center",
-                        activeVariable === key
-                          ? key === 'chlorophyll'
-                            ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold"
-                            : "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 font-bold"
-                          : "bg-[#141414] border-[#262626] text-[#666666] hover:text-white hover:border-[#333333]"
-                      )}
-                    >{label}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Color Scale Legend */}
-              <div className="px-3 pb-2.5 border-t border-[#1a1a1a] pt-2.5">
-                <div className="flex justify-between items-center text-[10px] font-mono mb-1.5">
-                  <span className="text-[#888888] font-bold">{legendConfig.title}</span>
-                  <span className="flex items-center gap-1.5 text-cyan-300 font-bold">
-                    <span className="w-2 h-2 rounded-full border border-white/30" style={{ backgroundColor: legendConfig.hexCol }} />
-                    {legendConfig.valStr}
-                  </span>
-                </div>
-                <div className="relative w-full h-2 rounded-full border border-white/10 overflow-visible">
-                  <div className="w-full h-full rounded-full" style={{ background: legendConfig.gradCss }} />
-                  <div
-                    className="absolute -top-1 w-1.5 h-4 bg-white rounded-full shadow-[0_0_6px_#fff] -translate-x-1/2 pointer-events-none transition-all duration-300"
-                    style={{ left: `${legendConfig.pct}%` }}
+                  <input
+                    type="range"
+                    min="0"
+                    max={waterColumn.length - 1}
+                    step="1"
+                    value={selectedIndex}
+                    onChange={(e) => {
+                      const idx = parseInt(e.target.value, 10);
+                      if (waterColumn[idx]) setSelectedDepth(waterColumn[idx].depth);
+                    }}
+                    className="w-full accent-white h-1.5 bg-[#1f1f1f] rounded appearance-none cursor-pointer"
                   />
-                </div>
-                <div className="flex justify-between text-[9px] text-[#555555] font-mono mt-1">
-                  {legendConfig.ticks.map((t) => <span key={t}>{t}</span>)}
-                </div>
-              </div>
 
-              {/* Divider */}
-              <div className="mx-3 h-px bg-[#1e1e1e]" />
-
-              {/* Telemetry Rows */}
-              <div className="px-3 py-2.5 space-y-1.5">
-                {[
-                  { label: 'Temperature', value: `${activeLayer.thetao.toFixed(2)} °C` },
-                  { label: 'Salinity',    value: `${activeLayer.so.toFixed(2)} PSU` },
-                  { label: 'Current',     value: `${activeLayer.current_speed.toFixed(3)} m/s` },
-                  { label: 'Direction',   value: `${Math.round(activeLayer.dirDeg)}° ${activeLayer.dirStr}` },
-                  { label: 'Chl-a',       value: `${activeLayer.chlorophyll.toFixed(3)} mg/m³` },
-                ].map(({ label, value }) => (
-                  <div key={label} className="flex justify-between items-center">
-                    <span className="text-[10px] text-[#666666]">{label}</span>
-                    <span className="text-[10px] font-bold font-mono text-white">{value}</span>
+                  {/* Tick Presets */}
+                  <div className="grid grid-cols-6 gap-1 pt-1">
+                    {[0, 50, 150, 500, 1000, 2000].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setSelectedDepth(d)}
+                        className={cn(
+                          "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer text-center truncate",
+                          selectedDepth === d
+                            ? "bg-white text-black font-bold border-white"
+                            : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white"
+                        )}
+                      >
+                        {d === 0 ? "0m" : `${d}m`}
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Reset Camera Footer */}
-              <div className="px-3 pb-3">
+                {/* Changeable Units & Shape Toggles */}
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Temp Unit */}
+                  <div className="bg-[#121215] border border-[#222222] rounded-xl p-2 text-center">
+                    <div className="text-[9px] text-[#666666] font-mono uppercase mb-1">Temp Unit</div>
+                    <div className="flex bg-[#18181c] rounded-lg p-0.5 border border-[#262626]">
+                      <button
+                        type="button"
+                        onClick={() => setTempUnit('C')}
+                        className={cn(
+                          "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
+                          tempUnit === 'C' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                        )}
+                      >
+                        °C
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTempUnit('F')}
+                        className={cn(
+                          "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
+                          tempUnit === 'F' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                        )}
+                      >
+                        °F
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Velocity Unit */}
+                  <div className="bg-[#121215] border border-[#222222] rounded-xl p-2 text-center">
+                    <div className="text-[9px] text-[#666666] font-mono uppercase mb-1">Velocity</div>
+                    <div className="flex bg-[#18181c] rounded-lg p-0.5 border border-[#262626]">
+                      <button
+                        type="button"
+                        onClick={() => setVelocityUnit('ms')}
+                        className={cn(
+                          "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
+                          velocityUnit === 'ms' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                        )}
+                      >
+                        m/s
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVelocityUnit('knots')}
+                        className={cn(
+                          "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
+                          velocityUnit === 'knots' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                        )}
+                      >
+                        kts
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Geometry Shape */}
+                  <div className="bg-[#121215] border border-[#222222] rounded-xl p-2 text-center">
+                    <div className="text-[9px] text-[#666666] font-mono uppercase mb-1">Shape</div>
+                    <div className="flex bg-[#18181c] rounded-lg p-0.5 border border-[#262626]">
+                      <button
+                        type="button"
+                        onClick={() => setGeometryType('cylinder')}
+                        className={cn(
+                          "flex-1 py-0.5 text-[9px] font-mono rounded transition-all cursor-pointer",
+                          geometryType === 'cylinder' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                        )}
+                      >
+                        Cyl
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGeometryType('cuboid')}
+                        className={cn(
+                          "flex-1 py-0.5 text-[9px] font-mono rounded transition-all cursor-pointer",
+                          geometryType === 'cuboid' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                        )}
+                      >
+                        Cub
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Variable Selector */}
+                <div className="space-y-1.5">
+                  <div className="text-[9px] text-[#666666] font-mono uppercase tracking-wide">3D Layer Variable</div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {([
+                      { key: 'temperature', label: 'θ₀ Temperature' },
+                      { key: 'salinity',    label: 'S₀ Salinity' },
+                      { key: 'currents',    label: 'Velocity Vector' },
+                      { key: 'chlorophyll', label: '🌿 Chlorophyll-a' },
+                    ] as const).map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setActiveVariable(key)}
+                        className={cn(
+                          "py-1.5 px-2 text-[10px] font-mono rounded-lg border transition-all cursor-pointer text-center",
+                          activeVariable === key
+                            ? "bg-white text-black font-bold border-white shadow-sm"
+                            : "bg-[#141414] border-[#262626] text-[#888888] hover:text-white hover:border-[#333333]"
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Scale Legend */}
+                <div className="bg-[#121215] border border-[#222222] rounded-xl p-2.5 space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-mono">
+                    <span className="text-[#888888] font-bold">{legendConfig.title}</span>
+                    <span className="flex items-center gap-1.5 text-white font-bold">
+                      <span className="w-2 h-2 rounded-full border border-white/30" style={{ backgroundColor: legendConfig.hexCol }} />
+                      {legendConfig.valStr}
+                    </span>
+                  </div>
+                  <div className="relative w-full h-2 rounded-full border border-white/10 overflow-visible">
+                    <div className="w-full h-full rounded-full" style={{ background: legendConfig.gradCss }} />
+                    <div
+                      className="absolute -top-1 w-1.5 h-4 bg-white rounded-full shadow-[0_0_6px_#fff] -translate-x-1/2 pointer-events-none transition-all duration-300"
+                      style={{ left: `${legendConfig.pct}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] text-[#666666] font-mono">
+                    {legendConfig.ticks.map((t) => <span key={t}>{t}</span>)}
+                  </div>
+                </div>
+
+                {/* Live Parameter Telemetry Rows */}
+                <div className="bg-[#121215] border border-[#222222] rounded-xl p-2.5 space-y-1.5 font-mono text-[10px]">
+                  <div className="flex justify-between items-center text-[#666] pb-1 border-b border-[#1f1f1f]">
+                    <span className="uppercase tracking-wide font-bold">Live Parameter</span>
+                    <span className="uppercase tracking-wide font-bold">Sounding @ {selectedDepth}m</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">θ₀ Temperature</span>
+                    <span className="font-bold text-white">{formatTemp(activeLayer.thetao)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">S₀ Salinity</span>
+                    <span className="font-bold text-white">{activeLayer.so.toFixed(2)} PSU</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">Current Velocity</span>
+                    <span className="font-bold text-white">{formatVelocity(activeLayer.current_speed)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">Flow Heading</span>
+                    <span className="font-bold text-white">{Math.round(activeLayer.dirDeg)}° {activeLayer.dirStr}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">Chlorophyll-a</span>
+                    <span className="font-bold text-emerald-400">{activeLayer.chlorophyll.toFixed(3)} mg/m³</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#888888]">Sound Velocity</span>
+                    <span className="font-bold text-cyan-300">{soundSpeed.toFixed(1)} m/s</span>
+                  </div>
+                </div>
+
+                {/* Reset 3D Camera Footer */}
                 <button
+                  type="button"
                   onClick={handleResetCamera}
-                  className="w-full py-1.5 rounded-lg bg-[#141414] hover:bg-[#1e1e1e] border border-[#262626] hover:border-[#333333] text-[10px] font-mono text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2 rounded-xl bg-[#161616] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[11px] font-mono text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  Reset Camera
+                  <span>Reset 3D Scene View</span>
                 </button>
               </div>
             </div>
           )}
-          </div>
+
+          {/* ── RIGHT SIDE CARD: Location / In-Situ Platform, Coordinates & Inspect Profile Button (Minimizable to Button) ── */}
+          {isRightCardMinimized ? (
+            <div className="absolute top-20 right-4 z-20 pointer-events-auto animate-in fade-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setIsRightCardMinimized(false)}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#0c0c0c]/90 hover:bg-[#161616] backdrop-blur-xl border border-[#262626] hover:border-white/40 text-white shadow-2xl transition-all cursor-pointer font-mono text-xs group"
+                title="Click to view Location & In-Situ Observation Platform Details"
+              >
+                <div className="relative flex items-center justify-center">
+                  <Radio className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                </div>
+                <span className="font-bold">{activeSensor.wmoId || 'Location Profile'}</span>
+                <span className="text-[#888888] text-[11px]">
+                  ({lat >= 0 ? `${lat.toFixed(2)}°N` : `${Math.abs(lat).toFixed(2)}°S`}, {lon >= 0 ? `${lon.toFixed(2)}°E` : `${Math.abs(lon).toFixed(2)}°W`})
+                </span>
+              </button>
+            </div>
+          ) : (
+            <div className="absolute top-20 right-4 z-20 pointer-events-auto animate-in fade-in zoom-in-95 duration-200 w-80 sm:w-[360px] max-w-[calc(100vw-2rem)]">
+              <div className="bg-[#0c0c0c]/95 backdrop-blur-2xl border border-[#222222] rounded-2xl p-4 shadow-2xl space-y-3 text-white font-sans">
+                {/* Header with Title, Badge, and Minimize button */}
+                <div className="flex items-start justify-between gap-2 border-b border-[#1e1e1e] pb-2.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] text-[#666666] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                      <Radio className="w-3 h-3 text-cyan-400" />
+                      <span>LOCATION &amp; IN-SITU OBSERVATION</span>
+                    </div>
+                    <div className="text-sm font-bold text-white truncate mt-0.5" title={activeSensor.name}>
+                      {activeSensor.name}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                        {activeSensor.wmoId}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono text-[#888888] bg-[#161616] border border-[#262626] uppercase">
+                        {activeSensor.type}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        {activeSensor.qcFlag}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsRightCardMinimized(true)}
+                    className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[#888888] hover:text-white transition-all cursor-pointer shrink-0"
+                    title="Minimize to button"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Longitude, Latitude, and Depth Selected */}
+                <div className="bg-[#121215] border border-[#222] rounded-xl p-2.5 grid grid-cols-3 gap-2 text-center font-mono">
+                  <div className="border-r border-[#222] pr-1">
+                    <div className="text-[9px] text-[#666666] uppercase">Latitude</div>
+                    <div className="text-xs font-bold text-white">
+                      {lat >= 0 ? `${lat.toFixed(3)}°N` : `${Math.abs(lat).toFixed(3)}°S`}
+                    </div>
+                  </div>
+                  <div className="border-r border-[#222] pr-1">
+                    <div className="text-[9px] text-[#666666] uppercase">Longitude</div>
+                    <div className="text-xs font-bold text-white">
+                      {lon >= 0 ? `${lon.toFixed(3)}°E` : `${Math.abs(lon).toFixed(3)}°W`}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-[#666666] uppercase">Depth</div>
+                    <div className="text-xs font-bold text-cyan-400">
+                      {selectedDepth}m
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location & Oceanographic Description */}
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-[#888888] uppercase tracking-wide">BASIN / REGION</span>
+                    <span className="text-white font-bold">{activeSensor.basin}</span>
+                  </div>
+                  <p className="text-[11px] text-[#999999] leading-relaxed bg-[#111111] p-2.5 rounded-xl border border-[#202020]">
+                    {activeSensor.description}
+                  </p>
+                  {activeSensor.operationalRole && (
+                    <div className="text-[10px] text-[#666666] font-mono">
+                      <strong className="text-[#888888]">Role:</strong> {activeSensor.operationalRole}
+                    </div>
+                  )}
+                </div>
+
+                {/* Surface Sounding Specs */}
+                <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono pt-0.5">
+                  <div className="bg-[#141414] p-2 rounded-lg border border-[#222]">
+                    <span className="text-[#666] block text-[9px]">SST</span>
+                    <span className="text-white font-bold">{formatTemp(activeSensor.surfaceTemp)}</span>
+                  </div>
+                  <div className="bg-[#141414] p-2 rounded-lg border border-[#222]">
+                    <span className="text-[#666] block text-[9px]">Salinity</span>
+                    <span className="text-white font-bold">{activeSensor.surfaceSalinity.toFixed(1)} PSU</span>
+                  </div>
+                  <div className="bg-[#141414] p-2 rounded-lg border border-[#222]">
+                    <span className="text-[#666] block text-[9px]">Max Profile</span>
+                    <span className="text-white font-bold">{activeSensor.maxDepth}m</span>
+                  </div>
+                </div>
+
+                {/* Inspect Profile Button */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-xs font-sans flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+                  >
+                    <Radio className="w-3.5 h-3.5 text-black" />
+                    <span>Inspect Profile of the Area</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-black" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Collapse Trigger (When side panel is minimized - docked to right edge) */}
           {panelCollapsed && (
@@ -1623,11 +1809,59 @@ export default function DepthSlicePage() {
                 </div>
 
                 {/* 2. Operations Page Output Section */}
-                <div className="space-y-4 text-xs font-sans pt-2 border-t border-[#222222]">
-                  <div className="flex justify-between items-center pb-1">
+                <div className="space-y-3 text-xs font-sans pt-2 border-t border-[#222222]">
+                  <div className="flex justify-between items-center pb-0.5">
                     <div className="text-white font-bold text-sm">
                       {basePrediction.location.regionName}
                     </div>
+                  </div>
+
+                  {/* Short Marine Activity & Hazards Overview Card */}
+                  <div className="p-2.5 rounded-xl bg-[#121215] border border-[#262626] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-neutral-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <Activity className="w-3 h-3 text-cyan-400 animate-pulse" />
+                        Marine Activity
+                      </span>
+                      <span className={cn(
+                        "px-2 py-0.5 rounded text-[9px] font-mono font-bold border",
+                        marineActivity.riskStatus === 'SAFE' ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/50" :
+                        marineActivity.riskStatus === 'CAUTION' ? "bg-amber-950/60 text-amber-300 border-amber-800/50" :
+                        "bg-red-950/60 text-red-300 border-red-800/50"
+                      )}>
+                        {marineActivity.riskStatus}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+                      <div className="bg-[#18181c] p-1.5 rounded-lg border border-[#222]">
+                        <span className="text-neutral-500 block text-[9px]">Cyclone Heat</span>
+                        <span className="text-white font-bold">{marineActivity.cycloneText}</span>
+                      </div>
+                      <div className="bg-[#18181c] p-1.5 rounded-lg border border-[#222]">
+                        <span className="text-neutral-500 block text-[9px]">Sea State</span>
+                        <span className="text-white font-bold">{marineActivity.seaStateText}</span>
+                      </div>
+                      <div className="bg-[#18181c] p-1.5 rounded-lg border border-[#222]">
+                        <span className="text-neutral-500 block text-[9px]">PFZ Fishing</span>
+                        <span className="text-white font-bold">{marineActivity.fishingRating}</span>
+                      </div>
+                      <div className="bg-[#18181c] p-1.5 rounded-lg border border-[#222]">
+                        <span className="text-neutral-500 block text-[9px]">Surface Drift</span>
+                        <span className="text-cyan-300 font-bold truncate">{marineActivity.currentSpeedText}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.open(`/hazards?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
+                      }}
+                      className="w-full py-1.5 px-2 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-800/50 text-cyan-300 hover:text-white text-[10px] font-mono font-semibold flex items-center justify-between transition-all cursor-pointer"
+                    >
+                      <span>Detailed Hazard Dossier</span>
+                      <ArrowUpRight className="w-3 h-3 text-cyan-400" />
+                    </button>
                   </div>
 
                   <div className="space-y-2">
@@ -1658,12 +1892,12 @@ export default function DepthSlicePage() {
                     <button
                       type="button"
                       onClick={() => {
-                        window.open(`/details?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
+                        window.open(`/hazards?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
                       }}
                       className="py-2.5 px-3 rounded-xl bg-[#141414] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#3a3a3a] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                      title="Open Full Parameter Dossier"
+                      title="Open Maritime Hazard Intelligence Dossier"
                     >
-                      <span>Full Dossier</span>
+                      <span>Hazard Dossier</span>
                       <ArrowUpRight className="w-3.5 h-3.5 text-[#888888]" />
                     </button>
                   </div>
@@ -1783,6 +2017,19 @@ export default function DepthSlicePage() {
           </div>
         </aside>
       </div>
+
+      {/* ── IN-SITU OBSERVATION SENSOR PROFILE MODAL ── */}
+      <InSituSensorModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        sensor={activeSensor}
+        onTargetCoordinates={(targetLat, targetLon, targetDepth) => {
+          if (targetDepth !== undefined) {
+            setSelectedDepth(targetDepth);
+          }
+          setIsProfileModalOpen(false);
+        }}
+      />
     </div>
   );
 }

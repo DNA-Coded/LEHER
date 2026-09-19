@@ -43,12 +43,12 @@ export const GlobeOverlay: React.FC<GlobeOverlayProps> = ({ onBackToLanding }) =
             display: 'flex',
             alignItems: 'center',
             gap: '14px',
-            background: 'rgba(5, 15, 30, 0.85)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(0, 220, 255, 0.25)',
+            background: 'rgba(5, 10, 20, 0.35)',
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '16px',
             padding: '10px 20px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}
         >
           {onBackToLanding && (

@@ -74,7 +74,7 @@ export function AppNavbar({
   return (
     <nav
       className={cn(
-        'fixed top-0 left-0 right-0 z-40 bg-[#080808]/80 backdrop-blur-md border-b border-[#1c1c1c] transition-colors',
+        'fixed top-0 left-0 right-0 z-40 bg-[#060606]/20 backdrop-blur-2xl border-b border-white/[0.08] shadow-lg shadow-black/20 transition-all duration-300',
         className
       )}
       aria-label="Main Navigation"

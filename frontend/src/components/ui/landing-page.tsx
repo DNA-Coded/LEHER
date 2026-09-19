@@ -1006,7 +1006,11 @@ export default function LeherLandingPage() {
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <ShinyButton 
-              onClick={() => { window.location.href = '/operations'; }}
+              onClick={() => {
+                sessionStorage.removeItem('leher_ops_returned_from_subscreen');
+                sessionStorage.removeItem('leher_ops_subscreen_visited');
+                window.location.href = '/operations';
+              }}
               className="py-3 px-7 text-sm font-semibold shadow-lg cursor-pointer"
             >
               Open Operations
@@ -1153,7 +1157,11 @@ export default function LeherLandingPage() {
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <ShinyButton 
-              onClick={() => { window.location.href = '/operations'; }}
+              onClick={() => {
+                sessionStorage.removeItem('leher_ops_returned_from_subscreen');
+                sessionStorage.removeItem('leher_ops_subscreen_visited');
+                window.location.href = '/operations';
+              }}
               className="py-3.5 px-8 text-sm font-semibold shadow-xl cursor-pointer"
             >
               <Compass className="w-4 h-4 text-cyan-400 inline mr-2" />

@@ -31,7 +31,7 @@ function getRoute(): 'home' | 'about' | 'operations' | 'details' | 'depth-slice'
   if (path.startsWith('/operations') || path.startsWith('/direction') || hash.includes('operations') || hash.includes('direction')) {
     return 'operations';
   }
-  if (path.startsWith('/details') || path.startsWith('/dossier') || hash.includes('details') || hash.includes('dossier')) {
+  if (path.startsWith('/details') || path.startsWith('/dossier') || path.startsWith('/hazards') || path.startsWith('/maritime') || hash.includes('details') || hash.includes('dossier') || hash.includes('hazards') || hash.includes('maritime')) {
     return 'details';
   }
   return 'home';
