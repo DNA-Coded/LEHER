@@ -2,7 +2,7 @@ export type OceanVariable = 'temperature' | 'salinity' | 'currents' | 'chlorophy
 
 export type AnimationState = 'idle' | 'opening' | 'expanded' | 'closing';
 
-export type ColorScaleName = 'turbo' | 'thermal' | 'haline' | 'viridis' | 'chlorophyll';
+export type ColorScaleName = 'turbo' | 'thermal' | 'haline' | 'viridis' | 'chlorophyll' | 'coolwarm';
 
 export interface RegionStats {
   surfaceAreaKm2: number;

@@ -70,7 +70,7 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            02 — THE PROBLEM
+            01 — THE PROBLEM
            ======================================================== */}
         <section className="space-y-8 pt-4">
           <div className="border-b border-[#1c1c1c] pb-5">
@@ -88,7 +88,6 @@ export function AboutLeherPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <RayCard innerClassName="p-4 sm:p-5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-neutral-400 block">CARD 01</span>
                 <h3 className="text-base font-semibold text-white tracking-tight">
                   Conditions Change
                 </h3>
@@ -100,7 +99,6 @@ export function AboutLeherPage() {
 
             <RayCard innerClassName="p-4 sm:p-5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-neutral-400 block">CARD 02</span>
                 <h3 className="text-base font-semibold text-white tracking-tight">
                   Information Comes From Different Sources
                 </h3>
@@ -112,7 +110,6 @@ export function AboutLeherPage() {
 
             <RayCard innerClassName="p-4 sm:p-5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-neutral-400 block">CARD 03</span>
                 <h3 className="text-base font-semibold text-white tracking-tight">
                   Context Matters
                 </h3>
@@ -125,7 +122,7 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            03 — WHAT LEHER BRINGS TOGETHER
+            02 — THE PLATFORM
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
@@ -221,12 +218,97 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
+            03 — CAPABILITIES
+           ======================================================== */}
+        <section className="space-y-8">
+          <div className="border-b border-[#1c1c1c] pb-5">
+            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
+              03 / CAPABILITIES
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
+              Integrated Intelligence &amp; Analysis Features
+            </h2>
+            <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
+              Recent platform additions expand Leher with volumetric 3D water column sounding, machine learning hazard predictions, marine ecosystem health monitoring, and official mission PDF dossiers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  3D Volumetric Depth Sounding
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Interactive multi-layer ocean column slicing from surface (0m) to bathypelagic depths (2000m) with live temperature, salinity, current vectors, and acoustic velocity.
+                </p>
+              </div>
+            </RayCard>
+
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Rakshak Intelligence ML Predictions
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Machine learning model outcomes computing coastal proximity, cyclone probability, predicted storm surge elevation, and fishing zone safety status.
+                </p>
+              </div>
+            </RayCard>
+
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Marine Ecosystem Health Analysis
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Real-time ecological assessment tracking overall ecosystem health score, coral bleaching thermal stress, algal bloom risk, fish stress, and hypoxia risk.
+                </p>
+              </div>
+            </RayCard>
+
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Tactical Mission Dossier (PDF)
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  One-click export of official, printable INCOIS and MoES operational briefings containing cross-verified 3D telemetry, UNESCO density, and Plimsoll draft advisories.
+                </p>
+              </div>
+            </RayCard>
+
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  Acoustic &amp; Maritime Advisories
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Automated computation of SOFAR channel ducting, shadow zone depths, autopilot leeway drift angles, and Search and Rescue (SAR) datum drift rates.
+                </p>
+              </div>
+            </RayCard>
+
+            <RayCard innerClassName="p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  In-Situ Sensor Fleet Co-Validation
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  Direct spatial linking and co-validation with Argo profiling floats, RAMA moored buoys, and ocean gliders across the Indian Ocean basin.
+                </p>
+              </div>
+            </RayCard>
+          </div>
+        </section>
+
+        {/* ========================================================
             04 — RISK & HAZARDS
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              03 / MARITIME RISK
+              04 / MARITIME RISK
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
               Understand What Makes a Location Risky
@@ -351,7 +433,7 @@ export function AboutLeherPage() {
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              04 / USER FLOW
+              05 / USER FLOW
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
               From Ocean Conditions to Action
@@ -424,7 +506,7 @@ export function AboutLeherPage() {
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              05 / USERS
+              06 / USERS
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
               Designed Around Maritime Use

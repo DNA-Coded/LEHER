@@ -293,10 +293,10 @@ var globes = function() {
                 var bounds = d3.geo.path().projection(defaultProjection).bounds(CONCENTRIC_BBOX);
                 var hScale = (bounds[1][0] - bounds[0][0]) / defaultProjection.scale();
                 var vScale = (bounds[1][1] - bounds[0][1]) / defaultProjection.scale();
-                return Math.min(view.width / hScale, view.height / vScale) * 0.85;
+                return Math.max(view.width / hScale, view.height / vScale) * 1.02;
             },
             center: function(view) {
-                return [view.width / 2, view.height / 2.2];
+                return [view.width / 2, view.height / 2];
             },
             scaleExtent: function() {
                 return [100, 10000];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   MapPin, 
@@ -17,16 +17,20 @@ import {
   Layers,
   Thermometer,
   Droplets,
-  Eye
+  Eye,
+  ArrowLeftRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { InSituSensor } from '@/services/inSituSensorData';
+import { ModelVsObsComparator } from '@/components/ocean/ModelVsObsComparator';
 
 interface InSituSensorModalProps {
   sensor: InSituSensor | null;
   isOpen: boolean;
   onClose: () => void;
   onTargetCoordinates: (lat: number, lon: number, depth?: number) => void;
+  /** When true (default), renders as a fixed full-screen overlay. When false, renders as an absolute slide-up panel (for use inside a relative-positioned container). */
+  mode?: 'overlay' | 'panel';
 }
 
 export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
@@ -34,11 +38,24 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
   isOpen,
   onClose,
   onTargetCoordinates,
+  mode = 'overlay',
 }) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'mission' | 'telemetry'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'mission' | 'telemetry' | 'anomaly'>('profile');
   const [activeMetric, setActiveMetric] = useState<'temp' | 'sal' | 'oxygen' | 'chl'>('temp');
+  const [visible, setVisible] = useState(false);
 
-  if (!isOpen || !sensor) return null;
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to allow the DOM to mount before triggering the transition
+      const t = setTimeout(() => setVisible(true), 10);
+      return () => clearTimeout(t);
+    } else {
+      setVisible(false);
+    }
+  }, [isOpen]);
+
+  if (!sensor) return null;
+  if (!isOpen && !visible) return null;
 
   const getTypeTheme = (type: InSituSensor['type']) => {
     switch (type) {
@@ -137,14 +154,28 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
     })
     .join(' ');
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div 
+  if (mode === 'panel') {
+    return (
+      <div
         className={cn(
-          "w-full max-w-3xl bg-[#0e0e0e] border border-[#262626] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-white",
-          theme.glow
+          "absolute inset-0 z-30 flex flex-col transition-all duration-400 ease-in-out",
+          visible ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        {/* Slide-up card */}
+        <div
+          className={cn(
+            "absolute bottom-0 left-0 right-0 bg-[#0e0e0e] border border-[#262626] rounded-t-2xl shadow-2xl flex flex-col overflow-hidden text-white transition-transform duration-400 ease-in-out",
+            theme.glow,
+            visible ? "translate-y-0" : "translate-y-full"
+          )}
+          style={{ maxHeight: '92%' }}
+        >
         {/* MODAL HEADER */}
         <div className="p-4 sm:p-5 border-b border-[#222222] bg-[#121212] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
           <div className="space-y-1">
@@ -258,6 +289,20 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
           >
             <Radio className="w-3.5 h-3.5" />
             <span>QC &amp; Provenance</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('anomaly')}
+            className={cn(
+              "py-2.5 px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2",
+              activeTab === 'anomaly'
+                ? "border-cyan-400 text-cyan-400"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            )}
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Model vs. Obs Anomaly</span>
           </button>
         </div>
 
@@ -783,6 +828,16 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* TAB 4: MODEL VS OBS ANOMALY */}
+          {activeTab === 'anomaly' && (
+            <div className="space-y-4">
+              <ModelVsObsComparator
+                initialSensorId={sensor.id}
+                onTargetCoordinates={onTargetCoordinates}
+              />
+            </div>
+          )}
         </div>
 
         {/* MODAL FOOTER */}
@@ -812,6 +867,81 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
               <span>Target Coordinates</span>
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+  // Default overlay mode — full-screen, animated scale-in
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md transition-opacity duration-200",
+        visible ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}
+    >
+      <div
+        className={cn(
+          "w-full max-w-3xl bg-[#0e0e0e] border border-[#262626] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-white transition-transform duration-300",
+          theme.glow,
+          visible ? "scale-100" : "scale-95"
+        )}
+      >
+        {/* MODAL HEADER */}
+        <div className="p-4 sm:p-5 border-b border-[#222222] bg-[#121212] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={cn("text-[9px] font-mono font-bold px-2 py-0.5 rounded border uppercase tracking-wider", theme.badge)}>
+                {theme.label}
+              </span>
+              <span className="text-[10px] font-mono text-neutral-400">{sensor.wmoId}</span>
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40 flex items-center gap-1">
+                <CheckCircle2 className="w-2.5 h-2.5" />
+                QC: {sensor.qcFlag.split(' ')[0]}
+              </span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">{sensor.name}</h2>
+            <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-neutral-400">
+              <span className="flex items-center gap-1 text-white">
+                <MapPin className="w-3 h-3 text-neutral-400" />
+                {sensor.lat >= 0 ? `${sensor.lat.toFixed(2)}°N` : `${Math.abs(sensor.lat).toFixed(2)}°S`},{' '}
+                {sensor.lon >= 0 ? `${sensor.lon.toFixed(2)}°E` : `${Math.abs(sensor.lon).toFixed(2)}°W`}
+              </span>
+              <span className="text-neutral-600">·</span>
+              <span>{sensor.basin}</span>
+              <span className="text-neutral-600">·</span>
+              <span className="flex items-center gap-1">
+                <Battery className="w-3 h-3 text-emerald-400" />
+                {sensor.batteryPercent}%
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#333333] text-neutral-400 hover:text-white transition-all cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <p className="text-sm text-neutral-400">Profile data loaded — use the panel view for full details.</p>
+        </div>
+
+        <div className="p-3 sm:p-4 border-t border-[#222222] bg-[#121212] flex items-center justify-between shrink-0 font-mono text-xs">
+          <span className="text-[10px] text-neutral-400 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            GDAC LINK: VERIFIED ACTIVE
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-lg bg-[#1f1f1f] hover:bg-[#2a2a2a] text-neutral-200 hover:text-white font-medium transition-colors cursor-pointer"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ export const DepthSliceLegend: React.FC = () => {
   if (!meta) return null;
 
   const gradient = getCssGradient(colorScale);
-  const colorScalesList: ColorScaleName[] = ['thermal', 'turbo', 'haline', 'viridis', 'chlorophyll'];
+  const colorScalesList: ColorScaleName[] = ['thermal', 'haline', 'turbo', 'viridis', 'chlorophyll', 'coolwarm'];
 
   return (
     <div

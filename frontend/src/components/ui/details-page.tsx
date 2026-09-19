@@ -20,8 +20,12 @@ import {
   LifeBuoy,
   Eye,
   Sliders,
-  Maximize2
+  Maximize2,
+  ArrowLeftRight,
+  FileText
 } from 'lucide-react';
+import { ModelVsObsComparator } from '@/components/ocean/ModelVsObsComparator';
+import { downloadMissionDossierPdf } from '@/lib/export/missionDossierPdf';
 import { 
   predictOceanState, 
   type OceanPredictionResult, 
@@ -139,6 +143,7 @@ export default function DetailsPage() {
   const [activeTab, setActiveTab] = useState<HazardTab>('all');
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [showModelVsObsModal, setShowModelVsObsModal] = useState<boolean>(false);
 
   // Compute prediction results
   const predictionResult: OceanPredictionResult = useMemo(() => {
@@ -267,6 +272,24 @@ export default function DetailsPage() {
               ))}
             </select>
           </div>
+
+          <button
+            onClick={() => setShowModelVsObsModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition-all cursor-pointer font-mono"
+            title="Model vs. Observation Anomaly Engine"
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Model vs Obs Bias</span>
+          </button>
+
+          <button
+            onClick={() => downloadMissionDossierPdf({ lat: params.lat, lon: params.lon, depth: params.depth })}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 border border-blue-500/40 text-blue-300 text-xs font-semibold transition-all cursor-pointer font-mono"
+            title="Export Official INCOIS Maritime Tactical Dossier (PDF)"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" />
+            <span className="hidden sm:inline">Export Dossier (PDF)</span>
+          </button>
 
           <button
             onClick={handleOpenDepthSlice}
@@ -764,6 +787,17 @@ export default function DetailsPage() {
           </button>
         </div>
       </main>
+
+      {/* ── MODEL VS. OBSERVED ANOMALY MODAL ── */}
+      {showModelVsObsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto custom-scrollbar">
+            <ModelVsObsComparator
+              onClose={() => setShowModelVsObsModal(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type {
   CurrentsGridResponse,
   DeepOceanPredictionResponse
 } from "@/lib/api/types";
+import { predictOceanState } from "@/lib/api/oceanPredictionService";
 
 /**
  * Service for interacting with the Leher Ocean Data API (FastAPI backend)
@@ -370,6 +371,101 @@ export class OceanDataService {
       console.error("Error predicting deep ocean state:", error);
       throw error;
     }
+  /**
+   * Heartbeat check to determine backend vs edge simulation mode
+   */
+  async checkBackendStatus(): Promise<{ isOnline: boolean; source: string }> {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 600);
+      const res = await fetch(`${this.apiBaseUrl.replace('/api/ocean', '/api/incois')}/status`, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (res.ok) {
+        return { isOnline: true, source: "LIVE_INCOIS_LAS_BACKEND" };
+      }
+    } catch {
+      // Fallback
+    }
+    return { isOnline: false, source: "EDGE_SIMULATION_CMEMS" };
+  }
+
+  /**
+   * Fetch OPeNDAP remote subset from INCOIS Live Access Server
+   */
+  async getIncoisOpendapSubset(
+    variable: string,
+    latMin: number,
+    latMax: number,
+    lonMin: number,
+    lonMax: number,
+    depth: number = 0
+  ): Promise<{
+    source: string;
+    catalogUrl: string;
+    variable: string;
+    depthMeters: number;
+    latitudes: number[];
+    longitudes: number[];
+    values: number[][];
+    attribution: string;
+  }> {
+    try {
+      const params = new URLSearchParams({
+        var: variable,
+        lat_min: latMin.toString(),
+        lat_max: latMax.toString(),
+        lon_min: lonMin.toString(),
+        lon_max: lonMax.toString(),
+        depth: depth.toString(),
+      });
+
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 1200);
+      const res = await fetch(`${this.apiBaseUrl.replace('/api/ocean', '/api/incois')}/opendap/subset?${params}`, {
+        signal: ctrl.signal,
+      });
+      clearTimeout(t);
+
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          source: data.source || "INCOIS Live Access Server (OPeNDAP)",
+          catalogUrl: data.catalog_url || "https://las.incois.gov.in/dods/incois_roms_daily",
+          variable: data.variable,
+          depthMeters: data.depth_meters,
+          latitudes: data.latitudes,
+          longitudes: data.longitudes,
+          values: data.values,
+          attribution: data.attribution || "INCOIS / MoES",
+        };
+      }
+    } catch {
+      // Fallback to client-side physics simulation
+    }
+
+    // Client-side Edge Physics Fallback
+    const lats = [latMin, latMin + (latMax - latMin) * 0.5, latMax];
+    const lons = [lonMin, lonMin + (lonMax - lonMin) * 0.5, lonMax];
+    const values = lats.map((la) =>
+      lons.map((lo) => {
+        const p = predictOceanState(la, lo, depth);
+        if (variable === 'salinity') return p.variables.so?.value ?? 35.5;
+        if (variable === 'currents') return p.summary.currentSpeedMs;
+        if (variable === 'chlorophyll') return p.variables.chl?.value ?? 0.25;
+        return p.variables.thetao?.value ?? 28.0;
+      })
+    );
+
+    return {
+      source: "INCOIS LAS DODS (Edge Simulation Fallback)",
+      catalogUrl: "https://las.incois.gov.in/dods/incois_roms_daily",
+      variable,
+      depthMeters: depth,
+      latitudes: lats,
+      longitudes: lons,
+      values,
+      attribution: "INCOIS / MoES SIH PS 26067",
+    };
   }
 }
 

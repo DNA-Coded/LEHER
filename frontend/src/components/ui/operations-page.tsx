@@ -11,6 +11,8 @@ import {
   Radio,
   X,
   Crosshair,
+  ArrowLeftRight,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, type TimeZone } from '@/components/ui/landing-page';
@@ -19,6 +21,7 @@ import {
   IN_SITU_SENSORS, 
   type InSituSensorType 
 } from '@/services/inSituSensorData';
+import { ModelVsObsComparator } from '@/components/ocean/ModelVsObsComparator';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -97,8 +100,9 @@ export default function OperationsPage() {
   const [modalDepth, setModalDepth] = useState<number>(params.depth);
 
   // In-Situ Fleet Filter & Selection State
-  const [activeSensorFilter, setActiveSensorFilter] = useState<InSituSensorType | 'all'>('all');
+  const [activeSensorFilter, setActiveSensorFilter] = useState<'all' | InSituSensorType>('all');
   const [selectedSensorId, setSelectedSensorId] = useState<string>('');
+  const [showModelVsObsModal, setShowModelVsObsModal] = useState<boolean>(false);
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
     { label: "Bay of Bengal", lat: 14.0, lon: 86.5 },
@@ -368,7 +372,7 @@ export default function OperationsPage() {
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
         {/* EXPANSIVE 3D EARTH MAP VIEWPORT */}
         <div className={cn(
-          "flex-1 h-full relative bg-[#040404] overflow-hidden min-h-[300px] min-w-0 lg:-mt-16",
+          "flex-1 h-full relative bg-[#070709] overflow-hidden min-h-[300px] min-w-0",
           activeMobileTab === 'map' ? "block" : "hidden lg:block"
         )}>
           <iframe
@@ -427,54 +431,55 @@ export default function OperationsPage() {
           </div>
         </div>
 
-        {/* RIGHT DOCKED PANEL: MINIMAL MONOCHROME AESTHETIC WITH ALL OPTIONS RESTORED */}
+        {/* RIGHT DOCKED PANEL: FIXED AT 100% VIEW (NO SCROLLING ON LARGE DISPLAY) + SENIOR UI/UX PALETTE */}
         <div className={cn(
-          "w-full lg:w-[390px] xl:w-[400px] lg:flex-none lg:h-full bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 space-y-3 overflow-y-auto z-20 shadow-2xl shrink-0 max-h-none lg:max-h-full min-w-0 font-mono",
-          activeMobileTab === 'controls' ? "flex-1 block lg:flex-none" : "hidden lg:block"
+          "w-full lg:w-[380px] xl:w-[390px] lg:flex-none h-full bg-[#0d0e13] border-t lg:border-t-0 lg:border-l border-zinc-800/90 p-3 lg:p-3.5 flex flex-col justify-between overflow-y-auto z-20 shadow-2xl shrink-0 min-w-0 font-mono select-none",
+          activeMobileTab === 'controls' ? "flex-1 block lg:flex-none" : "hidden lg:flex"
         )}>
           {/* Header */}
-          <div className="border-b border-[#222222] pb-2.5 flex justify-between items-center">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+          <div className="border-b border-zinc-800/80 pb-2 flex justify-between items-center shrink-0">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-white" />
               OPERATIONS WORKBENCH
             </h3>
-            <span className="text-[10px] font-mono text-[#666666]">
+            <span className="text-[10px] font-mono text-zinc-300 font-semibold truncate max-w-[140px]">
               {prediction.location.regionName}
             </span>
           </div>
 
           {/* 1. MAP PROJECTION */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3.5 space-y-2">
-            <div className="text-[10px] text-[#666666] uppercase tracking-wide font-medium">
+          <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors">
+            <div className="text-[10px] text-zinc-200 uppercase tracking-wider font-semibold font-mono">
               MAP PROJECTION
             </div>
             <div className="relative">
               <select
                 value={activeProjection}
                 onChange={(e) => handleSelectProjection(e.target.value)}
-                className="w-full bg-[#161616] text-white text-xs font-mono rounded-lg px-3 py-2.5 border border-[#262626] hover:border-[#333333] focus:border-white/60 focus:outline-none cursor-pointer transition-all appearance-none pr-8 truncate"
+                className="w-full bg-[#181922] text-white text-xs font-mono rounded-lg px-2.5 py-1.5 border border-zinc-800 hover:border-zinc-700 focus:border-white/60 focus:outline-none cursor-pointer transition-all appearance-none pr-8 truncate"
               >
                 {PROJECTION_LIST.map((p) => (
-                  <option key={p.key} value={p.key} className="bg-[#141414] text-white font-mono">
+                  <option key={p.key} value={p.key} className="bg-[#13141b] text-white font-mono">
                     {p.name}
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-zinc-400">
                 <ChevronDown className="w-3.5 h-3.5" />
               </div>
             </div>
           </div>
 
           {/* 2. COORDINATES */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3.5 space-y-2.5">
-            <div className="text-[10px] text-[#666666] uppercase tracking-wide font-medium">
+          <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-3 space-y-2 transition-colors">
+            <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">
               COORDINATES
             </div>
 
             {/* Latitude */}
-            <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
-              <span className="text-[#888888] text-xs font-mono">Latitude</span>
-              <div className="flex items-center gap-2">
+            <div className="bg-[#181922] border border-zinc-800 rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
+              <span className="text-zinc-400 text-xs font-mono">Latitude</span>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="number"
                   step="0.0001"
@@ -483,19 +488,19 @@ export default function OperationsPage() {
                   value={inputLat}
                   onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
                   onBlur={handleLatBlur}
-                  className="w-24 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
                   placeholder="15.4"
                 />
-                <span className="text-[#666666] font-mono text-xs w-6 text-right">
+                <span className="text-zinc-400 font-mono text-xs">
                   {inputLat >= 0 ? "°N" : "°S"}
                 </span>
               </div>
             </div>
 
             {/* Longitude */}
-            <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
-              <span className="text-[#888888] text-xs font-mono">Longitude</span>
-              <div className="flex items-center gap-2">
+            <div className="bg-[#181922] border border-zinc-800 rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
+              <span className="text-zinc-400 text-xs font-mono">Longitude</span>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="number"
                   step="0.0001"
@@ -504,32 +509,32 @@ export default function OperationsPage() {
                   value={inputLon}
                   onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
                   onBlur={handleLonBlur}
-                  className="w-24 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
                   placeholder="71.2"
                 />
-                <span className="text-[#666666] font-mono text-xs w-6 text-right">
+                <span className="text-zinc-400 font-mono text-xs">
                   {inputLon >= 0 ? "°E" : "°W"}
                 </span>
               </div>
             </div>
 
-            {/* Locate Myself Button (Clean minimal monochrome, no cyan) */}
+            {/* Locate Myself Button */}
             <button
               type="button"
               onClick={handleLocateMe}
               disabled={isLocating}
-              className="w-full py-2.5 px-3 rounded-lg bg-[#161616] hover:bg-[#202020] border border-[#262626] text-white text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+              className="w-full py-2 px-3 rounded-lg bg-[#181922] hover:bg-[#20222e] border border-zinc-800 hover:border-zinc-700 text-white text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
               title="Detect your current geographic position and center the 3D globe"
             >
-              <Compass className="w-3.5 h-3.5 text-[#888888]" />
-              <span>{isLocating ? "Acquiring GPS Fix..." : "Locate Myself"}</span>
+              <Compass className="w-3.5 h-3.5 text-zinc-300" />
+              <span className="text-white font-bold">{isLocating ? "Acquiring GPS Fix..." : "Locate Myself"}</span>
             </button>
           </div>
 
           {/* 3. DEPTH PROFILE */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3.5 space-y-2.5">
+          <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors">
             <div className="flex justify-between items-center text-[10px] font-mono">
-              <span className="uppercase tracking-wide text-[#666666] font-medium">DEPTH PROFILE</span>
+              <span className="uppercase tracking-wider text-zinc-200 font-semibold">DEPTH PROFILE</span>
               <span className="text-white font-bold text-xs">{workbenchDepth}m</span>
             </div>
 
@@ -540,7 +545,7 @@ export default function OperationsPage() {
               step="10"
               value={workbenchDepth}
               onChange={(e) => setWorkbenchDepth(Number(e.target.value))}
-              className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
+              className="w-full accent-white h-1 bg-zinc-800 rounded appearance-none cursor-pointer"
             />
 
             <div className="grid grid-cols-6 gap-1 text-center pt-0.5">
@@ -550,10 +555,10 @@ export default function OperationsPage() {
                   type="button"
                   onClick={() => setWorkbenchDepth(d)}
                   className={cn(
-                    "py-1.5 rounded text-[10px] font-mono border transition-all cursor-pointer",
+                    "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer text-center",
                     workbenchDepth === d
-                      ? "bg-white text-black font-bold border-white"
-                      : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white"
+                      ? "bg-white text-black font-bold border-white shadow-sm"
+                      : "bg-[#181922] border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
                   )}
                 >
                   {d === 0 ? "0m" : `${d}m`}
@@ -562,20 +567,20 @@ export default function OperationsPage() {
             </div>
           </div>
 
-          {/* 4. IN-SITU OBSERVATIONS (Restored! Clean minimal monochrome) */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3.5 space-y-2.5">
+          {/* 4. IN-SITU OBSERVATIONS */}
+          <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors">
             <div className="flex items-center justify-between text-[10px] font-mono">
-              <span className="text-[#888888] uppercase tracking-wide font-bold flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-[#888888]" />
+              <span className="text-zinc-200 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                <Radio className="w-3.5 h-3.5 text-zinc-300" />
                 IN-SITU OBSERVATIONS
               </span>
-              <span className="text-[10px] font-mono text-[#888888] bg-[#161616] px-2 py-0.5 rounded border border-[#262626]">
+              <span className="text-[9px] font-mono text-zinc-300 bg-[#181922] px-2 py-0.5 rounded border border-zinc-800">
                 {IN_SITU_SENSORS.length} ACTIVE
               </span>
             </div>
 
             {/* Category Filter Pills */}
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-5 gap-1">
               {(['all', 'argo', 'glider', 'mooring', 'bgc'] as const).map((t) => {
                 const count = t === 'all' ? IN_SITU_SENSORS.length : IN_SITU_SENSORS.filter(s => s.type === t).length;
                 const labels = { all: 'ALL', argo: 'ARGO', glider: 'GLIDER', mooring: 'OMNI', bgc: 'BGC' };
@@ -586,10 +591,10 @@ export default function OperationsPage() {
                     type="button"
                     onClick={() => setActiveSensorFilter(t)}
                     className={cn(
-                      "py-1.5 px-1 rounded-md text-[10px] font-mono transition-all text-center truncate cursor-pointer",
+                      "py-1 px-1 rounded-md text-[9px] font-mono transition-all text-center truncate cursor-pointer",
                       isSelected
                         ? "bg-white text-black font-bold shadow-sm"
-                        : "bg-[#161616] text-[#888888] hover:text-white border border-[#222222]"
+                        : "bg-[#181922] text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700"
                     )}
                     title={`Filter ${labels[t]} (${count})`}
                   >
@@ -604,7 +609,7 @@ export default function OperationsPage() {
               <select
                 value={selectedSensorId}
                 onChange={(e) => handleSelectInSituSensor(e.target.value)}
-                className="w-full bg-[#161616] text-white text-xs font-mono rounded-lg px-3 py-2.5 border border-[#262626] hover:border-[#333333] focus:border-white/60 focus:outline-none cursor-pointer transition-all appearance-none pr-8 truncate"
+                className="w-full bg-[#181922] text-white text-xs font-mono rounded-lg px-2.5 py-1.5 border border-zinc-800 hover:border-zinc-700 focus:border-white/60 focus:outline-none cursor-pointer transition-all appearance-none pr-8 truncate"
               >
                 <option value="" disabled>
                   Select In-Situ Location ({IN_SITU_SENSORS.length} Platforms)...
@@ -646,24 +651,24 @@ export default function OperationsPage() {
                   </optgroup>
                 )}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#666666]">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-zinc-400">
                 <ChevronDown className="w-3.5 h-3.5" />
               </div>
             </div>
           </div>
 
           {/* 5. ACTION & SENSORS */}
-          <div className="bg-[#121212] border border-[#222222] rounded-xl p-3.5 space-y-2.5">
-            <div className="flex items-center justify-between text-[10px] font-mono text-[#666666]">
-              <span className="uppercase tracking-wide font-medium">ACTION &amp; SENSORS</span>
-              <span className="text-[#888888] font-mono">READY</span>
+          <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors">
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="uppercase tracking-wider text-zinc-200 font-semibold">ACTION &amp; SENSORS</span>
+              <span className="text-zinc-300 font-mono text-[9px]">READY</span>
             </div>
 
             <button
               type="button"
               onClick={handlePredict}
               disabled={isPredicting}
-              className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs font-sans flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-75"
+              className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black font-bold text-xs font-sans flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-75"
             >
               {isPredicting ? (
                 <>
@@ -802,6 +807,29 @@ export default function OperationsPage() {
                 Skip &amp; Select Manually or by In-Situ Options →
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODEL VS. OBSERVED ANOMALY MODAL ── */}
+      {showModelVsObsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto custom-scrollbar">
+            <ModelVsObsComparator
+              initialSensorId={selectedSensorId || 'argo-2902345'}
+              onClose={() => setShowModelVsObsModal(false)}
+              onTargetCoordinates={(tLat, tLon, tDepth = 0) => {
+                setInputLat(tLat);
+                setInputLon(tLon);
+                setWorkbenchDepth(tDepth);
+                sendToEarthIframe({
+                  action: 'setLocation',
+                  latitude: tLat,
+                  longitude: tLon,
+                });
+                setShowModelVsObsModal(false);
+              }}
+            />
           </div>
         </div>
       )}
