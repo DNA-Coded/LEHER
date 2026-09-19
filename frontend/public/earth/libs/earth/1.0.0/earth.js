@@ -73,13 +73,13 @@
 
     /**
      * Checks if coordinates fall within the supported maritime data coverage bounds:
-     * Longitude: 53°E to 99°E, Latitude: 4°N to 25°N
+     * Longitude: 53°E to 99°E, Latitude: 20°S to 20°N
      */
     function isCoordWithinDataBounds(coord) {
         if (!coord || !_.isFinite(coord[0]) || !_.isFinite(coord[1])) return false;
         var lon = ((coord[0] + 180) % 360 + 360) % 360 - 180;
         var lat = coord[1];
-        return lon >= 53 && lon <= 99 && lat >= 4 && lat <= 25;
+        return lon >= 53 && lon <= 99 && lat >= -20 && lat <= 20;
     }
 
     /**
@@ -216,8 +216,14 @@
                     d3.select("#cursor-lat").text(latStr);
                     d3.select("#cursor-lon").text(lonStr);
                     d3.select("#cursor-region").text(getWaterBody(lat, lon));
-                    hud.style("display", "block")
-                       .style("transform", "translate3d(" + (mouse[0] + 18) + "px, " + (mouse[1] + 18) + "px, 0)");
+                    hud.style("display", "block");
+                    var tooltipWidth = hud.node().offsetWidth || 220;
+                    var tooltipHeight = hud.node().offsetHeight || 60;
+                    var offsetX = mouse[0] + tooltipWidth + 32 > window.innerWidth ? -tooltipWidth - 16 : 16;
+                    var offsetY = mouse[1] + tooltipHeight + 64 > window.innerHeight ? -tooltipHeight - 16 : 16;
+                    hud.style("left", (mouse[0] + offsetX) + "px")
+                       .style("top", (mouse[1] + offsetY) + "px")
+                       .style("transform", "none");
                 } else {
                     d3.select(this).style("cursor", "not-allowed");
                     hud.style("display", "none");
@@ -245,7 +251,7 @@
         }, true);
 
         function reorient() {
-            var options = arguments[3] || {};
+            var options = arguments[2] || arguments[3] || {};
             if (!globe || options.source === "moveEnd") {
                 return;
             }
@@ -263,6 +269,28 @@
                     reorient();
                 }
                 return _ ? this : globe;
+            },
+            zoomBy: function(factor) {
+                var g = globe || globeAgent.value();
+                if (!g || !g.projection) return;
+                var current = g.projection.scale();
+                var extent = g.scaleExtent ? g.scaleExtent() : [100, 10000];
+                var target = µ.clamp(current * factor, extent[0], extent[1]);
+                if (Math.abs(target - current) < 1) return;
+                
+                zoom.scale(target);
+                var man = g.manipulator ? g.manipulator(null, current) : null;
+                if (man && typeof man.move === "function") {
+                    man.move(null, target);
+                    if (typeof man.end === "function") man.end();
+                } else {
+                    g.projection.scale(target);
+                }
+                
+                dispatch.trigger("moveStart");
+                dispatch.trigger("move");
+                configuration.save({orientation: g.orientation()}, {source: "moveEnd"});
+                dispatch.trigger("moveEnd");
             }
         }, Backbone.Events);
         return dispatch.listenTo(configuration, "change:orientation", reorient);
@@ -325,10 +353,10 @@
             centerLat = -rot[1];
         }
         var corners = [
-            { id: "nw", coord: [53, 25] },
-            { id: "ne", coord: [99, 25] },
-            { id: "se", coord: [99, 4] },
-            { id: "sw", coord: [53, 4] }
+            { id: "nw", coord: [53, 20] },
+            { id: "ne", coord: [99, 20] },
+            { id: "se", coord: [99, -20] },
+            { id: "sw", coord: [53, -20] }
         ];
         corners.forEach(function(c) {
             var isVisible = true;
@@ -418,7 +446,7 @@
                 moveEnd: function() {
                     coastline.datum(mesh.coastHi);
                     lakes.datum(mesh.lakesHi);
-                    d3.selectAll("path").attr("d", path);
+                    doDraw();
                     rendererAgent.trigger("render");
                 },
                 click: function(point, coord) {
@@ -711,6 +739,10 @@
                 clearLocationDetails(true);
             } else if (e.data.action === "setLocation" && typeof e.data.latitude === "number" && typeof e.data.longitude === "number") {
                 updateLocationMarker([e.data.longitude, e.data.latitude], true);
+            } else if (e.data.action === "zoomIn") {
+                inputController.zoomBy(1.3);
+            } else if (e.data.action === "zoomOut") {
+                inputController.zoomBy(1 / 1.3);
             }
         });
 
@@ -720,7 +752,9 @@
             fetchUserLocation: fetchUserLocation,
             clearLocationDetails: clearLocationDetails,
             setLocation: function(lat, lon) { updateLocationMarker([lon, lat], false); },
-            getActiveLocation: function() { return activeLocation; }
+            getActiveLocation: function() { return activeLocation; },
+            zoomIn: function() { inputController.zoomBy(1.3); },
+            zoomOut: function() { inputController.zoomBy(1 / 1.3); }
         };
     }
 

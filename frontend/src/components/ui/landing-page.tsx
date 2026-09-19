@@ -136,7 +136,7 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
 };
 
 export const PROJECTION_METADATA: Record<string, string> = {
-  concentric_region: "Concentric Bounded (4°N–25°N, 53°–99°E)",
+  concentric_region: "Concentric Bounded (20°S–20°N, 53°–99°E)",
   orthographic: "3D Globe (Orthographic)",
   equirectangular: "Flat Map (Plate Carrée)",
   winkel3: "Winkel Tripel (Compromise)",
@@ -148,7 +148,7 @@ export const PROJECTION_METADATA: Record<string, string> = {
 };
 
 export const PROJECTION_LIST = [
-  { key: 'concentric_region', name: 'Concentric Bounded (4°N–25°N, 53°–99°E)', desc: 'Latitudinally & Longitudinally Bounded Focus', badge: 'BOUNDED' },
+  { key: 'concentric_region', name: 'Concentric Bounded (20°S–20°N, 53°–99°E)', desc: 'Latitudinally & Longitudinally Bounded Focus', badge: 'BOUNDED' },
   { key: 'orthographic', name: '3D Globe', desc: 'Spherical Orthographic', badge: '3D' },
   { key: 'equirectangular', name: 'Flat Map', desc: 'Plate Carrée Cylindrical', badge: 'FLAT' },
   { key: 'winkel3', name: 'Winkel Tripel', desc: 'Compromise World Map', badge: 'GLOBAL' },

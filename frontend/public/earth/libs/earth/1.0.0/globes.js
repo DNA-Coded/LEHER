@@ -45,7 +45,7 @@ var globes = function() {
         };
     }
 
-    var CONCENTRIC_BBOX = makeDenseBBox(53, 4, 99, 25, 0.5);
+    var CONCENTRIC_BBOX = makeDenseBBox(53, -20, 99, 20, 0.5);
 
     function standardGlobe() {
         return {
@@ -225,10 +225,10 @@ var globes = function() {
                     .attr("class", "sector-hud-overlay");
 
                 var corners = [
-                    { id: "nw", coord: [53, 25], label: "NW 25°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
-                    { id: "ne", coord: [99, 25], label: "NE 25°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
-                    { id: "se", coord: [99, 4],  label: "SE 4°N 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
-                    { id: "sw", coord: [53, 4],  label: "SW 4°N 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
+                    { id: "nw", coord: [53, 20], label: "NW 20°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
+                    { id: "ne", coord: [99, 20], label: "NE 20°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
+                    { id: "se", coord: [99, -20],  label: "SE 20°S 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
+                    { id: "sw", coord: [53, -20],  label: "SW 20°S 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
                 ];
 
                 var proj = this.projection;
@@ -277,12 +277,12 @@ var globes = function() {
         return newGlobe({
             isConcentric: true,
             isBounded: true,
-            boundsGeo: { minLon: 53, maxLon: 99, minLat: 4, maxLat: 25 },
+            boundsGeo: { minLon: 53, maxLon: 99, minLat: -20, maxLat: 20 },
             newProjection: function(view) {
                 return d3.geo.conicEquidistant()
-                    .center([0, 14.5])
+                    .center([0, 0])
                     .rotate([-76, 0])
-                    .parallels([4, 25])
+                    .parallels([-20, 20])
                     .precision(0.1);
             },
             bounds: function(view) {
@@ -293,28 +293,53 @@ var globes = function() {
                 var bounds = d3.geo.path().projection(defaultProjection).bounds(CONCENTRIC_BBOX);
                 var hScale = (bounds[1][0] - bounds[0][0]) / defaultProjection.scale();
                 var vScale = (bounds[1][1] - bounds[0][1]) / defaultProjection.scale();
-                return Math.min(view.width / hScale, view.height / vScale) * 0.90;
+                return Math.min(view.width / hScale, view.height / vScale) * 0.85;
             },
             center: function(view) {
-                return [view.width / 2, view.height / 2];
+                return [view.width / 2, view.height / 2.2];
+            },
+            scaleExtent: function() {
+                return [100, 10000];
             },
             orientation: function(o, view) {
                 var projection = this.projection;
                 view = view || µ.view();
+                var extent = this.scaleExtent();
                 var defaultProjection = this.newProjection(view);
-                projection.rotate(defaultProjection.rotate());
-                projection.scale(this.fit(view));
-                projection.translate(this.center(view));
-                if (!µ.isValue(o)) {
-                    var rotate = projection.rotate();
-                    return [(-rotate[0]).toFixed(2), (-rotate[1]).toFixed(2), Math.round(projection.scale())].join(",");
+                var baseFit = this.fit(view);
+                if (µ.isValue(o)) {
+                    var parts = o.split(","), λ = +parts[0], φ = +parts[1], scale = +parts[2];
+                    projection.rotate(_.isFinite(λ) && _.isFinite(φ) ?
+                        [-λ, -φ, defaultProjection.rotate()[2] || 0] :
+                        defaultProjection.rotate());
+                    projection.scale(_.isFinite(scale) ? µ.clamp(scale, extent[0], extent[1]) : baseFit);
+                    projection.translate(this.center(view));
+                    return this;
                 }
-                return this;
+                var rotate = projection.rotate();
+                return [(-rotate[0]).toFixed(2), (-rotate[1]).toFixed(2), Math.round(projection.scale())].join(",");
             },
-            manipulator: function() {
+            manipulator: function(startMouse, startScale) {
+                var projection = this.projection;
+                var sScale = startScale || projection.scale();
+                var sensitivity = 150 / sScale;
+                var rotation = [projection.rotate()[0] / sensitivity, -projection.rotate()[1] / sensitivity];
+                var original = projection.precision();
+                projection.precision(original * 10);
                 return {
-                    move: function() {},
-                    end: function() {}
+                    move: function(mouse, scale) {
+                        if (mouse && startMouse) {
+                            var xd = mouse[0] - startMouse[0] + rotation[0];
+                            var yd = mouse[1] - startMouse[1] + rotation[1];
+                            projection.rotate([xd * sensitivity, -yd * sensitivity, projection.rotate()[2]]);
+                        }
+                        if (_.isFinite(scale)) {
+                            projection.scale(scale);
+                        }
+                    },
+                    end: function() {
+                        projection.precision(original);
+                    }
                 };
             },
             defineMap: function(mapSvg, foregroundSvg) {
@@ -417,10 +442,10 @@ var globes = function() {
                     .attr("class", "sector-hud-overlay");
 
                 var corners = [
-                    { id: "nw", coord: [53, 25], label: "NW 25°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
-                    { id: "ne", coord: [99, 25], label: "NE 25°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
-                    { id: "se", coord: [99, 4],  label: "SE 4°N 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
-                    { id: "sw", coord: [53, 4],  label: "SW 4°N 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
+                    { id: "nw", coord: [53, 20], label: "NW 20°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
+                    { id: "ne", coord: [99, 20], label: "NE 20°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
+                    { id: "se", coord: [99, -20],  label: "SE 20°S 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
+                    { id: "sw", coord: [53, -20],  label: "SW 20°S 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
                 ];
 
                 var proj = this.projection;

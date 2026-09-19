@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  ArrowLeft, 
-  ChevronDown, 
-  RefreshCw, 
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  RefreshCw,
   ArrowUpRight,
   ExternalLink,
   Clock,
@@ -42,6 +42,8 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
 export type IntelOption = 'all' | 'cyclone' | 'ecosystem' | 'fishing' | 'safezone' | 'physics';
 
 export default function OperationsPage() {
+  const earthIframeRef = useRef<HTMLIFrameElement | null>(null);
+
   // Read coordinates, depth, and active tab from URL query parameters
   const [params] = useState(() => {
     const search = new URLSearchParams(window.location.search);
@@ -66,7 +68,7 @@ export default function OperationsPage() {
   const [activeIntelOption, setActiveIntelOption] = useState<IntelOption>(params.tab);
 
   const handleLatBlur = () => {
-    setInputLat((prev) => Math.min(25, Math.max(4, prev)));
+    setInputLat((prev) => Math.min(20, Math.max(-20, prev)));
   };
 
   const handleLonBlur = () => {
@@ -79,8 +81,6 @@ export default function OperationsPage() {
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
-
-
 
   const LOCATION_PRESETS = [
     { label: "Arabian Sea", lat: 15.4, lon: 71.2 },
@@ -95,6 +95,13 @@ export default function OperationsPage() {
 
   // Send message to Earth iframe
   const sendToEarthIframe = useCallback((data: { action: string; projection?: string; latitude?: number; longitude?: number }) => {
+    if (earthIframeRef.current?.contentWindow) {
+      try {
+        earthIframeRef.current.contentWindow.postMessage(data, "*");
+      } catch (err) {
+        console.warn("Unable to postMessage to Earth iframe ref", err);
+      }
+    }
     const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[title*="Earth"]');
     iframes.forEach((iframe) => {
       try {
@@ -489,11 +496,11 @@ export default function OperationsPage() {
           <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
 
           <div className="flex items-center gap-2.5">
-            <img 
-              src="/logo.png" 
-              alt="Leher Logo" 
-              title="Leher" 
-              className="h-7 w-auto object-contain" 
+            <img
+              src="/logo.png"
+              alt="Leher Logo"
+              title="Leher"
+              className="h-7 w-auto object-contain"
             />
             <span className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
               <span>Operations &amp; Analytics Console</span>
@@ -1115,6 +1122,7 @@ export default function OperationsPage() {
           activeMobileTab === 'map' ? "block" : "hidden lg:block"
         )}>
           <iframe
+            ref={earthIframeRef}
             key={activeProjection}
             src={earthIframeUrl}
             title="Leher Fullscreen 3D Earth"
@@ -1144,6 +1152,24 @@ export default function OperationsPage() {
                 <span>{workbenchDepth}m depth</span>
               </div>
             </div>
+          </div>
+          
+          {/* Zoom Controls */}
+          <div className="absolute right-4 bottom-1/2 translate-y-1/2 flex flex-col gap-2 z-10">
+            <button
+              onClick={() => sendToEarthIframe({ action: "zoomIn" })}
+              className="w-10 h-10 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 hover:bg-black/80 hover:border-white/30 text-white flex items-center justify-center transition-all shadow-lg"
+              title="Zoom In"
+            >
+              <span className="text-lg font-bold leading-none">+</span>
+            </button>
+            <button
+              onClick={() => sendToEarthIframe({ action: "zoomOut" })}
+              className="w-10 h-10 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 hover:bg-black/80 hover:border-white/30 text-white flex items-center justify-center transition-all shadow-lg"
+              title="Zoom Out"
+            >
+              <span className="text-lg font-bold leading-none">−</span>
+            </button>
           </div>
         </div>
 
@@ -1247,8 +1273,8 @@ export default function OperationsPage() {
                       isOutOfBounds
                         ? "opacity-30 border-[#1a1a1a] bg-[#111111] text-[#555555] cursor-not-allowed"
                         : isSelected
-                        ? "bg-white text-black font-semibold border-white cursor-pointer"
-                        : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333] cursor-pointer"
+                          ? "bg-white text-black font-semibold border-white cursor-pointer"
+                          : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#333333] cursor-pointer"
                     )}
                   >
                     {loc.label}
@@ -1263,17 +1289,17 @@ export default function OperationsPage() {
             <div className="flex justify-between items-center text-[10px] font-mono text-neutral-500">
               <span className="uppercase tracking-wide">DEPTH PROFILE</span>
             </div>
-            
-            <input 
-              type="range" 
-              min="0" 
-              max="2000" 
-              step="10" 
-              value={workbenchDepth} 
-              onChange={(e) => setWorkbenchDepth(Number(e.target.value))} 
+
+            <input
+              type="range"
+              min="0"
+              max="2000"
+              step="10"
+              value={workbenchDepth}
+              onChange={(e) => setWorkbenchDepth(Number(e.target.value))}
               className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
             />
-            
+
             <div className="grid grid-cols-6 gap-1 text-center pt-0.5">
               {[0, 50, 150, 500, 1000, 2000].map((d) => (
                 <button
