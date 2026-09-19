@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useId, useEffect, CSSProperties } from 'react';
+import React, { useRef, useId, useEffect, type CSSProperties } from 'react';
 
 // Type definitions
 interface ResponsiveImage {

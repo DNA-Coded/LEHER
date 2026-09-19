@@ -186,7 +186,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
     riskMessage = "Advisory: Moderate surface currents or drifting sea ice detected in sector.";
   }
 
-  return {
+  const result: OceanPredictionResult = {
     location: {
       lat: +lat.toFixed(4),
       lon: +lon.toFixed(4),
@@ -338,7 +338,7 @@ export function predictOceanState(lat: number, lon: number, depth: number): Ocea
 
   if (predictionCache.size >= MAX_CACHE_ENTRIES) {
     const firstKey = predictionCache.keys().next().value;
-    if (firstKey) predictionCache.delete(firstKey);
+    if (firstKey !== undefined) predictionCache.delete(firstKey);
   }
   predictionCache.set(cacheKey, result);
 

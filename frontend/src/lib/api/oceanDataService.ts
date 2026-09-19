@@ -371,6 +371,8 @@ export class OceanDataService {
       console.error("Error predicting deep ocean state:", error);
       throw error;
     }
+  }
+
   /**
    * Heartbeat check to determine backend vs edge simulation mode
    */

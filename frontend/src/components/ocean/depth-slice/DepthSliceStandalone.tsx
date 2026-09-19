@@ -51,12 +51,14 @@ const MOCK_WATER_COLUMN: DepthColumnLayer[] = [
 const MOCK_DERIVED_METRICS = {
   thermocline_depth: 85,
   mixed_layer_depth: 42,
-  pycnocline_strength: 3.42,
-  mean_column_speed: 0.053,
+  pycnocline_strength: '3.42',
+  mean_column_speed: '0.053',
   brunt_vaisala: '2.84 × 10⁻³ s⁻¹',
   acoustic_ducting: 'Active (SOFAR axis at ~950m)',
   sound_speed_surface: '1542 m/s',
   sound_speed_abyss: '1488 m/s',
+  r2_score: '0.984',
+  latency: '14.2 ms',
 };
 
 const MOCK_MODEL_META = {
