@@ -31,6 +31,7 @@ import { InSituSensorModal } from '@/components/ocean/InSituSensorModal';
 import { OCEAN_REGIONS } from '@/lib/ocean/regions';
 import { getCssGradient, getLinearColor, getLogColor, VARIABLE_DEFAULTS, type ColorbarState } from '@/lib/ocean/colorScales';
 import type { ColorScaleName } from '@/types/ocean';
+import { fetchHazardEvents, fetchEcosystemData, type HazardEvent, type EcosystemCell } from '@/services/oceanApi';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -172,27 +173,6 @@ export default function DepthSlicePage() {
   // In-Situ Sensor Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
-  // ── Phase 2: Colorbar Editor state ──────────────────────────────────────
-  const [colorbarState, setColorbarState] = useState<ColorbarState>(() => ({
-    colormap: VARIABLE_DEFAULTS['temperature'].colormap,
-    scaleMode: 'linear',
-    minVal: VARIABLE_DEFAULTS['temperature'].min,
-    maxVal: VARIABLE_DEFAULTS['temperature'].max,
-    vExaggeration: 150,
-  }));
-
-  // Auto-reset colorbar range/palette when variable changes
-  useEffect(() => {
-    const def = VARIABLE_DEFAULTS[activeVariable];
-    setColorbarState(prev => ({
-      ...prev,
-      colormap: def.colormap,
-      scaleMode: 'linear',
-      minVal: def.min,
-      maxVal: def.max,
-    }));
-  }, [activeVariable]);
-
   // Phase 4: 20°C Thermocline Isosurface & Seasonal Monsoon Cycle
   const [showIsosurface20C, setShowIsosurface20C] = useState<boolean>(true);
   const [selectedSeason, setSelectedSeason] = useState<'pre_monsoon' | 'sw_monsoon' | 'post_monsoon' | 'ne_monsoon'>('sw_monsoon');
@@ -248,6 +228,48 @@ export default function DepthSlicePage() {
     });
   }, [lat, lon, selectedSeason]);
 
+  // ── Phase 2: Colorbar Editor state ──────────────────────────────────────
+  const [colorbarState, setColorbarState] = useState<ColorbarState>(() => ({
+    colormap: VARIABLE_DEFAULTS['temperature'].colormap,
+    scaleMode: 'linear',
+    minVal: VARIABLE_DEFAULTS['temperature'].min,
+    maxVal: VARIABLE_DEFAULTS['temperature'].max,
+    vExaggeration: 150,
+  }));
+
+  // Auto-reset colorbar range/palette when variable or water column data changes
+  useEffect(() => {
+    const def = VARIABLE_DEFAULTS[activeVariable];
+    let min = def.min;
+    let max = def.max;
+    if (waterColumn && waterColumn.length > 0) {
+      if (activeVariable === 'temperature') {
+        const vals = waterColumn.map((l) => l.thetao);
+        min = Math.floor(Math.min(...vals));
+        max = Math.ceil(Math.max(...vals));
+      } else if (activeVariable === 'salinity') {
+        const vals = waterColumn.map((l) => l.so);
+        min = +(Math.min(...vals) - 0.2).toFixed(1);
+        max = +(Math.max(...vals) + 0.2).toFixed(1);
+      } else if (activeVariable === 'currents') {
+        const vals = waterColumn.map((l) => l.current_speed);
+        min = 0;
+        max = +(Math.max(...vals) + 0.1).toFixed(2);
+      } else if (activeVariable === 'chlorophyll') {
+        const vals = waterColumn.map((l) => l.chlorophyll);
+        min = 0;
+        max = +(Math.max(...vals) * 1.2).toFixed(2);
+      }
+    }
+    setColorbarState((prev) => ({
+      ...prev,
+      colormap: def.colormap,
+      scaleMode: 'linear',
+      minVal: min,
+      maxVal: max,
+    }));
+  }, [activeVariable, waterColumn]);
+
   // Find closest layer index to selectedDepth
   const selectedIndex = useMemo(() => {
     let bestIdx = 0;
@@ -295,36 +317,93 @@ export default function DepthSlicePage() {
     return 1449.2 + 4.6 * t - 0.055 * Math.pow(t, 2) + 0.00029 * Math.pow(t, 3) + (1.34 - 0.01 * t) * (s - 35) + 0.016 * d;
   }, [activeLayer]);
 
+  const [activeHazards, setActiveHazards] = useState<HazardEvent[]>([]);
+  const [ecosystemCell, setEcosystemCell] = useState<EcosystemCell | null>(null);
+
+  // Query live Rakshak hazard events & ecosystem telemetry
+  useEffect(() => {
+    let mounted = true;
+    fetchHazardEvents().then((hazards) => {
+      if (mounted) setActiveHazards(hazards);
+    });
+    fetchEcosystemData().then((eco) => {
+      if (!mounted || !eco?.cells) return;
+      let closest: EcosystemCell | null = null;
+      let minD = Infinity;
+      for (const c of eco.cells) {
+        const d = Math.hypot(c.lat - lat, c.lon - lon);
+        if (d < minD) {
+          minD = d;
+          closest = c;
+        }
+      }
+      if (closest) setEcosystemCell(closest);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [lat, lon]);
+
   // Rakshak Intelligence ML Model Inference (SIH PS 26067)
   const mlPredictions = useMemo(() => {
     // 1. Coastal Proximity: Normalized distance factor based on coordinates
     const coastalProximity = 1.00;
 
-    // 2. Cyclone Probability: Driven by SST (> 28.5°C) and oceanic heat content
+    // Check for active nearby Rakshak hazard events (within ~3.0 degrees)
+    const nearbyHazard = activeHazards.find(
+      (h) => Math.hypot(h.latitude - lat, h.longitude - lon) < 3.0
+    );
+
+    // 2. Cyclone Probability: From live Rakshak model output if nearby, or thermal proxy
     const sst = waterColumn[0]?.thetao ?? 28.79;
-    const cycloneProb = sst > 30.5 ? 24.5 : sst > 29.5 ? 8.2 : 0.0;
+    let cycloneProb = sst > 30.5 ? 24.5 : sst > 29.5 ? 8.2 : 0.0;
+    if (nearbyHazard?.type === 'cyclone' && nearbyHazard.probability !== null) {
+      cycloneProb = nearbyHazard.probability * 100;
+    }
     const cycloneProbStr = `${cycloneProb.toFixed(2)}%`;
 
-    // 3. Predicted Surge: Driven by surface current and sea surface height
-    const surge = Math.max(0.04, Math.min(2.5, (basePrediction.variables.zos?.value ?? 0.08) * 0.9 + (activeLayer.current_speed * 0.05)));
+    // 3. Predicted Surge: From live Rakshak surge regressor if present, or hydrodynamic proxy
+    let surge = Math.max(
+      0.04,
+      Math.min(
+        2.5,
+        (basePrediction.variables.zos?.value ?? 0.08) * 0.9 + activeLayer.current_speed * 0.05
+      )
+    );
+    if (nearbyHazard?.type === 'storm_surge' && nearbyHazard.surge_height_m !== null) {
+      surge = nearbyHazard.surge_height_m;
+    }
     const predictedSurgeStr = `${surge.toFixed(2)} meters`;
 
     // 4. Fishing Zone Status (NO EMOJIS)
-    const fishingZoneStatus: 'SAFE' | 'ADVISORY' | 'RESTRICTED' = 
-      cycloneProb > 20 ? 'RESTRICTED' : surge > 1.2 ? 'ADVISORY' : 'SAFE';
+    const fishingZoneStatus: 'SAFE' | 'ADVISORY' | 'RESTRICTED' =
+      cycloneProb > 20 || nearbyHazard?.type === 'cyclone'
+        ? 'RESTRICTED'
+        : surge > 1.2 || nearbyHazard?.type === 'storm_surge'
+        ? 'ADVISORY'
+        : 'SAFE';
 
     // 5. Thermal Contrast between surface and active layer / thermocline
     const surfaceTemp = waterColumn[0]?.thetao ?? 28.79;
-    const thermoclineTemp = waterColumn.find(w => w.depth === 150)?.thetao ?? (surfaceTemp - 8.99);
+    const thermoclineTemp =
+      waterColumn.find((w) => w.depth === 150)?.thetao ?? surfaceTemp - 8.99;
     const thermalContrast = Math.abs(surfaceTemp - thermoclineTemp).toFixed(2);
 
-    // 6. Marine Ecosystem Health Analysis
-    const ecosystemScore = 14;
-    const ecosystemStatus = 'HEALTHY';
-    const coralBleaching = '0/100 (NO_STRESS)';
-    const algalBloomRisk = '36/100 (MODERATE)';
-    const fishStress = '22/100 (HEALTHY)';
-    const hypoxiaRisk = '0/100 (NORMAL)';
+    // 6. Marine Ecosystem Health Analysis (From live Rakshak Engine 6 if available)
+    const ecosystemScore = ecosystemCell ? ecosystemCell.ecosystem_stress_score : 14;
+    const ecosystemStatus = ecosystemCell ? ecosystemCell.ecosystem_status : 'HEALTHY';
+    const coralBleaching = ecosystemCell?.coral_bleaching
+      ? `${ecosystemCell.coral_bleaching.score}/100 (${ecosystemCell.coral_bleaching.level})`
+      : '0/100 (NO_STRESS)';
+    const algalBloomRisk = ecosystemCell?.algal_bloom
+      ? `${ecosystemCell.algal_bloom.score}/100 (${ecosystemCell.algal_bloom.risk})`
+      : '36/100 (MODERATE)';
+    const fishStress = ecosystemCell?.fish_stress
+      ? `${ecosystemCell.fish_stress.score}/100 (${ecosystemCell.fish_stress.migration_risk})`
+      : '22/100 (HEALTHY)';
+    const hypoxiaRisk = ecosystemCell?.hypoxia
+      ? `${ecosystemCell.hypoxia.score}/100 (${ecosystemCell.hypoxia.dead_zone_risk})`
+      : '0/100 (NORMAL)';
 
     return {
       coastalProximity: coastalProximity.toFixed(2),
@@ -339,7 +418,7 @@ export default function DepthSlicePage() {
       fishStress,
       hypoxiaRisk,
     };
-  }, [lat, lon, waterColumn, activeLayer, basePrediction]);
+  }, [lat, lon, waterColumn, activeLayer, basePrediction, activeHazards, ecosystemCell]);
 
   // Resolve selected In-Situ observation platform or synthesize station for custom coordinates
   const activeSensor: InSituSensor = useMemo(() => {

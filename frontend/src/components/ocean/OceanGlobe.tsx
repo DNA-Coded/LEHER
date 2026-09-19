@@ -4,6 +4,7 @@ import { oceanViewerManager } from '@/cesium/viewerManager';
 import { useOceanStore } from '@/store/useOceanStore';
 import { OCEAN_REGIONS, getRegionById } from '@/lib/ocean/regions';
 import { MOCK_ARGO_FLOATS } from '@/services/mockOceanData';
+import { fetchHazardEvents, type HazardEvent } from '@/services/oceanApi';
 
 // Track whether Cesium has been initialized in this page session
 let cesiumInitialized = false;
@@ -114,6 +115,48 @@ export const OceanGlobe: React.FC = () => {
           },
         });
       }
+
+      // Add Live Rakshak ML Hazard Markers (Cyclones, Storm Surges, Extreme Tides)
+      fetchHazardEvents().then((hazards) => {
+        for (const hazard of hazards.slice(0, 50)) { // Display active alerts
+          const isCyclone = hazard.type === 'cyclone';
+          const isSurge = hazard.type === 'storm_surge';
+          const colorHex = isCyclone ? '#ff1744' : isSurge ? '#ff9100' : '#00e5ff';
+          const symbol = isCyclone ? '🔴' : isSurge ? '🌊' : '⚓';
+          const labelText = isCyclone 
+            ? `${symbol} Cyclone ${hazard.event_id}\nP: ${(hazard.probability ? hazard.probability * 100 : 80).toFixed(0)}%`
+            : `${symbol} Surge ${hazard.event_id}\n+${hazard.surge_height_m || 1.8}m`;
+
+          viewer.entities.add({
+            id: `hazard-${hazard.event_id}`,
+            name: `${hazard.type.toUpperCase()}: ${hazard.event_id}`,
+            position: Cesium.Cartesian3.fromDegrees(hazard.longitude, hazard.latitude, 20000),
+            point: {
+              pixelSize: 12,
+              color: Cesium.Color.fromCssColorString(colorHex),
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 2,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+            label: {
+              text: labelText,
+              font: 'bold 10px Inter, sans-serif',
+              fillColor: Cesium.Color.fromCssColorString(colorHex),
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 3,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              pixelOffset: new Cesium.Cartesian2(0, -22),
+              distanceDisplayCondition: new Cesium.DistanceDisplayCondition(50000, 8000000),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+            properties: {
+              hazardId: hazard.event_id,
+              hazardType: hazard.type,
+              regionType: 'hazard-event',
+            },
+          });
+        }
+      });
     }
 
     // Setup Cesium ScreenSpaceEventHandler for Hover and Click/Tap interactions

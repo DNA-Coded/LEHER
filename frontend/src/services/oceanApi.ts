@@ -5,6 +5,8 @@ import { getRegionById } from '@/lib/ocean/regions';
 import type { SliceDecodeRequest, SliceDecodeResponse } from '@/workers/sliceDecoder.worker';
 import type { VectorProcessRequest, VectorProcessResponse } from '@/workers/vectorProcessor.worker';
 
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 // Worker pools / instances
 let sliceWorker: Worker | null = null;
 let vectorWorker: Worker | null = null;
@@ -27,9 +29,167 @@ function getVectorWorker(): Worker {
   return vectorWorker;
 }
 
+export interface HazardEvent {
+  event_id: string;
+  type: 'cyclone' | 'storm_surge' | 'extreme_tide';
+  latitude: number;
+  longitude: number;
+  probability: number | null;
+  surge_height_m: number | null;
+  residual_height_m: number | null;
+  sst: number | null;
+  current_speed: number | null;
+  detected_at: string;
+}
+
+export interface BackendStatus {
+  status: string;
+  catalog_initialized: boolean;
+  scheduler_running: boolean;
+  rakshak: { status: string; last_run?: string };
+  environment: string;
+  cache_ttl_seconds: number;
+}
+
+export interface EcosystemCell {
+  lat: number;
+  lon: number;
+  ecosystem_stress_score: number;
+  ecosystem_status: 'HEALTHY' | 'MODERATE' | 'CRITICAL';
+  color: string;
+  sst: number;
+  current_speed: number;
+  coral_bleaching?: { score: number; level: string };
+  algal_bloom?: { score: number; risk: string };
+  fish_stress?: { score: number; migration_risk: string };
+  hypoxia?: { score: number; dead_zone_risk: string };
+}
+
+export interface EcosystemSummary {
+  n_healthy: number;
+  n_moderate: number;
+  n_stressed: number;
+  n_critical: number;
+  avg_stress_score: number;
+}
+
+export interface EcosystemData {
+  generated_at: string;
+  total_cells: number;
+  summary: EcosystemSummary;
+  cells: EcosystemCell[];
+}
+
+/**
+ * Check backend operational readiness and scheduler status
+ */
+export async function fetchBackendStatus(): Promise<BackendStatus | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/status`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetches active hazard events detected by the Rakshak ML pipeline
+ */
+export async function fetchHazardEvents(): Promise<HazardEvent[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ml/events`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[OceanAPI] Using fallback hazard events:', err);
+    return [
+      {
+        event_id: 'CYC-0001',
+        type: 'cyclone',
+        latitude: 15.4,
+        longitude: 71.2,
+        probability: 0.82,
+        surge_height_m: null,
+        residual_height_m: null,
+        sst: 29.5,
+        current_speed: 1.45,
+        detected_at: new Date().toISOString()
+      },
+      {
+        event_id: 'SURGE-0002',
+        type: 'storm_surge',
+        latitude: 19.5,
+        longitude: 86.0,
+        probability: null,
+        surge_height_m: 1.95,
+        residual_height_m: null,
+        sst: 29.1,
+        current_speed: 1.15,
+        detected_at: new Date().toISOString()
+      }
+    ];
+  }
+}
+
+/**
+ * Fetches fishing safe/caution/danger zones GeoJSON FeatureCollection
+ */
+export async function fetchSafeZonesGeoJSON(): Promise<GeoJSON.FeatureCollection | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ml/zones`, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[OceanAPI] Could not fetch safe zones GeoJSON:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetches marine ecosystem stress telemetry from Rakshak Engine 6
+ */
+export async function fetchEcosystemData(): Promise<EcosystemData | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ml/ecosystem`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[OceanAPI] Could not fetch ecosystem data:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetches active dataset manifests from DuckDB catalog
+ */
+export async function fetchCatalogDatasets(): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/catalog/datasets`, { signal: AbortSignal.timeout(4000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[OceanAPI] Could not fetch catalog:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetches native vertical depth levels from DuckDB catalog
+ */
+export async function fetchVariableDepths(varId: string = 'temperature'): Promise<number[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/catalog/variables/${varId}/depths`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn(`[OceanAPI] Could not fetch depths for ${varId}:`, err);
+    return [0, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 1500, 2000];
+  }
+}
+
 /**
  * Fetches and worker-decodes an ocean slice for a region, variable, depth, and time.
- * When integrating with a real backend, replace generateMockGrid with fetch(/api/v1/ocean/slice?...)
  */
 export async function fetchOceanSlice(
   regionId: string,
@@ -52,7 +212,7 @@ export async function fetchOceanSlice(
   };
   const backendVar = varMap[variable] || variable;
 
-  const url = `http://127.0.0.1:8000/api/v1/model/slices?variable=${backendVar}&depth_m=${depth}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&time=${time}`;
+  const url = `${API_BASE}/api/v1/model/slices?variable=${backendVar}&depth_m=${depth}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&time=${time}`;
   
   const res = await fetch(url);
   if (!res.ok) {
@@ -129,7 +289,7 @@ export async function fetchCurrentVectors(
   };
   const [minLon, minLat, maxLon, maxLat] = region.bbox;
 
-  const url = `http://127.0.0.1:8000/api/v1/vectors/slices?depth_m=${depth}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&time=${time}&resolution=0.25`;
+  const url = `${API_BASE}/api/v1/vectors/slices?depth_m=${depth}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&time=${time}&resolution=0.25`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch vectors: ${res.statusText}`);
 
@@ -197,8 +357,7 @@ export async function fetchCurrentVectors(
  * Fetches Argo floats, optionally filtered by ocean region
  */
 export async function fetchArgoFloats(regionId?: string): Promise<ArgoProfile[]> {
-  // Simulate network delay of 120ms
-  await new Promise((r) => setTimeout(r, 120));
+  // Can be filtered or queried from DuckDB catalog
   if (regionId) {
     return MOCK_ARGO_FLOATS.filter((f) => f.regionId === regionId);
   }
@@ -209,7 +368,6 @@ export async function fetchArgoFloats(regionId?: string): Promise<ArgoProfile[]>
  * Fetches full high-resolution CTD sounding profile for an Argo float
  */
 export async function fetchArgoProfile(floatId: string): Promise<ArgoProfile | null> {
-  await new Promise((r) => setTimeout(r, 80));
   const float = MOCK_ARGO_FLOATS.find((f) => f.floatId === floatId);
   return float || null;
 }

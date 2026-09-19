@@ -40,3 +40,7 @@ frontend/.vercel
 
 .vercel
 .env*
+
+# Local backend & startup scripts (keep local, not pushed)
+backend/
+start_all.bat

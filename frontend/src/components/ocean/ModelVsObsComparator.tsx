@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Activity,
   Layers,
@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { IN_SITU_SENSORS, type InSituSensor } from '@/services/inSituSensorData';
 import { computeModelVsObsAnomaly, type ModelVsObsResult, type AnomalyProfilePoint } from '@/lib/ocean/anomalyEngine';
+import { fetchBackendStatus } from '@/services/oceanApi';
 
 interface ModelVsObsComparatorProps {
   initialSensorId?: string;
@@ -40,6 +41,23 @@ export const ModelVsObsComparator: React.FC<ModelVsObsComparatorProps> = ({
 
   // Hovered depth index for interactive cross-inspection
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  // Live Backend & DuckDB Catalog connectivity
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
+  const [duckdbActive, setDuckdbActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchBackendStatus().then((status) => {
+      if (isMounted && status) {
+        setIsBackendConnected(true);
+        setDuckdbActive(status.catalog_initialized);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Find sensor
   const sensor = useMemo(() => {
@@ -104,6 +122,15 @@ export const ModelVsObsComparator: React.FC<ModelVsObsComparatorProps> = ({
             <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5">
               <ArrowLeftRight className="w-3 h-3" />
               MODEL VS. OBSERVED VALIDATION
+            </span>
+            <span className={cn(
+              "text-[10px] font-mono px-2 py-0.5 rounded border flex items-center gap-1",
+              isBackendConnected
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+            )}>
+              <span className={cn("w-1.5 h-1.5 rounded-full", isBackendConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-400")} />
+              {isBackendConnected ? (duckdbActive ? 'DuckDB Catalog Active' : 'Backend Connected') : 'Local Model Engine'}
             </span>
             <span className="text-[10px] font-mono text-neutral-400">
               {sensor.wmoId}

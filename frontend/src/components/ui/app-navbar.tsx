@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Compass } from 'lucide-react';
+import { Menu, X, Compass, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ShinyButton } from '@/components/ui/shiny-button';
+import { fetchBackendStatus } from '@/services/oceanApi';
 
 export type AppNavRoute = 'home' | 'about' | 'explore';
 
@@ -24,6 +25,22 @@ export function AppNavbar({
 }: AppNavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const checkStatus = () => {
+      fetchBackendStatus().then((st) => {
+        if (mounted) setIsBackendOnline(st?.status === 'ok');
+      });
+    };
+    checkStatus();
+    const interval = setInterval(checkStatus, 12000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -100,6 +117,25 @@ export function AppNavbar({
             <span className="text-xs font-mono text-[#888888] border-l border-[#262626] pl-3 hidden sm:inline">
               Maritime Safety &amp; Hazards
             </span>
+            {isBackendOnline !== null && (
+              <div
+                className={cn(
+                  "hidden xl:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono border transition-all",
+                  isBackendOnline
+                    ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
+                    : "bg-amber-950/60 border-amber-500/40 text-amber-300"
+                )}
+                title={isBackendOnline ? "FastAPI Backend & Rakshak ML Engine Active" : "Connecting to Leher Backend API"}
+              >
+                <span
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    isBackendOnline ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                  )}
+                />
+                <span>{isBackendOnline ? "Rakshak Active" : "Offline Simulation"}</span>
+              </div>
+            )}
           </div>
         </div>
 

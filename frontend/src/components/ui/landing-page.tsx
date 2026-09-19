@@ -40,6 +40,7 @@ import {
 import AppNavbar from "@/components/ui/app-navbar";
 import RiskBadge from "@/components/ui/risk-badge";
 import HowItWorks, { type Step } from "@/components/ui/how-it-works";
+import { fetchBackendStatus, fetchHazardEvents, type BackendStatus, type HazardEvent } from "@/services/oceanApi";
 
 const LEHER_STEPS: Step[] = [
   {
@@ -183,6 +184,27 @@ export default function LeherLandingPage() {
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
   const [pointReport, setPointReport] = useState<TraceablePointReport | null>(null);
+  const [backendStatus, setBackendStatus] = useState<BackendStatus | null>(null);
+  const [activeHazards, setActiveHazards] = useState<HazardEvent[]>([]);
+
+  // Poll backend status and active hazards
+  useEffect(() => {
+    let mounted = true;
+    const loadBackendData = () => {
+      fetchBackendStatus().then((st) => {
+        if (mounted) setBackendStatus(st);
+      });
+      fetchHazardEvents().then((hz) => {
+        if (mounted) setActiveHazards(hz);
+      });
+    };
+    loadBackendData();
+    const interval = setInterval(loadBackendData, 15000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Listen for globe paused / unpaused state messages from the 3D globe iframe
   useEffect(() => {
@@ -1003,6 +1025,23 @@ export default function LeherLandingPage() {
             </h2>
           </div>
 
+          {/* Live System Operational Status & Hazard Counter */}
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-xs font-mono text-cyan-300 backdrop-blur-md shadow-md">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span>
+                {activeHazards.length > 0
+                  ? `Rakshak ML: ${activeHazards.length.toLocaleString()} Active Hazards Tracked`
+                  : 'Rakshak ML: Basin Calm'}
+              </span>
+            </div>
+            {backendStatus && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-xs font-mono text-emerald-300 backdrop-blur-md shadow-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>FastAPI Live • DuckDB Catalog Active</span>
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <ShinyButton 
