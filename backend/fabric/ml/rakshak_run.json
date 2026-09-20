@@ -1,0 +1,23 @@
+{
+  "run_at": "2026-09-19T16:41:25.597363+00:00",
+  "n_cyclone_events": 41,
+  "n_surge_events": 0,
+  "n_tide_events": 0,
+  "n_zones": 1836,
+  "n_safe": 1662,
+  "n_caution": 83,
+  "n_danger": 91,
+  "ecosystem": {
+    "n_healthy": 1836,
+    "n_moderate": 0,
+    "n_stressed": 0,
+    "n_critical": 0,
+    "avg_stress_score": 15.6
+  },
+  "outputs": {
+    "hazards": "fabric\\ml\\hazards.parquet",
+    "safe_zones_geojson": "fabric\\ml\\safe_zones.geojson",
+    "safe_zones_parquet": "fabric\\ml\\safe_zones.parquet",
+    "ecosystem": "fabric\\ml\\ecosystem.json"
+  }
+}

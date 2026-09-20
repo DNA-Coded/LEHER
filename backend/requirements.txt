@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+polars
+pytest
+httpx
+apscheduler
+duckdb
+xgboost
+scikit-learn
+xarray
+zarr
+copernicusmarine
+netCDF4
+numpy
+pyarrow

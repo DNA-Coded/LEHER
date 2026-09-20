@@ -41,6 +41,13 @@ frontend/.vercel
 .vercel
 .env*
 
-# Local backend & startup scripts (keep local, not pushed)
-backend/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+
+# Startup scripts
 start_all.bat

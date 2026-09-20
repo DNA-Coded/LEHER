@@ -1,0 +1,1113 @@
+{
+  "generated_at": "2026-09-19T16:41:25.542465+00:00",
+  "total_advisories": 41,
+  "advisories": [
+    {
+      "hazard_id": "CYC-0001",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 85.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 85.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0001_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 85.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0001_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 85.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0001_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0002",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 84.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 84.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0002_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 84.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0002_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 84.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0002_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0003",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 83.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 83.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0003_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 83.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0003_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 83.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0003_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0004",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 90.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0004_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0004_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0004_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0005",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 92.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0005_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0005_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0005_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0006",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 94.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 94.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0006_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 94.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0006_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 94.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0006_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0007",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 87.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0007_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0007_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0007_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0008",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 93.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0008_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0008_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0008_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0009",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 83.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 83.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0009_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 83.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0009_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 83.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0009_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0010",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 87.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0010_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0010_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0010_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0011",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 95.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 95.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0011_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 95.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0011_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 95.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0011_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0012",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 93.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0012_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0012_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0012_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0013",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 88.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0013_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0013_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0013_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0014",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 81.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 81.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0014_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 81.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0014_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 81.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0014_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0015",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 91.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0015_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0015_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0015_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0016",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 90.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0016_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0016_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0016_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0017",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 89.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0017_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0017_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0017_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0018",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 90.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0018_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0018_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 90.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0018_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0019",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 99.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 99.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0019_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 99.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0019_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 99.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0019_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0020",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 96.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 96.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0020_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 96.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0020_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 96.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0020_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0021",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 92.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0021_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0021_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0021_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0022",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 97.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 97.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0022_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 97.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0022_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 97.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0022_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0023",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 89.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0023_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0023_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0023_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0024",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 91.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0024_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0024_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0024_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0025",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 84.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 84.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0025_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 84.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0025_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 84.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0025_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0026",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 89.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0026_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0026_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 89.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0026_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0027",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 87.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0027_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0027_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 87.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0027_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0028",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 86.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 86.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0028_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 86.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0028_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 86.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0028_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0029",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 85.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 85.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0029_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 85.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0029_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 85.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0029_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0030",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 93.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0030_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0030_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 93.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0030_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0031",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 97.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 97.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0031_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 97.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0031_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 97.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0031_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0032",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 95.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 95.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0032_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 95.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0032_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 95.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0032_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0033",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 98.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 98.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0033_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 98.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0033_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 98.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0033_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0034",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 91.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0034_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0034_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 91.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0034_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0035",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 96.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 96.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0035_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 96.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0035_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 96.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0035_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0036",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -10.0,
+        "lon": 82.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -10.0 North, 82.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0036_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 82.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0036_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -10.0 North, 82.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0036_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0037",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 94.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 94.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0037_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 94.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0037_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 94.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0037_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0038",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 86.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 86.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0038_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 86.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0038_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 86.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0038_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0039",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 92.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0039_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0039_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 92.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0039_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0040",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -8.0,
+        "lon": 88.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -8.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0040_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0040_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -8.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0040_hi.mp3"
+        }
+      ]
+    },
+    {
+      "hazard_id": "CYC-0041",
+      "severity": "CRITICAL",
+      "region": "Deep Sea / Open Ocean",
+      "coordinates": {
+        "lat": -9.0,
+        "lon": 88.0
+      },
+      "issued_at": "2026-09-19T16:41:25.542465+00:00",
+      "payloads": [
+        {
+          "language": "English",
+          "text": "WARNING. High probability of cyclone formation detected near -9.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0041_en.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0041_hi.mp3"
+        },
+        {
+          "language": "Hindi",
+          "text": "[Hindi translation via LLM]: WARNING. High probability of cyclone formation detected near -9.0 North, 88.0 East. Fishermen in the Deep Sea / Open Ocean coastal area are advised not to venture into the sea.",
+          "tts_audio_path": "fabric/ml/audio/CYC-0041_hi.mp3"
+        }
+      ]
+    }
+  ]
+}
