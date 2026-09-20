@@ -17,9 +17,9 @@ import {
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, type TimeZone } from '@/components/ui/landing-page';
 import { predictOceanState, type OceanPredictionResult } from '@/lib/api/oceanPredictionService';
-import { 
-  IN_SITU_SENSORS, 
-  type InSituSensorType 
+import {
+  IN_SITU_SENSORS,
+  type InSituSensorType
 } from '@/services/inSituSensorData';
 import { ModelVsObsComparator } from '@/components/ocean/ModelVsObsComparator';
 
@@ -411,7 +411,7 @@ export default function OperationsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Zoom Controls */}
           <div className="absolute right-4 bottom-1/2 translate-y-1/2 flex flex-col gap-2 z-10">
             <button

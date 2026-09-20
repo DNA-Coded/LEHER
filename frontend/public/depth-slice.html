@@ -1577,18 +1577,6 @@
       tetherLine = new THREE.Line(tetherGeo, tetherMat);
       waterGroup.add(tetherLine);
 
-      // Vertical laser pointer line from HUD card down to slice center
-      const pointerGeo = new THREE.BufferGeometry();
-      const pointerPos = new Float32Array([0, 0, 0, 0, 0, 0]);
-      pointerGeo.setAttribute('position', new THREE.BufferAttribute(pointerPos, 3));
-      const pointerMat = new THREE.LineBasicMaterial({
-        color: 0x00e5ff,
-        transparent: true,
-        opacity: 0,
-      });
-      tetherPointerLine = new THREE.Line(pointerGeo, pointerMat);
-      waterGroup.add(tetherPointerLine);
-
       // Socket ring/box in main block showing extraction gap
       if (geometryType === 'cylinder') {
         const socketGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.96, BLOCK_RADIUS * 1.01, 48);
@@ -2039,14 +2027,6 @@
           tetherLine.material.opacity = Math.min(0.85, Math.max(0, curX / 2.5));
         }
 
-        // Vertical laser pointer line from HUD card down to slice center
-        if (tetherPointerLine) {
-          const pPos = tetherPointerLine.geometry.attributes.position.array;
-          pPos[0] = curX; pPos[1] = curY + 0.65; pPos[2] = curZ;
-          pPos[3] = curX; pPos[4] = curY + 0.15; pPos[5] = curZ;
-          tetherPointerLine.geometry.attributes.position.needsUpdate = true;
-          tetherPointerLine.material.opacity = Math.min(0.75, Math.max(0, (curX - 0.5) / 2.0));
-        }
 
         // Column extraction socket gap in main block
         if (extractionSocket) {

@@ -18,40 +18,44 @@
 
 <body>
 
-    <!-- Leher Brand Header Badge -->
-    <div id="leher-brand-badge" title="Leher 3D Ocean Intelligence" style="position: fixed; top: 16px; left: 16px; z-index: 1000; display: inline-flex; align-items: center; gap: 8px; background: rgba(10,10,10,0.8); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.18); font-family: 'Outfit', sans-serif; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.5); user-select: none;">
-        <img src="logo.png" alt="Leher Logo" title="Leher" style="width: 22px; height: 22px; border-radius: 50%; object-fit: contain;" onerror="this.src='../logo.png'"/>
-        <span style="font-weight: 700; font-size: 14px; letter-spacing: -0.02em;">Leher</span>
-        <span style="font-size: 11px; opacity: 0.6; font-family: 'JetBrains Mono', monospace; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 8px;">3D Earth</span>
-    </div>
-    <script>
-      (function() {
-        if (window.location.search.indexOf('hidebadge=1') !== -1 || window.location.hash.indexOf('hidebadge=1') !== -1) {
-          var b = document.getElementById('leher-brand-badge');
-          if (b) b.style.display = 'none';
-          document.addEventListener('DOMContentLoaded', function() {
-            var b2 = document.getElementById('leher-brand-badge');
-            if (b2) b2.style.display = 'none';
-          });
-        }
-      })();
-    </script>
+  <!-- Leher Brand Header Badge -->
+  <div id="leher-brand-badge" title="Leher 3D Ocean Intelligence"
+    style="position: fixed; top: 16px; left: 16px; z-index: 1000; display: inline-flex; align-items: center; gap: 8px; background: rgba(10,10,10,0.8); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.18); font-family: 'Outfit', sans-serif; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.5); user-select: none;">
+    <img src="logo.png" alt="Leher Logo" title="Leher"
+      style="width: 22px; height: 22px; border-radius: 50%; object-fit: contain;" onerror="this.src='../logo.png'" />
+    <span style="font-weight: 700; font-size: 14px; letter-spacing: -0.02em;">Leher</span>
+    <span
+      style="font-size: 11px; opacity: 0.6; font-family: 'JetBrains Mono', monospace; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 8px;">3D
+      Earth</span>
+  </div>
+  <script>
+    (function () {
+      if (window.location.search.indexOf('hidebadge=1') !== -1 || window.location.hash.indexOf('hidebadge=1') !== -1) {
+        var b = document.getElementById('leher-brand-badge');
+        if (b) b.style.display = 'none';
+        document.addEventListener('DOMContentLoaded', function () {
+          var b2 = document.getElementById('leher-brand-badge');
+          if (b2) b2.style.display = 'none';
+        });
+      }
+    })();
+  </script>
 
-    <!-- Full-screen Globe & World Projection Canvas / SVG -->
-    <div id="display">
-        <svg id="map" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
-        <svg id="foreground" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
+  <!-- Full-screen Globe & World Projection Canvas / SVG -->
+  <div id="display">
+    <svg id="map" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
+    <svg id="foreground" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
 
-        <!-- Dynamic Floating Coordinate Cursor HUD Chip -->
-        <div id="cursor-hud" class="cursor-hud-chip" style="display: none;">
-            <div class="hud-coords-row">
-                <span class="hud-dot"></span>
-                <span id="cursor-lat">--</span>
-                <span id="cursor-lon">--</span>
-            </div>
-            <div id="cursor-region" class="hud-sub-row">--</div>
-        </div>
+    <!-- Dynamic Floating Coordinate Cursor HUD Chip -->
+    <div id="cursor-hud" class="cursor-hud-chip" style="display: none;">
+      <div class="hud-coords-row">
+        <span class="hud-dot"></span>
+        <span id="cursor-lat">--</span>
+        <span id="cursor-lon">--</span>
+      </div>
+      <div id="cursor-region" class="hud-sub-row">--</div>
     </div>
+  </div>
 
 
 

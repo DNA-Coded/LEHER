@@ -507,7 +507,6 @@ export default function DepthSlicePage() {
   }[]>([]);
 
   const tetherLineRef = useRef<THREE.Line | null>(null);
-  const tetherPointerLineRef = useRef<THREE.Line | null>(null);
   const extractionSocketRef = useRef<THREE.Mesh | THREE.LineSegments | null>(null);
   const hudSpriteRef = useRef<THREE.Sprite | null>(null);
   const hudCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -775,7 +774,7 @@ export default function DepthSlicePage() {
         const sliceWave = item.sliceWaveMesh;
         if (sliceWave && sliceWave.geometry.userData.origX) {
           const isExtracted = item.curX > 0.15;
-          const slideProgress = Math.min(1.0, item.curX / 3.0);
+          const slideProgress = Math.min(1.0, item.curX / 4.0);
           const sPos = sliceWave.geometry.attributes.position;
           const sOrigX = sliceWave.geometry.userData.origX;
           const sOrigY = sliceWave.geometry.userData.origY;
@@ -810,21 +809,13 @@ export default function DepthSlicePage() {
           tPos[0] = 0;    tPos[1] = baseY; tPos[2] = 0;
           tPos[3] = curX; tPos[4] = curY;  tPos[5] = curZ;
           tetherLineRef.current.geometry.attributes.position.needsUpdate = true;
-          (tetherLineRef.current.material as THREE.LineBasicMaterial).opacity = Math.min(0.85, Math.max(0, curX / 2.5));
-        }
-
-        if (tetherPointerLineRef.current) {
-          const pPos = tetherPointerLineRef.current.geometry.attributes.position.array as Float32Array;
-          pPos[0] = curX; pPos[1] = curY + 0.65; pPos[2] = curZ;
-          pPos[3] = curX; pPos[4] = curY + 0.15; pPos[5] = curZ;
-          tetherPointerLineRef.current.geometry.attributes.position.needsUpdate = true;
-          (tetherPointerLineRef.current.material as THREE.LineBasicMaterial).opacity = Math.min(0.75, Math.max(0, (curX - 0.5) / 2.0));
+          (tetherLineRef.current.material as THREE.LineBasicMaterial).opacity = Math.min(0.85, Math.max(0, curX / 3.2));
         }
 
         if (extractionSocketRef.current) {
           extractionSocketRef.current.position.y = baseY;
           const sMat = (extractionSocketRef.current as any).material;
-          if (sMat) sMat.opacity = Math.min(0.75, Math.max(0, curX / 2.5));
+          if (sMat) sMat.opacity = Math.min(0.75, Math.max(0, curX / 3.2));
         }
       }
 
@@ -1068,8 +1059,8 @@ export default function DepthSlicePage() {
     particlesMeshRef.current = particles;
 
     // 4. Layer Slices with Dynamic 3D Waves & Lateral Slide Extraction
-    const SLIDE_FAR_X = 2.4;
-    const SLIDE_FAR_Z = 0.7;
+    const SLIDE_FAR_X = 4.2;
+    const SLIDE_FAR_Z = 1.25;
     const SLIDE_LIFT_Y = 0.28;
 
     // vExaggeration: scale BLOCK_HEIGHT by exaggeration factor relative to 150x baseline
@@ -1225,13 +1216,6 @@ export default function DepthSlicePage() {
     waterGroup.add(tether);
     tetherLineRef.current = tether;
 
-    const pointerGeo = new THREE.BufferGeometry();
-    pointerGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
-    const pointerMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0 });
-    const pointer = new THREE.Line(pointerGeo, pointerMat);
-    waterGroup.add(pointer);
-    tetherPointerLineRef.current = pointer;
-
     if (geometryType === 'cylinder') {
       const socketGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.96, BLOCK_RADIUS * 1.01, 48);
       const socketMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0, side: THREE.DoubleSide });
@@ -1314,8 +1298,8 @@ export default function DepthSlicePage() {
 
   // Handle Depth Selection Updates (Slide target interpolation trigger)
   useEffect(() => {
-    const SLIDE_FAR_X = 2.4;
-    const SLIDE_FAR_Z = 0.7;
+    const SLIDE_FAR_X = 4.2;
+    const SLIDE_FAR_Z = 1.25;
     const SLIDE_LIFT_Y = 0.28;
 
     layerGroupsRef.current.forEach((item) => {
