@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://leher-3d.vercel.app/" target="_blank" rel="noopener noreferrer">
+  <a href="https://leher-sih.vercel.app/" target="_blank" rel="noopener noreferrer">
     <img src="logo.png" alt="Leher Logo" width="160" height="160" style="border-radius: 50%; max-width: 100%; box-shadow: 0 0 40px rgba(6, 182, 212, 0.35); border: 2px solid rgba(6, 182, 212, 0.4);" />
   </a>
 </p>
@@ -12,8 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://leher-3d.vercel.app/"><img src="https://img.shields.io/badge/Live_Demo-leher--3d.vercel.app-0ea5e9?style=for-the-badge&logo=vercel" alt="Live Demo" /></a>
-  <a href="https://leher-ocean-3d.vercel.app/"><img src="https://img.shields.io/badge/Mirror-leher--ocean--3d.vercel.app-0284c7?style=for-the-badge&logo=vercel" alt="Mirror Demo" /></a>
+  <a href="https://leher-sih.vercel.app/"><img src="https://img.shields.io/badge/Live_Demo-leher--sih.vercel.app-0ea5e9?style=for-the-badge&logo=vercel" alt="Live Demo" /></a>
   <a href="https://github.com/DNA-Coded/LEHER"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repo" /></a>
   <img src="https://img.shields.io/badge/SIH_Problem-26067-ff4757?style=for-the-badge" alt="SIH Problem 26067" />
   <img src="https://img.shields.io/badge/Organization-INCOIS_%7C_MoES-10b981?style=for-the-badge" alt="INCOIS MoES" />
@@ -88,8 +87,7 @@ Historically, marine data workflows suffered from severe systemic limitations:
 
 | Environment / Asset | Target URL | Technical Details |
 | :--- | :--- | :--- |
-| 🌐 **Production Live Platform** | [https://leher-3d.vercel.app/](https://leher-3d.vercel.app/) | Vercel Edge Network deployment (React 19 + Three.js WebGL) |
-| 🌐 **Production Alternative Alias** | [https://leher-ocean-3d.vercel.app/](https://leher-ocean-3d.vercel.app/) | Secondary high-availability mirror domain |
+| 🌐 **Production Live Platform** | [https://leher-sih.vercel.app/](https://leher-sih.vercel.app/) | Primary Vercel deployment (React 19 + Three.js WebGL) |
 | 💻 **GitHub Master Repository** | [https://github.com/DNA-Coded/LEHER](https://github.com/DNA-Coded/LEHER) | Clean production branch (`main`) with active CI/CD |
 | 📑 **Solution Offerings (PS 26067)** | [`docs/LEHER_SOLUTION_OFFERINGS_PS26067.md`](docs/LEHER_SOLUTION_OFFERINGS_PS26067.md) | Exhaustive 10-requirement mapping and scientific audit |
 | 📑 **Responsive Master Plan** | [`docs/LEHER_RESPONSIVE_MASTER_PLAN.md`](docs/LEHER_RESPONSIVE_MASTER_PLAN.md) | Multi-device responsive design and WCAG 2.1 AA blueprint |

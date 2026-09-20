@@ -5,8 +5,7 @@
 > **Target Problem Statement**: Smart India Hackathon Problem Statement 26067 — *Interactive 3D Visualization Platform for Numerical Ocean Models and In-Situ Observations*  
 > **Sponsoring Agency**: Indian National Centre for Ocean Information Services (**INCOIS**), Ministry of Earth Sciences (**MoES**), Government of India  
 > **Production URLs**:
-> - Primary Live Web App: [https://leher-3d.vercel.app/](https://leher-3d.vercel.app/)
-> - Fallback / Alternate Alias: [https://leher-sih.vercel.app/](https://leher-sih.vercel.app/)  
+> - Primary Live Web App: [https://leher-sih.vercel.app/](https://leher-sih.vercel.app/)
 > - GitHub Repository: [https://github.com/DNA-Coded/LEHER](https://github.com/DNA-Coded/LEHER)
 
 ---
