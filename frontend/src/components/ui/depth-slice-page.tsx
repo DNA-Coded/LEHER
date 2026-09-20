@@ -169,6 +169,7 @@ export default function DepthSlicePage() {
 
   // Minimize state for Left Panel
   const [isLeftPanelMinimized, setIsLeftPanelMinimized] = useState<boolean>(false);
+  const [mobileActiveTab, setMobileActiveTab] = useState<'slice' | 'params' | 'intel'>('slice');
 
   // In-Situ Sensor Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
@@ -1521,8 +1522,10 @@ export default function DepthSlicePage() {
         {/* ── 1. LEFT DOCKED PANEL: PARAMETERS & TELEMETRY ── */}
         <aside
           className={cn(
-            "w-80 lg:w-[360px] xl:w-[380px] bg-[#121214] border-r border-[#262628] flex flex-col z-20 shrink-0 h-full overflow-hidden shadow-2xl transition-all duration-300",
-            isLeftPanelMinimized && "-ml-80 lg:-ml-[360px] xl:-ml-[380px] opacity-0 pointer-events-none"
+            "bg-[#121214] border-r border-[#262628] flex-col z-20 shrink-0 h-full overflow-hidden shadow-2xl transition-all duration-300",
+            "lg:w-[360px] xl:w-[380px]",
+            isLeftPanelMinimized ? "lg:-ml-[360px] xl:-ml-[380px] lg:opacity-0 lg:pointer-events-none" : "lg:opacity-100",
+            mobileActiveTab === 'params' ? "flex w-full" : "hidden lg:flex"
           )}
         >
           {/* Panel Header */}
@@ -1844,33 +1847,51 @@ export default function DepthSlicePage() {
         </aside>
 
         {/* ── 2. CENTER 3D CANVAS VIEWPORT ── */}
-        <div ref={mountRef} className="flex-1 h-full relative overflow-hidden bg-gradient-to-b from-[#26262b] via-[#1e1e22] to-[#18181b]">
+        <div 
+          ref={mountRef} 
+          className={cn(
+            "flex-1 h-full relative overflow-hidden bg-gradient-to-b from-[#26262b] via-[#1e1e22] to-[#18181b]",
+            mobileActiveTab === 'slice' ? "flex" : "hidden lg:flex"
+          )}
+        >
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
-          {/* Left Expand Trigger (when left panel is minimized) */}
+          {/* Mobile floating quick depth indicator & variable pill (< lg only) */}
+          <div className="absolute top-3 left-3 right-3 z-20 flex lg:hidden items-center justify-between pointer-events-none">
+            <div className="bg-black/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 text-[11px] font-mono text-white pointer-events-auto flex items-center gap-1.5 shadow-lg">
+              <span className="text-cyan-400 font-bold">-{selectedDepth}m</span>
+              <span className="text-neutral-500">·</span>
+              <span className="text-neutral-300 truncate max-w-[130px]">{getZoneLabel(selectedDepth)}</span>
+            </div>
+            <div className="bg-black/85 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/15 text-[10px] font-mono text-cyan-300 pointer-events-auto shadow-lg uppercase font-bold">
+              {activeVariable === 'temperature' ? 'θ₀ Temp' : activeVariable === 'salinity' ? 'S₀ Sal' : activeVariable === 'currents' ? 'Velocity' : 'Chl-a'}
+            </div>
+          </div>
+
+          {/* Left Expand Trigger (when left panel is minimized on desktop) */}
           {isLeftPanelMinimized && (
             <button
               type="button"
               onClick={() => setIsLeftPanelMinimized(false)}
-              className="absolute top-1/2 -translate-y-1/2 left-0 z-20 bg-[#0c0c0c]/95 backdrop-blur-xl border border-l-0 border-cyan-500/40 rounded-r-xl py-3 px-2.5 text-xs font-bold text-cyan-400 shadow-2xl hover:bg-[#161616] transition-all cursor-pointer flex items-center gap-1.5 group"
+              className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-0 z-20 bg-[#0c0c0c]/95 backdrop-blur-xl border border-l-0 border-cyan-500/40 rounded-r-xl py-3 px-2.5 text-xs font-bold text-cyan-400 shadow-2xl hover:bg-[#161616] transition-all cursor-pointer items-center gap-1.5 group"
               title="Show Parameters & Telemetry"
             >
               <Sliders className="w-4 h-4 text-cyan-400 group-hover:rotate-90 transition-transform" />
-              <span className="max-sm:hidden">Parameters</span>
+              <span>Parameters</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           )}
 
-          {/* Right Expand Trigger (when right panel is collapsed) */}
+          {/* Right Expand Trigger (when right panel is collapsed on desktop) */}
           {panelCollapsed && (
             <button
               type="button"
               onClick={() => setPanelCollapsed(false)}
-              className="absolute top-1/2 -translate-y-1/2 right-0 z-20 bg-[#0c0c0c]/95 backdrop-blur-xl border border-r-0 border-cyan-500/40 rounded-l-xl py-3 px-2.5 text-xs font-bold text-cyan-400 shadow-2xl hover:bg-[#161616] transition-all cursor-pointer flex items-center gap-1.5 group"
+              className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-0 z-20 bg-[#0c0c0c]/95 backdrop-blur-xl border border-r-0 border-cyan-500/40 rounded-l-xl py-3 px-2.5 text-xs font-bold text-cyan-400 shadow-2xl hover:bg-[#161616] transition-all cursor-pointer items-center gap-1.5 group"
               title="Show In-Situ & Marine Activity"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              <span className="max-sm:hidden">Observation &amp; Intel</span>
+              <span>Observation &amp; Intel</span>
               <Radio className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
             </button>
           )}
@@ -1879,8 +1900,10 @@ export default function DepthSlicePage() {
         {/* ── 3. RIGHT DOCKED PANEL: IN-SITU & WATER COLUMN INTEL ── */}
         <aside
           className={cn(
-            "relative w-80 sm:w-96 lg:w-[410px] xl:w-[430px] bg-[#121214] border-l border-[#262628] flex flex-col z-20 shrink-0 h-full overflow-hidden shadow-2xl transition-all duration-300",
-            panelCollapsed && "-mr-80 sm:-mr-96 lg:-mr-[410px] xl:-mr-[430px] opacity-0 pointer-events-none"
+            "relative bg-[#121214] border-l border-[#262628] flex-col z-20 shrink-0 h-full overflow-hidden shadow-2xl transition-all duration-300",
+            "lg:w-[410px] xl:w-[430px]",
+            panelCollapsed ? "lg:-mr-[410px] xl:-mr-[430px] lg:opacity-0 lg:pointer-events-none" : "lg:opacity-100",
+            mobileActiveTab === 'intel' ? "flex w-full" : "hidden lg:flex"
           )}
         >
           {/* Panel Header */}
@@ -2236,6 +2259,60 @@ export default function DepthSlicePage() {
           />
         </aside>
       </div>
+
+      {/* ── MOBILE BOTTOM NAVIGATION BAR (< lg only) ── */}
+      <nav className="flex lg:hidden bg-[#0c0c0f] border-t border-[#222226] p-1.5 gap-1 shrink-0 z-30 pb-safe">
+        <button
+          type="button"
+          onClick={() => setMobileActiveTab('slice')}
+          className={cn(
+            "flex-1 py-2 px-1 rounded-xl text-xs font-mono font-medium flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer min-h-[44px]",
+            mobileActiveTab === 'slice'
+              ? "bg-[#1f2029] text-cyan-300 border border-cyan-500/30 shadow-sm font-bold"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            <span>3D Slice</span>
+          </div>
+          <span className="text-[9px] text-neutral-400 font-mono">-{selectedDepth}m</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileActiveTab('params')}
+          className={cn(
+            "flex-1 py-2 px-1 rounded-xl text-xs font-mono font-medium flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer min-h-[44px]",
+            mobileActiveTab === 'params'
+              ? "bg-[#1f2029] text-cyan-300 border border-cyan-500/30 shadow-sm font-bold"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Parameters</span>
+          </div>
+          <span className="text-[9px] text-neutral-400 font-mono">{formatTemp(activeLayer.thetao)}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileActiveTab('intel')}
+          className={cn(
+            "flex-1 py-2 px-1 rounded-xl text-xs font-mono font-medium flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer min-h-[44px]",
+            mobileActiveTab === 'intel'
+              ? "bg-[#1f2029] text-cyan-300 border border-cyan-500/30 shadow-sm font-bold"
+              : "text-[#888888] hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            <Radio className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Intel &amp; Floats</span>
+          </div>
+          <span className="text-[9px] text-emerald-400 font-mono">{mlPredictions.ecosystemStatus}</span>
+        </button>
+      </nav>
     </div>
   );
 }

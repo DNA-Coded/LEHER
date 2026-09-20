@@ -11,42 +11,25 @@ export const ControlPanel: React.FC = () => {
   return (
     <div
       id="leher-control-dock"
+      className="fixed sm:absolute bottom-3 sm:bottom-[22px] left-1/2 -translate-x-1/2 flex flex-col gap-2 sm:gap-3 rounded-2xl p-2.5 sm:p-4 shadow-2xl z-20 max-w-[calc(100vw-24px)] sm:max-w-[calc(100vw-40px)] transition-all duration-300"
       style={{
-        position: 'absolute',
-        bottom: '22px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
         background: 'rgba(5, 14, 28, 0.88)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(0, 220, 255, 0.28)',
-        borderRadius: '18px',
-        padding: '14px 22px',
         boxShadow: '0 16px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(0, 200, 255, 0.12)',
-        zIndex: 20,
-        maxWidth: 'calc(100vw - 40px)',
-        transition: 'all 0.3s ease',
       }}
     >
       {/* Primary Row: Variable, Depth, Time */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '20px',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}
+        className="flex items-center gap-2.5 sm:gap-5 flex-wrap justify-center"
       >
         <VariableSelector />
 
-        <div style={{ width: '1px', height: '32px', background: 'rgba(255, 255, 255, 0.12)' }} />
+        <div className="hidden sm:block w-[1px] h-8 bg-white/15" />
 
         <DepthSlider />
 
-        <div style={{ width: '1px', height: '32px', background: 'rgba(255, 255, 255, 0.12)' }} />
+        <div className="hidden sm:block w-[1px] h-8 bg-white/15" />
 
         <TimeSlider />
       </div>

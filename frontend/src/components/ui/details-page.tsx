@@ -17,9 +17,6 @@ import {
   Fish,
   Leaf,
   Gauge,
-  LifeBuoy,
-  Eye,
-  Sliders,
   Maximize2,
   ArrowLeftRight,
   FileText
@@ -40,7 +37,6 @@ import {
   computeSeawaterDensity 
 } from '@/lib/maritimeHazardAnalytics';
 import { cn } from '@/lib/utils';
-import RiskBadge from '@/components/ui/risk-badge';
 
 // Timezones for the status bar
 type TimeZone = 'IST' | 'UTC' | 'EST' | 'PST' | 'JST' | 'SGT';
@@ -224,13 +220,13 @@ export default function DetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050608] text-white flex flex-col font-sans selection:bg-cyan-500/20 selection:text-cyan-200">
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans selection:bg-sky-500/20 selection:text-sky-200">
       {/* TOP NAVIGATION BAR */}
-      <header className="sticky top-0 z-40 h-16 bg-[#060608]/25 backdrop-blur-2xl border-b border-white/[0.08] px-4 sm:px-6 lg:px-8 flex items-center justify-between shadow-lg shadow-black/20 transition-all duration-300">
+      <header className="sticky top-0 z-40 h-16 bg-[#090c14]/80 backdrop-blur-md border-b border-white/[0.08] px-4 sm:px-6 lg:px-8 flex items-center justify-between shadow-lg shadow-black/30 transition-all duration-300">
         <div className="flex items-center gap-3">
           <button
             onClick={handleBackToHome}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm"
             title="Return to Home"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -239,31 +235,32 @@ export default function DetailsPage() {
 
           <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <img 
               src="/logo.png" 
               alt="Leher Logo" 
               title="Leher" 
-              className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)]" 
+              className="h-6 sm:h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)] shrink-0" 
             />
-            <div>
-              <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2 font-mono tracking-tight">
-                <span>Maritime Hazard &amp; Environmental Intelligence Dossier</span>
+            <div className="min-w-0">
+              <div className="font-bold text-xs sm:text-base text-white flex items-center gap-2 font-mono tracking-tight truncate">
+                <span className="hidden md:inline">Maritime Hazard &amp; Environmental Intelligence Dossier</span>
+                <span className="md:hidden">Hazard Dossier</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Clock */}
-          <div className="hidden md:flex items-center gap-2 font-mono text-xs text-[#888899] bg-white/[0.04] px-3 py-1.5 rounded-xl border border-white/10">
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-slate-400 bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.08]">
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>{realTimeClock}</span>
             <select
               value={selectedTimeZone}
               onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
-              className="bg-[#141419] text-white text-[11px] font-mono rounded px-1.5 py-0.5 border border-white/15 focus:outline-none cursor-pointer hover:border-cyan-400 transition-colors ml-1"
+              className="bg-[#10141f] text-slate-200 text-[11px] font-mono rounded px-1.5 py-0.5 border border-white/10 focus:outline-none cursor-pointer hover:border-slate-500 transition-colors ml-1"
             >
               {Object.entries(timeZoneMap).map(([tz, info]) => (
                 <option key={tz} value={tz}>
@@ -275,106 +272,116 @@ export default function DetailsPage() {
 
           <button
             onClick={() => setShowModelVsObsModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition-all cursor-pointer font-mono"
+            className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer"
             title="Model vs. Observation Anomaly Engine"
           >
-            <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">Model vs Obs Bias</span>
+            <ArrowLeftRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="hidden xl:inline">Model vs Obs Bias</span>
           </button>
 
           <button
             onClick={() => downloadMissionDossierPdf({ lat: params.lat, lon: params.lon, depth: params.depth })}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 border border-blue-500/40 text-blue-300 text-xs font-semibold transition-all cursor-pointer font-mono"
+            className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer"
             title="Export Official INCOIS Maritime Tactical Dossier (PDF)"
           >
-            <FileText className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">Export Dossier (PDF)</span>
+            <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="hidden sm:inline">Export PDF</span>
           </button>
 
           <button
             onClick={handleOpenDepthSlice}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 text-xs font-semibold transition-all cursor-pointer font-mono"
+            className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer"
             title="Open 3D Depth Slice"
           >
-            <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">3D Depth Slice</span>
+            <Maximize2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="hidden md:inline">3D Slice</span>
           </button>
 
           <button
             onClick={handleOpenOperations}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer font-mono"
+            className="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-950 font-semibold text-xs font-mono transition-all cursor-pointer shadow-sm"
             title="Return to Operations Console"
           >
-            <Compass className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Operations Console</span>
+            <Compass className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+            <span className="hidden md:inline">Operations</span>
           </button>
         </div>
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* EXECUTIVE HAZARD STATUS BANNER */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#090b10]/80 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1.5 max-w-2xl">
+        <div className="p-5 sm:p-6 rounded-xl bg-[#0c0f18] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+          <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/50 text-cyan-300 font-bold uppercase tracking-wider flex items-center gap-1">
-                <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
                 TACTICAL SECTOR DOSSIER
               </span>
               <span className={cn(
-                "text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase border",
-                safeZoneData.statusColor,
-                safeZoneData.statusBg
+                "text-[10px] font-mono px-2 py-0.5 rounded font-medium uppercase border flex items-center gap-1.5",
+                safeZoneData.status === 'SAFE ZONE'
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : safeZoneData.status === 'CAUTION ZONE'
+                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    : "bg-rose-500/10 text-rose-400 border-rose-500/20"
               )}>
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  safeZoneData.status === 'SAFE ZONE' ? "bg-emerald-400" : safeZoneData.status === 'CAUTION ZONE' ? "bg-amber-400" : "bg-rose-400"
+                )} />
                 {safeZoneData.status}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono">
               {predictionResult.location.regionName} Maritime State
             </h1>
-            <p className="text-xs sm:text-sm text-[#888899] font-mono">
-              Coordinates: <strong className="text-white">{params.lat >= 0 ? `${params.lat.toFixed(2)}°N` : `${Math.abs(params.lat).toFixed(2)}°S`}, {params.lon >= 0 ? `${params.lon.toFixed(2)}°E` : `${Math.abs(params.lon).toFixed(2)}°W`}</strong> | Horizon: <strong className="text-white">{params.depth}m</strong> Subsurface Depth | INCOIS &amp; CMEMS Physics Grid
+            <p className="text-xs sm:text-sm text-slate-400 font-mono">
+              Coordinates: <strong className="text-slate-200 font-semibold">{params.lat >= 0 ? `${params.lat.toFixed(2)}°N` : `${Math.abs(params.lat).toFixed(2)}°S`}, {params.lon >= 0 ? `${params.lon.toFixed(2)}°E` : `${Math.abs(params.lon).toFixed(2)}°W`}</strong> | Horizon: <strong className="text-slate-200 font-semibold">{params.depth}m</strong> Subsurface Depth | INCOIS &amp; CMEMS Proxies
             </p>
           </div>
 
           {/* 4 Executive Vital Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-center min-w-[110px]">
-              <div className="text-[10px] text-[#888899] font-mono uppercase">Cyclone Threat</div>
-              <div className={cn("text-base font-bold font-mono mt-0.5", cycloneData.riskColor)}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 shrink-0 w-full lg:w-auto">
+            <div className="p-3 rounded-lg bg-[#111624] border border-white/[0.06] text-center min-w-0 sm:min-w-[115px]">
+              <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Cyclone Threat</div>
+              <div className={cn(
+                "text-sm sm:text-base font-bold font-mono mt-0.5",
+                cycloneData.threatLevel === 'LOW' ? 'text-slate-200' : cycloneData.threatLevel === 'MODERATE' ? 'text-amber-400' : 'text-rose-400'
+              )}>
                 {cycloneData.threatLevel}
               </div>
-              <div className="text-[10px] text-neutral-400 font-mono">
+              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                 {cycloneData.tchp} kJ/cm²
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-center min-w-[110px]">
-              <div className="text-[10px] text-[#888899] font-mono uppercase">Sea State</div>
-              <div className="text-base font-bold text-white font-mono mt-0.5">
+            <div className="p-3 rounded-lg bg-[#111624] border border-white/[0.06] text-center min-w-0 sm:min-w-[115px]">
+              <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Sea State</div>
+              <div className="text-sm sm:text-base font-bold text-white font-mono mt-0.5">
                 ~{cycloneData.waveHeight}m
               </div>
-              <div className="text-[10px] text-[#aaaaaa] font-mono truncate">
+              <div className="text-[10px] text-slate-400 font-mono truncate mt-0.5">
                 {cycloneData.seaStateLabel.split(' ')[0]}
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-center min-w-[110px]">
-              <div className="text-[10px] text-[#888899] font-mono uppercase">PFZ Fishing</div>
-              <div className={cn("text-base font-bold font-mono mt-0.5", fishingData.ratingColor)}>
+            <div className="p-3 rounded-lg bg-[#111624] border border-white/[0.06] text-center min-w-0 sm:min-w-[115px]">
+              <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">PFZ Fishing</div>
+              <div className="text-sm sm:text-base font-bold text-white font-mono mt-0.5">
                 {fishingData.rating}
               </div>
-              <div className="text-[10px] text-cyan-400 font-mono">
+              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                 {params.depth}m Margin
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-center min-w-[110px]">
-              <div className="text-[10px] text-[#888899] font-mono uppercase">Surface Drift</div>
-              <div className="text-base font-bold text-cyan-300 font-mono mt-0.5">
+            <div className="p-3 rounded-lg bg-[#111624] border border-white/[0.06] text-center min-w-0 sm:min-w-[115px]">
+              <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Surface Drift</div>
+              <div className="text-sm sm:text-base font-bold text-white font-mono mt-0.5">
                 {predictionResult.summary.currentSpeedKnots} kts
               </div>
-              <div className="text-[10px] text-[#888899] font-mono">
+              <div className="text-[10px] text-slate-400 font-mono truncate mt-0.5">
                 {predictionResult.summary.currentDirectionCompass} ({predictionResult.summary.currentDirectionDeg}°)
               </div>
             </div>
@@ -382,7 +389,7 @@ export default function DetailsPage() {
         </div>
 
         {/* DOMAIN NAVIGATION TABS */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-white/10 font-mono text-xs">
+        <div className="flex items-center gap-1 overflow-x-auto p-1 bg-[#0c0f18] rounded-xl border border-white/[0.08] font-mono text-xs no-scrollbar">
           {[
             { id: 'all', label: 'All Intelligence Modules' },
             { id: 'cyclone', label: 'Cyclone & TCHP' },
@@ -397,10 +404,10 @@ export default function DetailsPage() {
               type="button"
               onClick={() => setActiveTab(tab.id as HazardTab)}
               className={cn(
-                "px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer",
+                "px-3.5 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all cursor-pointer",
                 activeTab === tab.id
-                  ? "bg-white text-black shadow-md font-bold"
-                  : "bg-white/[0.03] text-neutral-400 hover:text-white border border-white/5 hover:border-white/15"
+                  ? "bg-white text-slate-900 font-bold shadow-sm"
+                  : "text-slate-400 hover:text-white hover:bg-white/[0.04] font-medium"
               )}
             >
               {tab.label}
@@ -409,118 +416,138 @@ export default function DetailsPage() {
         </div>
 
         {/* DETAILED HAZARD MODULES GRID */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-5">
           {/* MODULE 1: CYCLONE TRACKER & TROPICAL CYCLOGENESIS */}
           {(activeTab === 'all' || activeTab === 'cyclone') && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#0b0e14] border border-[#222] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <AlertTriangle className={cn("w-5 h-5", cycloneData.riskColor)} />
+            <div className="p-5 sm:p-6 rounded-xl bg-[#0c0f18] border border-white/[0.08] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-slate-300">
+                    <AlertTriangle className={cn(
+                      "w-4 h-4",
+                      cycloneData.threatLevel === 'LOW' ? 'text-slate-400' : cycloneData.threatLevel === 'MODERATE' ? 'text-amber-400' : 'text-rose-400'
+                    )} />
+                  </div>
                   <div>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                      01 // CYCLONIC THREAT
+                    </span>
                     <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">
                       Cyclone &amp; Tropical Cyclogenesis Hazard Tracker
                     </h3>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-slate-400">
                       SST thermodynamic threshold (26.5°C) &amp; Tropical Cyclone Heat Potential (TCHP)
                     </p>
                   </div>
                 </div>
-                <span className={cn("px-3 py-1 rounded-lg font-mono font-bold text-xs border", cycloneData.riskBg, cycloneData.riskColor)}>
+                <span className={cn(
+                  "px-2.5 py-1 rounded-md font-mono font-semibold text-xs border",
+                  cycloneData.threatLevel === 'LOW'
+                    ? "border-white/[0.08] bg-white/[0.03] text-slate-300"
+                    : cycloneData.threatLevel === 'MODERATE'
+                      ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                      : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                )}>
                   {cycloneData.badgeText}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase">Sea Surface Temperature</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Sea Surface Temperature</span>
                   <div className="text-lg font-bold font-mono text-white flex items-baseline gap-2">
                     <span>{cycloneData.sst}°C</span>
-                    <span className="text-[10px] text-neutral-400">Threshold: 26.5°C</span>
+                    <span className="text-[10px] text-slate-400">Threshold: 26.5°C</span>
                   </div>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400 leading-snug">
                     {parseFloat(cycloneData.sst) >= 28.5
                       ? 'Elevated heat content fueling atmospheric convection.'
-                      : 'Thermal reservoir stable beneath cyclonic intensification.'}
+                      : 'Thermal reservoir stable beneath cyclonic intensification threshold.'}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase">Tropical Cyclone Heat Potential</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Tropical Cyclone Heat Potential</span>
                   <div className="text-lg font-bold font-mono text-white">
-                    {cycloneData.tchp} <span className="text-xs font-normal text-neutral-400">kJ/cm²</span>
+                    {cycloneData.tchp} <span className="text-xs font-normal text-slate-400">kJ/cm²</span>
                   </div>
-                  <p className="text-[11px] text-neutral-400">
-                    {cycloneData.tchp > 60 ? 'Extreme energy reserve for deep atmospheric depression.' : 'Moderate to low cyclonic thermal reservoir.'}
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    {cycloneData.tchp > 60 ? 'Elevated energy reserve for deep atmospheric depression.' : 'Moderate to low cyclonic thermal reservoir across sector.'}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase">Evacuation &amp; Watch Horizon</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Evacuation &amp; Watch Horizon</span>
                   <div className="text-lg font-bold font-mono text-white">
                     {cycloneData.evacuationWindow}
                   </div>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400 leading-snug">
                     Wind Shear: {cycloneData.windShearStatus}
                   </p>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#141722] border border-[#232a3d] text-xs font-mono text-cyan-200">
-                <strong>Advisory Note: </strong>{cycloneData.advisoryNote}
+              <div className="p-3.5 rounded-lg bg-[#0e1320] border-l-2 border-sky-400/70 border-r border-t border-b border-white/[0.05] text-xs font-mono text-slate-300">
+                <strong className="text-white">Advisory: </strong>{cycloneData.advisoryNote}
               </div>
             </div>
           )}
 
           {/* MODULE 2: MARINE ECOSYSTEM & CORAL BLEACHING */}
           {(activeTab === 'all' || activeTab === 'ecosystem') && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#0b0e14] border border-[#222] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <Leaf className="w-5 h-5 text-emerald-400" />
+            <div className="p-5 sm:p-6 rounded-xl bg-[#0c0f18] border border-white/[0.08] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-slate-300">
+                    <Leaf className="w-4 h-4 text-emerald-400" />
+                  </div>
                   <div>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                      02 // ECOLOGICAL INTEGRITY
+                    </span>
                     <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">
                       Marine Ecosystem Health &amp; Coral Bleaching Vulnerability
                     </h3>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-slate-400">
                       Degree Heating Weeks (DHW), primary productivity, and hypoxia monitoring
                     </p>
                   </div>
                 </div>
-                <span className={cn("px-3 py-1 rounded-lg font-mono font-bold text-xs border border-emerald-800/50 bg-emerald-950/40", ecosystemData.statusColor)}>
+                <span className="px-2.5 py-1 rounded-md font-mono font-semibold text-xs border border-white/[0.08] bg-white/[0.03] text-slate-300">
                   {ecosystemData.status} ({ecosystemData.score}/100)
                 </span>
               </div>
 
               <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-mono text-neutral-400">
+                <div className="flex justify-between text-xs font-mono text-slate-400">
                   <span>Composite Ecological Integrity Score</span>
-                  <span className={ecosystemData.statusColor}>{ecosystemData.score} / 100</span>
+                  <span className="text-slate-200 font-semibold">{ecosystemData.score} / 100</span>
                 </div>
-                <div className="w-full bg-[#18181c] h-2 rounded-full overflow-hidden">
-                  <div className={cn("h-full transition-all duration-500", ecosystemData.barColor)} style={{ width: `${ecosystemData.score}%` }} />
+                <div className="w-full bg-[#111624] h-1.5 rounded-full overflow-hidden border border-white/[0.04]">
+                  <div className="h-full bg-emerald-400/80 transition-all duration-500 rounded-full" style={{ width: `${ecosystemData.score}%` }} />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Coral Thermal Stress</span>
-                  <span className="text-white font-bold text-sm">{ecosystemData.dhw}</span>
-                  <span className="text-neutral-400 block text-[10px]">Bleaching Alert Level</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Coral Thermal Stress</span>
+                  <span className="text-white font-bold text-sm block">{ecosystemData.dhw}</span>
+                  <span className="text-slate-400 block text-[10px]">Bleaching Alert Level</span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Primary Productivity</span>
-                  <span className="text-white font-bold text-sm">{ecosystemData.primaryProd}</span>
-                  <span className="text-neutral-400 block text-[10px]">Chlorophyll: {ecosystemData.chlorophyllProxy}</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Primary Productivity</span>
+                  <span className="text-white font-bold text-sm block">{ecosystemData.primaryProd}</span>
+                  <span className="text-slate-400 block text-[10px]">Chlorophyll: {ecosystemData.chlorophyllProxy}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Oxygen Saturation</span>
-                  <span className="text-white font-bold text-sm">{ecosystemData.hypoxiaStatus}</span>
-                  <span className="text-neutral-400 block text-[10px]">At {params.depth}m Horizon</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Oxygen Saturation</span>
+                  <span className="text-white font-bold text-sm block">{ecosystemData.hypoxiaStatus}</span>
+                  <span className="text-slate-400 block text-[10px]">At {params.depth}m Horizon</span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Estimated Ocean pH</span>
-                  <span className="text-white font-bold text-sm">{ecosystemData.phProxy}</span>
-                  <span className="text-neutral-400 block text-[10px]">Acidification Proxy</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Estimated Ocean pH</span>
+                  <span className="text-white font-bold text-sm block">{ecosystemData.phProxy}</span>
+                  <span className="text-slate-400 block text-[10px]">Acidification Proxy</span>
                 </div>
               </div>
             </div>
@@ -528,144 +555,159 @@ export default function DetailsPage() {
 
           {/* MODULE 3: COMMERCIAL FISHING & PFZ */}
           {(activeTab === 'all' || activeTab === 'fishing') && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#0b0e14] border border-[#222] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <Fish className="w-5 h-5 text-cyan-400" />
+            <div className="p-5 sm:p-6 rounded-xl bg-[#0c0f18] border border-white/[0.08] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-slate-300">
+                    <Fish className="w-4 h-4 text-sky-400" />
+                  </div>
                   <div>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                      03 // FISHERY ADVISORY
+                    </span>
                     <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">
                       Commercial Fishery &amp; Potential Fishing Zone (PFZ)
                     </h3>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-slate-400">
                       Nutrient upwelling boundaries, pelagic schooling, and thermal convergence
                     </p>
                   </div>
                 </div>
-                <span className={cn("px-3 py-1 rounded-lg font-mono font-bold text-xs border", fishingData.ratingBg, fishingData.ratingColor)}>
+                <span className="px-2.5 py-1 rounded-md font-mono font-semibold text-xs border border-white/[0.08] bg-white/[0.03] text-slate-300">
                   PFZ: {fishingData.rating}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] text-neutral-500 uppercase">Target Commercial Species</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Target Commercial Species</span>
                   <div className="text-sm font-bold text-white">{fishingData.species}</div>
-                  <span className="text-neutral-400 text-[11px] block">{fishingData.feedingAggregation}</span>
+                  <span className="text-slate-400 text-[11px] block">{fishingData.feedingAggregation}</span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] text-neutral-500 uppercase">Optimal Casting Horizon</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Optimal Casting Horizon</span>
                   <div className="text-sm font-bold text-white">{fishingData.optimalDepthHorizon}</div>
-                  <span className="text-neutral-400 text-[11px] block">Front: {fishingData.frontType}</span>
+                  <span className="text-slate-400 text-[11px] block">Front: {fishingData.frontType}</span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] text-neutral-500 uppercase">Deployment Strategy</span>
-                  <div className="text-xs font-semibold text-cyan-300">{fishingData.driftStrategy}</div>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Deployment Strategy</span>
+                  <div className="text-xs font-semibold text-slate-200">{fishingData.driftStrategy}</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#141418] border border-[#262626] text-xs font-mono text-neutral-300">
-                <strong>Fishery Advisory: </strong>{fishingData.advisoryText}
+              <div className="p-3.5 rounded-lg bg-[#0e1320] border-l-2 border-sky-400/70 border-r border-t border-b border-white/[0.05] text-xs font-mono text-slate-300">
+                <strong className="text-white">Fishery Guidance: </strong>{fishingData.advisoryText}
               </div>
             </div>
           )}
 
           {/* MODULE 4: VESSEL NAVIGATION & DRIFT HAZARDS */}
           {(activeTab === 'all' || activeTab === 'navigation') && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#0b0e14] border border-[#222] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <div className="p-5 sm:p-6 rounded-xl bg-[#0c0f18] border border-white/[0.08] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-slate-300">
+                    <ShieldCheck className="w-4 h-4 text-slate-300" />
+                  </div>
                   <div>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                      04 // NAVIGATION &amp; SEA STATE
+                    </span>
                     <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">
                       Vessel Navigation, Sea State &amp; Drift Hazard Assessment
                     </h3>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-slate-400">
                       Cross-track leeway rates, drift vectors, and vessel speed recommendations
                     </p>
                   </div>
                 </div>
-                <span className={cn("px-3 py-1 rounded-lg font-mono font-bold text-xs border", safeZoneData.statusBg, safeZoneData.statusColor)}>
+                <span className="px-2.5 py-1 rounded-md font-mono font-semibold text-xs border border-white/[0.08] bg-white/[0.03] text-slate-300">
                   {safeZoneData.status} ({safeZoneData.safetyScore}/100)
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Leeway Drift Rate</span>
-                  <span className="text-white font-bold text-base">{safeZoneData.leewayRate}</span>
-                  <span className="text-neutral-400 block text-[10px]">Cross-Track Leeway</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Leeway Drift Rate</span>
+                  <span className="text-white font-bold text-base block">{safeZoneData.leewayRate}</span>
+                  <span className="text-slate-400 block text-[10px]">Cross-Track Leeway</span>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Surface Drift Vector</span>
-                  <span className="text-white font-bold text-sm">{safeZoneData.driftVector}</span>
-                  <span className="text-neutral-400 block text-[10px]">Current Heading</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Surface Drift Vector</span>
+                  <span className="text-white font-bold text-sm block">{safeZoneData.driftVector}</span>
+                  <span className="text-slate-400 block text-[10px]">Current Heading</span>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Recommended Speed</span>
-                  <span className="text-white font-bold text-sm">{safeZoneData.maxRecommendedSpeed}</span>
-                  <span className="text-neutral-400 block text-[10px]">Hydrodynamic Drag</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Recommended Speed</span>
+                  <span className="text-white font-bold text-sm block">{safeZoneData.maxRecommendedSpeed}</span>
+                  <span className="text-slate-400 block text-[10px]">Hydrodynamic Drag</span>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-neutral-500 uppercase text-[10px] block">Craft Advisory</span>
-                  <span className="text-white font-bold text-sm">{safeZoneData.smallCraftAdvisory}</span>
-                  <span className="text-neutral-400 block text-[10px]">Coastal &amp; Artisanal Fleet</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-slate-400 uppercase text-[10px] block tracking-wider">Craft Advisory</span>
+                  <span className="text-white font-bold text-sm block">{safeZoneData.smallCraftAdvisory}</span>
+                  <span className="text-slate-400 block text-[10px]">Coastal &amp; Artisanal Fleet</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#12141a] border border-[#222838] text-xs font-mono text-neutral-200">
-                <strong>Bridge Watch Advisory: </strong>{safeZoneData.vesselAdvisory}
+              <div className="p-3.5 rounded-lg bg-[#0e1320] border-l-2 border-sky-400/70 border-r border-t border-b border-white/[0.05] text-xs font-mono text-slate-300">
+                <strong className="text-white">Bridge Watch Advisory: </strong>{safeZoneData.vesselAdvisory}
               </div>
             </div>
           )}
 
           {/* MODULE 5: OCEAN ACOUSTICS & SUBSURFACE PHYSICS */}
           {(activeTab === 'all' || activeTab === 'acoustics') && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#0b0e14] border border-[#222] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <Gauge className="w-5 h-5 text-cyan-400" />
+            <div className="p-5 sm:p-6 rounded-xl bg-[#0c0f18] border border-white/[0.08] space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-slate-300">
+                    <Gauge className="w-4 h-4 text-slate-300" />
+                  </div>
                   <div>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                      05 // SUBSURFACE PHYSICS &amp; ACOUSTICS
+                    </span>
                     <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">
                       Ocean Acoustics &amp; Water Column Physics
                     </h3>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-slate-400">
                       Mackenzie sound speed formula, seawater in-situ density, and SOFAR ducting
                     </p>
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-lg font-mono font-bold text-xs border border-cyan-800/50 bg-cyan-950/40 text-cyan-300">
+                <span className="px-2.5 py-1 rounded-md font-mono font-semibold text-xs border border-white/[0.08] bg-white/[0.03] text-slate-300">
                   {soundSpeed} m/s
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] text-neutral-500 uppercase">Acoustic Sound Velocity</span>
-                  <div className="text-xl font-bold text-cyan-300 font-mono">{soundSpeed} m/s</div>
-                  <p className="text-[11px] text-neutral-400">
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Acoustic Sound Velocity</span>
+                  <div className="text-xl font-bold text-white font-mono">{soundSpeed} m/s</div>
+                  <p className="text-[11px] text-slate-400 leading-snug">
                     Calculated via Mackenzie formulation based on {predictionResult.variables.thetao.formattedValue} &amp; {params.depth}m pressure.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] text-neutral-500 uppercase">Seawater In-Situ Density</span>
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Seawater In-Situ Density</span>
                   <div className="text-xl font-bold text-white font-mono">{seawaterDensity} kg/m³</div>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400 leading-snug">
                     UNESCO equation of state proxy for vessel displacement, ballast, and submarine trim.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#141418] border border-[#242424] space-y-1">
-                  <span className="text-[10px] text-neutral-500 uppercase">SOFAR Sound Channel</span>
-                  <div className="text-sm font-bold text-emerald-400 font-mono">
+                <div className="p-3.5 rounded-lg bg-[#111624] border border-white/[0.05] space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">SOFAR Sound Channel</span>
+                  <div className="text-sm font-bold text-white font-mono">
                     {params.depth >= 600 && params.depth <= 1200 ? 'SOFAR Axis Active' : 'Surface Ducting Channel'}
                   </div>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="text-[11px] text-slate-400 leading-snug">
                     Subsurface sonar and acoustic propagation optimal without surface reflection loss.
                   </p>
                 </div>
@@ -676,11 +718,14 @@ export default function DetailsPage() {
           {/* MODULE 6: STANDARDIZED COPERNICUS MODEL PARAMETER MATRIX */}
           {(activeTab === 'all' || activeTab === 'copernicus') && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs font-mono text-[#888899] px-1 border-b border-white/10 pb-2">
-                <span className="font-bold text-white uppercase tracking-wider">
-                  COPERNICUS MARINE OCEANOGRAPHIC PARAMETER MATRIX ({Object.keys(predictionResult.variables).length} VARIABLES)
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-mono text-slate-400 px-1 border-b border-white/[0.08] pb-2.5 gap-1">
+                <span className="font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <span>COPERNICUS MARINE OCEANOGRAPHIC MATRIX</span>
+                  <span className="text-[10px] font-normal text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
+                    {Object.keys(predictionResult.variables).length} VARIABLES
+                  </span>
                 </span>
-                <span className="text-cyan-400">Direct Navigational &amp; Scientific Takeaways</span>
+                <span className="text-slate-400 text-[11px]">Direct Navigational &amp; Scientific Takeaways</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -691,15 +736,16 @@ export default function DetailsPage() {
                   return (
                     <div
                       key={v.variable}
-                      className="p-4 sm:p-5 rounded-2xl bg-[#0b0e14]/90 border border-white/10 hover:border-white/20 transition-all space-y-3 shadow-lg"
+                      className="p-4 sm:p-5 rounded-xl bg-[#0c0f18] border border-white/[0.08] hover:border-white/[0.16] transition-all space-y-3.5 shadow-sm"
                     >
+                      {/* Card Header */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="p-2 rounded-xl bg-white/[0.05] border border-white/10 text-cyan-400">
+                          <div className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.07] text-slate-300">
                             <IconComponent className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="text-[10px] font-mono text-[#888899] uppercase tracking-wider">
+                            <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
                               {v.variable} · {v.category}
                             </div>
                             <h4 className="text-sm font-bold text-white tracking-tight">
@@ -709,45 +755,43 @@ export default function DetailsPage() {
                         </div>
 
                         <div className="text-right font-mono">
-                          <div className="text-base font-bold text-white">
+                          <div className="text-lg font-bold text-white">
                             {v.formattedValue}
                           </div>
-                          <div className="text-[10px] text-[#888899]">
+                          <div className="text-[10px] text-slate-400">
                             {v.units || 'dimensionless'}
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-2 text-xs">
-                        <div className="p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-semibold text-cyan-300 font-mono text-[11px] block">
-                              Operational Meaning:
-                            </span>
-                            <p className="text-[#d0d0dc] leading-relaxed mt-0.5">
-                              {guidance.takeaway}
-                            </p>
-                          </div>
+                      {/* Structured Operational Briefing Well */}
+                      <div className="bg-[#111624] border border-white/[0.05] rounded-lg p-3 space-y-2 text-xs">
+                        <div className="flex items-start gap-2">
+                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06] shrink-0 mt-0.5">
+                            ANALYSIS
+                          </span>
+                          <p className="text-slate-300 text-xs leading-relaxed font-sans">
+                            {guidance.takeaway}
+                          </p>
                         </div>
 
-                        <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/10 flex items-start gap-2.5">
-                          <Compass className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-semibold text-amber-300 font-mono text-[11px] block">
-                              Vessel / Navigation Action:
-                            </span>
-                            <p className="text-[#bbbbcc] leading-relaxed mt-0.5">
-                              {guidance.action}
-                            </p>
-                          </div>
+                        <div className="h-[1px] bg-white/[0.04]" />
+
+                        <div className="flex items-start gap-2">
+                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06] shrink-0 mt-0.5">
+                            PROTOCOL
+                          </span>
+                          <p className="text-slate-300 text-xs leading-relaxed font-sans">
+                            {guidance.action}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-[#888899] border-t border-white/5">
-                        <span>{guidance.baseline}</span>
-                        <span className="text-emerald-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      {/* Footer */}
+                      <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-white/[0.05]">
+                        <span className="text-slate-400">{guidance.baseline}</span>
+                        <span className="flex items-center gap-1.5 text-slate-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
                           Validated QC-1
                         </span>
                       </div>
@@ -760,10 +804,10 @@ export default function DetailsPage() {
         </div>
 
         {/* BOTTOM ACTION BAR */}
-        <div className="py-8 flex flex-wrap justify-center items-center gap-4 border-t border-white/10">
+        <div className="py-8 flex flex-wrap justify-center items-center gap-3 border-t border-white/[0.08]">
           <button
             onClick={handleBackToHome}
-            className="px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/10 text-white font-mono text-xs flex items-center gap-2 border border-white/15 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white font-mono text-xs flex items-center gap-2 border border-white/[0.08] transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Home</span>
@@ -771,7 +815,7 @@ export default function DetailsPage() {
 
           <button
             onClick={handleOpenDepthSlice}
-            className="px-5 py-2.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 font-mono text-xs font-semibold flex items-center gap-2 border border-cyan-800/50 transition-all cursor-pointer shadow-md"
+            className="px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white font-mono text-xs flex items-center gap-2 border border-white/[0.08] transition-all cursor-pointer"
           >
             <Maximize2 className="w-4 h-4" />
             <span>Inspect 3D Depth Slice ({params.depth}m)</span>
@@ -779,11 +823,11 @@ export default function DetailsPage() {
 
           <button
             onClick={handleOpenOperations}
-            className="px-6 py-2.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-semibold text-xs font-mono flex items-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.99]"
+            className="px-5 py-2 rounded-lg bg-white hover:bg-slate-200 text-slate-950 font-semibold text-xs font-mono flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.99]"
           >
-            <Compass className="w-4 h-4 text-black" />
+            <Compass className="w-4 h-4 text-slate-950" />
             <span>Open Operations Console</span>
-            <ExternalLink className="w-3.5 h-3.5 ml-0.5 text-black" />
+            <ExternalLink className="w-3.5 h-3.5 ml-0.5 text-slate-950" />
           </button>
         </div>
       </main>

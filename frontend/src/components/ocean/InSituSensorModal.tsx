@@ -234,12 +234,12 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
         </div>
 
         {/* NAVIGATION TABS */}
-        <div className="flex border-b border-[#222222] bg-[#111111] px-4 shrink-0 text-xs font-mono">
+        <div className="flex overflow-x-auto no-scrollbar border-b border-[#222222] bg-[#111111] px-3 sm:px-4 shrink-0 text-xs font-mono">
           <button
             type="button"
             onClick={() => setActiveTab('profile')}
             className={cn(
-              "py-2.5 px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2",
+              "py-2.5 px-3 sm:px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap",
               activeTab === 'profile'
                 ? "border-white text-white"
                 : "border-transparent text-neutral-400 hover:text-neutral-200"
@@ -253,7 +253,7 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
             type="button"
             onClick={() => setActiveTab('mission')}
             className={cn(
-              "py-2.5 px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2",
+              "py-2.5 px-3 sm:px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap",
               activeTab === 'mission'
                 ? "border-white text-white"
                 : "border-transparent text-neutral-400 hover:text-neutral-200"
@@ -281,7 +281,7 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
             type="button"
             onClick={() => setActiveTab('telemetry')}
             className={cn(
-              "py-2.5 px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2",
+              "py-2.5 px-3 sm:px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap",
               activeTab === 'telemetry'
                 ? "border-white text-white"
                 : "border-transparent text-neutral-400 hover:text-neutral-200"
@@ -295,7 +295,7 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
             type="button"
             onClick={() => setActiveTab('anomaly')}
             className={cn(
-              "py-2.5 px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2",
+              "py-2.5 px-3 sm:px-4 font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap",
               activeTab === 'anomaly'
                 ? "border-cyan-400 text-cyan-400"
                 : "border-transparent text-neutral-400 hover:text-neutral-200"
@@ -351,11 +351,11 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
               </div>
 
               {/* Variable Toggle for Chart */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
                   CTD SENSOR SOUNDING (DEPTH vs MEASUREMENT)
                 </span>
-                <div className="flex items-center gap-1 bg-[#141414] p-1 rounded-lg border border-[#222222]">
+                <div className="flex flex-wrap items-center gap-1 bg-[#141414] p-1 rounded-lg border border-[#222222]">
                   <button
                     type="button"
                     onClick={() => setActiveMetric('temp')}
@@ -668,7 +668,7 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
               {sensor.type === 'mooring' && sensor.surfaceMeteorology && (
                 <div className="space-y-3">
                   <div className="border border-[#222222] rounded-xl p-3 bg-[#121212] space-y-2">
-                    <div className="flex items-center justify-between text-xs font-mono">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs font-mono">
                       <span className="font-bold text-white flex items-center gap-1.5">
                         <Wind className="w-4 h-4 text-rose-400" />
                         INCOIS OMNI METEOROLOGICAL &amp; WAVE TELEMETRY
@@ -755,7 +755,7 @@ export const InSituSensorModal: React.FC<InSituSensorModalProps> = ({
               {(sensor.type === 'argo' || sensor.type === 'bgc') && sensor.driftHistory && (
                 <div className="space-y-3">
                   <div className="border border-[#222222] rounded-xl p-3 bg-[#121212] space-y-2">
-                    <div className="flex items-center justify-between text-xs font-mono">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs font-mono">
                       <span className="font-bold text-white flex items-center gap-1.5">
                         <Compass className="w-4 h-4 text-amber-400" />
                         30-DAY DRIFT TRAJECTORY &amp; SURFACING LOG
