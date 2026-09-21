@@ -59,17 +59,17 @@ export const COLOR_SCALES: Record<ColorScaleName, ColorStop[]> = {
     { stop: 1.00, color: '#fde725' },
   ],
 
-  /** Deep Indigo → Aquamarine → Neon Lime → Forest Green — Chlorophyll-a */
+  /** Pure Oceanic Green Spectrum: Dark Muted Aquatic Forest → Rich Emerald → Radiant Lime-Green — Chlorophyll-a */
   chlorophyll: [
-    { stop: 0.00, color: '#06081c' },
-    { stop: 0.15, color: '#1e164d' },
-    { stop: 0.28, color: '#004c9e' },
-    { stop: 0.42, color: '#00a8ff' },
-    { stop: 0.55, color: '#00e5bb' },
-    { stop: 0.68, color: '#00c853' },
-    { stop: 0.80, color: '#76ff03' },
-    { stop: 0.90, color: '#00ff55' },
-    { stop: 1.00, color: '#b9f500' },
+    { stop: 0.00, color: '#031c14' },
+    { stop: 0.12, color: '#064430' },
+    { stop: 0.25, color: '#085f41' },
+    { stop: 0.40, color: '#0a8258' },
+    { stop: 0.55, color: '#059669' },
+    { stop: 0.70, color: '#00b84f' },
+    { stop: 0.82, color: '#00e668' },
+    { stop: 0.92, color: '#00ff73' },
+    { stop: 1.00, color: '#66ff00' },
   ],
 
   /** Balanced divergent ±anomaly — cool blue ↔ warm red */

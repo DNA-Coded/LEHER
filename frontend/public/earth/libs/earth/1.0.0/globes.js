@@ -45,7 +45,7 @@ var globes = function() {
         };
     }
 
-    var CONCENTRIC_BBOX = makeDenseBBox(53, -20, 99, 20, 0.5);
+    var CONCENTRIC_BBOX = makeDenseBBox(53, -20, 99, 25, 0.5);
 
     function standardGlobe() {
         return {
@@ -225,8 +225,8 @@ var globes = function() {
                     .attr("class", "sector-hud-overlay");
 
                 var corners = [
-                    { id: "nw", coord: [53, 20], label: "NW 20°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
-                    { id: "ne", coord: [99, 20], label: "NE 20°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
+                    { id: "nw", coord: [53, 25], label: "NW 25°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
+                    { id: "ne", coord: [99, 25], label: "NE 25°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
                     { id: "se", coord: [99, -20],  label: "SE 20°S 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
                     { id: "sw", coord: [53, -20],  label: "SW 20°S 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
                 ];
@@ -277,12 +277,12 @@ var globes = function() {
         return newGlobe({
             isConcentric: true,
             isBounded: true,
-            boundsGeo: { minLon: 53, maxLon: 99, minLat: -20, maxLat: 20 },
+            boundsGeo: { minLon: 53, maxLon: 99, minLat: -20, maxLat: 25 },
             newProjection: function(view) {
                 return d3.geo.conicEquidistant()
                     .center([0, 0])
                     .rotate([-76, 0])
-                    .parallels([-20, 20])
+                    .parallels([-20, 25])
                     .precision(0.1);
             },
             bounds: function(view) {

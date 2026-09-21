@@ -189,6 +189,175 @@ export async function fetchVariableDepths(varId: string = 'temperature'): Promis
 }
 
 /**
+ * Fetches and worker-decodes an ocean slice for a specific coordinate and bounding box size.
+ */
+export async function fetchModelSliceAt(
+  variable: string,
+  depth: number,
+  lat: number,
+  lon: number,
+  bboxSize: number = 1.0,
+  time: string = 'latest'
+): Promise<OceanSliceData> {
+  const minLat = lat - bboxSize / 2;
+  const maxLat = lat + bboxSize / 2;
+  const minLon = lon - bboxSize / 2;
+  const maxLon = lon + bboxSize / 2;
+
+  const varMap: Record<string, string> = {
+    'temperature': 'temperature',
+    'salinity': 'salinity',
+    'chlorophyll': 'chlorophyll'
+  };
+  const backendVar = varMap[variable] || variable;
+
+  const url = `${API_BASE}/api/v1/model/slices?variable=${backendVar}&depth_m=${depth}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&time=${time}`;
+  
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch model slice at coords: ${res.statusText}`);
+  }
+
+  const buffer = await res.arrayBuffer();
+  const table = tableFromIPC(buffer);
+
+  const valueCol = table.getChild('value');
+  const values = new Float32Array(valueCol ? valueCol.toArray() : table.numRows);
+
+  const gridHeight = parseInt(res.headers.get('X-Slice-Rows') || '0', 10) || 24;
+  const gridWidth = parseInt(res.headers.get('X-Slice-Cols') || '0', 10) || 32;
+  const minVal = parseFloat(res.headers.get('X-Data-Min') || '0');
+  const maxVal = parseFloat(res.headers.get('X-Data-Max') || '0');
+
+  const worker = getSliceWorker();
+  const requestId = `coord-${variable}-${depth}-${time}-${Date.now()}`;
+
+  return new Promise((resolve) => {
+    const handleMessage = (e: MessageEvent<SliceDecodeResponse>) => {
+      if (e.data.id === requestId) {
+        worker.removeEventListener('message', handleMessage);
+
+        resolve({
+          regionId: 'custom',
+          variable: variable as OceanVariable,
+          depth,
+          time,
+          gridWidth,
+          gridHeight,
+          minLon,
+          maxLon,
+          minLat,
+          maxLat,
+          values: new Float32Array(e.data.values),
+          normalized: new Float32Array(e.data.normalized),
+          minVal: e.data.minVal,
+          maxVal: e.data.maxVal,
+        });
+      }
+    };
+
+    worker.addEventListener('message', handleMessage);
+
+    const bufferCopy = values.buffer.slice(0) as ArrayBuffer;
+    const req: SliceDecodeRequest = {
+      id: requestId,
+      gridWidth,
+      gridHeight,
+      rawBuffer: bufferCopy,
+      minVal: isNaN(minVal) ? undefined : minVal,
+      maxVal: isNaN(maxVal) ? undefined : maxVal,
+    };
+
+    worker.postMessage(req, [bufferCopy]);
+  });
+}
+
+/**
+ * Fetches and worker-processes ocean velocity vectors for a specific coordinate and bounding box size.
+ */
+export async function fetchVectorSliceAt(
+  depth: number,
+  lat: number,
+  lon: number,
+  bboxSize: number = 1.0,
+  time: string = 'latest'
+): Promise<CurrentVector[]> {
+  const worker = getVectorWorker();
+  const requestId = `vec-coord-${depth}-${time}-${Date.now()}`;
+
+  const minLat = lat - bboxSize / 2;
+  const maxLat = lat + bboxSize / 2;
+  const minLon = lon - bboxSize / 2;
+  const maxLon = lon + bboxSize / 2;
+
+  const url = `${API_BASE}/api/v1/vectors/slices?depth_m=${depth}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&time=${time}&resolution=0.25`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch vectors at coords: ${res.statusText}`);
+
+  const buffer = await res.arrayBuffer();
+  const table = tableFromIPC(buffer);
+
+  const uCol = table.getChild('u_velocity');
+  const vCol = table.getChild('v_velocity');
+  
+  const uArr = uCol ? new Float32Array(uCol.toArray()) : new Float32Array();
+  const vArr = vCol ? new Float32Array(vCol.toArray()) : new Float32Array();
+
+  const lonsCount = parseInt(res.headers.get('X-Slice-Cols') || '40', 10);
+  const latsCount = parseInt(res.headers.get('X-Slice-Rows') || '30', 10);
+
+  const lons = Array.from({length: lonsCount}, (_, i) => i);
+  const lats = Array.from({length: latsCount}, (_, i) => i);
+
+  return new Promise((resolve) => {
+    const handleMessage = (e: MessageEvent<VectorProcessResponse>) => {
+      if (e.data.id === requestId) {
+        worker.removeEventListener('message', handleMessage);
+
+        const packed = new Float32Array(e.data.packedData);
+        const vectors: CurrentVector[] = [];
+        const count = e.data.vectorCount;
+
+        for (let i = 0; i < count; i++) {
+          const offset = i * 7;
+          vectors.push({
+            lon: packed[offset + 0],
+            lat: packed[offset + 1],
+            depth: packed[offset + 2],
+            u: packed[offset + 3],
+            v: packed[offset + 4],
+            magnitude: packed[offset + 5],
+            directionDeg: packed[offset + 6],
+            directionRad: (packed[offset + 6] * Math.PI) / 180,
+          });
+        }
+
+        resolve(vectors);
+      }
+    };
+
+    worker.addEventListener('message', handleMessage);
+
+    const uBuf = uArr.buffer.slice(0);
+    const vBuf = vArr.buffer.slice(0);
+
+    const req: VectorProcessRequest = {
+      id: requestId,
+      lons,
+      lats,
+      depth,
+      uBuffer: uBuf,
+      vBuffer: vBuf,
+      gridWidth: lons.length,
+      gridHeight: lats.length,
+      minSpeedThreshold: 0.05,
+    };
+
+    worker.postMessage(req, [uBuf, vBuf]);
+  });
+}
+
+/**
  * Fetches and worker-decodes an ocean slice for a region, variable, depth, and time.
  */
 export async function fetchOceanSlice(

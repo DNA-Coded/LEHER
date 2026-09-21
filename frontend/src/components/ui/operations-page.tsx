@@ -13,10 +13,18 @@ import {
   Crosshair,
   ArrowLeftRight,
   Layers,
+  AlertTriangle,
+  AlertCircle,
+  MapPinOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROJECTION_LIST, type TimeZone } from '@/components/ui/landing-page';
 import { predictOceanState, type OceanPredictionResult } from '@/lib/api/oceanPredictionService';
+import { validateCoordinates, HIGHLIGHTED_BOUNDS } from '@/lib/coordinates';
+import { getBathymetricSeafloorDepth, type BathymetryInfo } from '@/lib/ocean/bathymetry';
+import { DataProvenanceBadge } from '@/components/ui/DataProvenanceBadge';
+import { evaluateDataProvenance } from '@/lib/ocean/provenance';
+import { fetchBackendStatus } from '@/services/oceanApi';
 import {
   IN_SITU_SENSORS,
   type InSituSensorType
@@ -141,8 +149,73 @@ export default function OperationsPage() {
     });
   }, [inputLat, inputLon, sendToEarthIframe]);
 
+  // Validation of input coordinates against highlighted operational bounds
+  const coordValidation = useMemo(
+    () => validateCoordinates(inputLat, inputLon),
+    [inputLat, inputLon]
+  );
+
+  const modalCoordValidation = useMemo(
+    () => validateCoordinates(modalLat, modalLon),
+    [modalLat, modalLon]
+  );
+
+  // Bathymetric seafloor depth for sidebar and modal coordinates
+  const bathymetryInfo = useMemo(() => {
+    if (isNaN(inputLat) || isNaN(inputLon)) {
+      return getBathymetricSeafloorDepth(15.4, 71.2);
+    }
+    return getBathymetricSeafloorDepth(inputLat, inputLon);
+  }, [inputLat, inputLon]);
+
+  const modalBathymetryInfo = useMemo(() => {
+    if (isNaN(modalLat) || isNaN(modalLon)) {
+      return getBathymetricSeafloorDepth(15.4, 71.2);
+    }
+    return getBathymetricSeafloorDepth(modalLat, modalLon);
+  }, [modalLat, modalLon]);
+
+  // Auto-clamp depth if exceeding local seafloor or on land
+  useEffect(() => {
+    if (bathymetryInfo.isLand) {
+      if (workbenchDepth !== 0) setWorkbenchDepth(0);
+    } else if (workbenchDepth > bathymetryInfo.maxSafeDepth) {
+      setWorkbenchDepth(bathymetryInfo.maxSafeDepth);
+    }
+  }, [bathymetryInfo.isLand, bathymetryInfo.maxSafeDepth, workbenchDepth]);
+
+  useEffect(() => {
+    if (modalBathymetryInfo.isLand) {
+      if (modalDepth !== 0) setModalDepth(0);
+    } else if (modalDepth > modalBathymetryInfo.maxSafeDepth) {
+      setModalDepth(modalBathymetryInfo.maxSafeDepth);
+    }
+  }, [modalBathymetryInfo.isLand, modalBathymetryInfo.maxSafeDepth, modalDepth]);
+
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(true);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchBackendStatus()
+      .then((status) => {
+        if (mounted) setIsBackendConnected(status !== null && status.status === 'ok');
+      })
+      .catch(() => {
+        if (mounted) setIsBackendConnected(false);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  const provenanceInfo = useMemo(() => {
+    return evaluateDataProvenance(inputLat, inputLon, {
+      isBackendConnected,
+      isRealDataFetched: true,
+    });
+  }, [inputLat, inputLon, isBackendConnected]);
+
   // Handle Predict & Open Depth Slice Page
   const handlePredict = useCallback(() => {
+    if (!coordValidation.isValid || bathymetryInfo.isLand) return;
     setIsPredicting(true);
     sessionStorage.setItem('leher_ops_returned_from_subscreen', 'true');
     sessionStorage.setItem('leher_ops_subscreen_visited', 'true');
@@ -152,7 +225,7 @@ export default function OperationsPage() {
       setIsPredicting(false);
       window.location.href = targetUrl;
     }, 250);
-  }, [inputLat, inputLon, workbenchDepth, selectedSensorId]);
+  }, [inputLat, inputLon, workbenchDepth, selectedSensorId, coordValidation.isValid, bathymetryInfo.isLand]);
 
   // Locate yourself via Geolocation
   const handleLocateMe = useCallback(() => {
@@ -211,6 +284,7 @@ export default function OperationsPage() {
 
   // Apply coordinates from Entry Modal (no page transition!)
   const handleApplyModalCoordinates = () => {
+    if (!modalCoordValidation.isValid) return;
     setInputLat(modalLat);
     setInputLon(modalLon);
     setWorkbenchDepth(modalDepth);
@@ -220,14 +294,6 @@ export default function OperationsPage() {
       longitude: modalLon,
     });
     setShowEntryModal(false);
-  };
-
-  const handleLatBlur = () => {
-    setInputLat((prev) => Math.min(25, Math.max(-20, prev)));
-  };
-
-  const handleLonBlur = () => {
-    setInputLon((prev) => Math.min(99, Math.max(53, prev)));
   };
 
   // Real-time clock
@@ -472,51 +538,133 @@ export default function OperationsPage() {
 
           {/* 2. COORDINATES */}
           <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-3 space-y-2 transition-colors">
-            <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">
-              COORDINATES
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="text-zinc-400 uppercase tracking-wider">COORDINATES</span>
+              <span className="text-zinc-500 font-mono text-[9px]">{HIGHLIGHTED_BOUNDS.label}</span>
             </div>
 
             {/* Latitude */}
-            <div className="bg-[#181922] border border-zinc-800 rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
-              <span className="text-zinc-400 text-xs font-mono">Latitude</span>
+            <div className={cn(
+              "bg-[#181922] border rounded-lg px-3 py-2 flex items-center justify-between transition-colors",
+              coordValidation.latError
+                ? "border-rose-500/80 bg-rose-950/20 text-rose-200 ring-1 ring-rose-500/30"
+                : "border-zinc-800 focus-within:border-white/60"
+            )}>
+              <span className={cn("text-xs font-mono", coordValidation.latError ? "text-rose-400 font-semibold" : "text-zinc-400")}>
+                Latitude
+              </span>
               <div className="flex items-center gap-1.5">
                 <input
                   type="number"
                   step="0.0001"
-                  min="-20"
-                  max="25"
-                  value={inputLat}
-                  onChange={(e) => setInputLat(parseFloat(e.target.value) || 0)}
-                  onBlur={handleLatBlur}
-                  className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  value={isNaN(inputLat) ? "" : inputLat}
+                  onChange={(e) => setInputLat(e.target.value === "" ? NaN : parseFloat(e.target.value))}
+                  className={cn(
+                    "w-16 bg-transparent font-bold text-xs text-right focus:outline-none font-mono",
+                    coordValidation.latError ? "text-rose-200 placeholder-rose-700" : "text-white"
+                  )}
                   placeholder="15.4"
                 />
-                <span className="text-zinc-400 font-mono text-xs">
-                  {inputLat >= 0 ? "°N" : "°S"}
+                <span className={cn("font-mono text-xs", coordValidation.latError ? "text-rose-400" : "text-zinc-400")}>
+                  {!isNaN(inputLat) ? (inputLat >= 0 ? "°N" : "°S") : "--"}
                 </span>
               </div>
             </div>
 
             {/* Longitude */}
-            <div className="bg-[#181922] border border-zinc-800 rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
-              <span className="text-zinc-400 text-xs font-mono">Longitude</span>
+            <div className={cn(
+              "bg-[#181922] border rounded-lg px-3 py-2 flex items-center justify-between transition-colors",
+              coordValidation.lonError
+                ? "border-rose-500/80 bg-rose-950/20 text-rose-200 ring-1 ring-rose-500/30"
+                : "border-zinc-800 focus-within:border-white/60"
+            )}>
+              <span className={cn("text-xs font-mono", coordValidation.lonError ? "text-rose-400 font-semibold" : "text-zinc-400")}>
+                Longitude
+              </span>
               <div className="flex items-center gap-1.5">
                 <input
                   type="number"
                   step="0.0001"
-                  min="53"
-                  max="99"
-                  value={inputLon}
-                  onChange={(e) => setInputLon(parseFloat(e.target.value) || 0)}
-                  onBlur={handleLonBlur}
-                  className="w-16 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                  value={isNaN(inputLon) ? "" : inputLon}
+                  onChange={(e) => setInputLon(e.target.value === "" ? NaN : parseFloat(e.target.value))}
+                  className={cn(
+                    "w-16 bg-transparent font-bold text-xs text-right focus:outline-none font-mono",
+                    coordValidation.lonError ? "text-rose-200 placeholder-rose-700" : "text-white"
+                  )}
                   placeholder="71.2"
                 />
-                <span className="text-zinc-400 font-mono text-xs">
-                  {inputLon >= 0 ? "°E" : "°W"}
+                <span className={cn("font-mono text-xs", coordValidation.lonError ? "text-rose-400" : "text-zinc-400")}>
+                  {!isNaN(inputLon) ? (inputLon >= 0 ? "°E" : "°W") : "--"}
                 </span>
               </div>
             </div>
+
+            {/* Invalid Coordinates Alert */}
+            {!coordValidation.isValid && (
+              <div
+                role="alert"
+                className="p-2.5 bg-rose-950/40 border border-rose-500/60 rounded-lg space-y-1.5 text-xs text-rose-200 animate-in fade-in duration-200"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5 animate-pulse" />
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-rose-300 text-[11px]">
+                      Coordinates Outside Highlighted Area
+                    </div>
+                    <p className="text-[10px] text-rose-200/90 leading-snug">
+                      {coordValidation.message}
+                    </p>
+                    <div className="text-[9px] text-rose-400/90 font-mono pt-0.5">
+                      Valid Bounds: {HIGHLIGHTED_BOUNDS.label}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-rose-800/40 text-[10px]">
+                  <span className="text-rose-400/80">Prediction disabled</span>
+                  <button
+                    type="button"
+                    onClick={() => { setInputLat(15.4); setInputLon(71.2); }}
+                    className="text-cyan-400 hover:text-cyan-300 font-mono underline cursor-pointer"
+                  >
+                    Reset (15.4°N, 71.2°E)
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Land Surface Alert */}
+            {coordValidation.isValid && bathymetryInfo.isLand && (
+              <div
+                role="alert"
+                className="p-2.5 bg-amber-950/40 border border-amber-500/60 rounded-lg space-y-1.5 text-xs text-amber-200 animate-in fade-in duration-200"
+              >
+                <div className="flex items-start gap-2">
+                  <MapPinOff className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-amber-300 text-[11px] flex items-center gap-1.5">
+                      <span>Terrestrial Land Selected</span>
+                      <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px]">
+                        NON-OCEAN
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-amber-200/90 leading-snug">
+                      Coordinates fall on land ({bathymetryInfo.description}). Ocean sounding and 3D depth slice are disabled on land surfaces.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-amber-800/40 text-[10px]">
+                  <span className="text-amber-400/80">Depth slice locked</span>
+                  <button
+                    type="button"
+                    onClick={() => { setInputLat(14.5); setInputLon(73.2); }}
+                    className="text-cyan-400 hover:text-cyan-300 font-mono underline cursor-pointer"
+                    title="Select Goa Continental Slope (460m depth)"
+                  >
+                    Try Ocean Slope (14.5°N, 73.2°E)
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Locate Myself Button */}
             <button
@@ -531,39 +679,90 @@ export default function OperationsPage() {
             </button>
           </div>
 
-          {/* 3. DEPTH PROFILE */}
-          <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors">
+          {/* Data Provenance & Lineage */}
+          {coordValidation.isValid && !bathymetryInfo.isLand && (
+            <div className="flex items-center justify-between py-1 px-2 bg-[#13141b]/60 border border-zinc-800/60 rounded-lg">
+              <span className="text-[10px] font-mono text-zinc-400">DATA LINEAGE</span>
+              <DataProvenanceBadge provenance={provenanceInfo} compact />
+            </div>
+          )}
+
+          {/* Sparse Grid Snapping Alert if > 15km */}
+          {coordValidation.isValid && !bathymetryInfo.isLand && provenanceInfo.isSparseOrOffset && (
+            <div className="p-2 bg-amber-950/30 border border-amber-500/30 rounded-lg text-[10px] text-amber-300 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-400 mt-0.5" />
+              <span>Sparse grid point ({provenanceInfo.gridOffsetKm} km to nearest node). Sub-grid variance expected.</span>
+            </div>
+          )}
+
+          {/* 3. DEPTH PROFILE with Bathymetric Capping & Land Lock */}
+          <div className={cn("bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors", bathymetryInfo.isLand && "opacity-60")}>
             <div className="flex justify-between items-center text-[10px] font-mono">
-              <span className="uppercase tracking-wider text-zinc-200 font-semibold">DEPTH PROFILE</span>
-              <span className="text-white font-bold text-xs">{workbenchDepth}m</span>
+              <div className="flex items-center gap-1.5">
+                <span className="uppercase tracking-wider text-zinc-200 font-semibold">DEPTH PROFILE</span>
+                {bathymetryInfo.isLand ? (
+                  <span className="px-1.5 py-0.2 bg-rose-950/60 border border-rose-500/40 text-rose-300 rounded text-[9px]">
+                    Land Surface (Disabled)
+                  </span>
+                ) : bathymetryInfo.isContinentalShelf ? (
+                  <span className="px-1.5 py-0.2 bg-amber-950/60 border border-amber-500/40 text-amber-300 rounded text-[9px]">
+                    Shelf Capped
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-2 font-mono">
+                <span className="text-[10px] text-zinc-500">
+                  {bathymetryInfo.isLand ? "Land Surface" : `Seafloor: ~${bathymetryInfo.seafloorDepth}m`}
+                </span>
+                <span className={cn("font-bold text-xs", bathymetryInfo.isLand ? "text-zinc-500" : "text-white")}>
+                  {bathymetryInfo.isLand ? "N/A" : `${workbenchDepth}m`}
+                </span>
+              </div>
             </div>
 
             <input
               type="range"
               min="0"
-              max="2000"
-              step="10"
+              max={bathymetryInfo.maxSafeDepth}
+              step={bathymetryInfo.maxSafeDepth <= 100 ? 5 : 10}
               value={workbenchDepth}
-              onChange={(e) => setWorkbenchDepth(Number(e.target.value))}
-              className="w-full accent-white h-1 bg-zinc-800 rounded appearance-none cursor-pointer"
+              disabled={bathymetryInfo.isLand || !coordValidation.isValid}
+              onChange={(e) => !bathymetryInfo.isLand && setWorkbenchDepth(Number(e.target.value))}
+              className={cn(
+                "w-full h-1 bg-zinc-800 rounded appearance-none",
+                bathymetryInfo.isLand ? "cursor-not-allowed opacity-40" : "accent-white cursor-pointer"
+              )}
             />
 
             <div className="grid grid-cols-6 gap-1 text-center pt-0.5">
-              {[0, 50, 150, 500, 1000, 2000].map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => setWorkbenchDepth(d)}
-                  className={cn(
-                    "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer text-center",
-                    workbenchDepth === d
-                      ? "bg-white text-black font-bold border-white shadow-sm"
-                      : "bg-[#181922] border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700"
-                  )}
-                >
-                  {d === 0 ? "0m" : `${d}m`}
-                </button>
-              ))}
+              {[0, 50, 150, 500, 1000, 2000].map((d) => {
+                const isExceeded = bathymetryInfo.isLand || d > bathymetryInfo.seafloorDepth;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => !isExceeded && setWorkbenchDepth(d)}
+                    disabled={isExceeded}
+                    title={
+                      bathymetryInfo.isLand
+                        ? "Depth sounding disabled on land"
+                        : isExceeded
+                        ? `Exceeds local seafloor (${bathymetryInfo.seafloorDepth}m)`
+                        : `Set depth to ${d}m`
+                    }
+                    className={cn(
+                      "py-1 rounded text-[10px] font-mono border transition-all text-center truncate",
+                      isExceeded
+                        ? "bg-[#141418] border-zinc-900 text-zinc-600 cursor-not-allowed line-through opacity-40"
+                        : workbenchDepth === d
+                        ? "bg-white text-black font-bold border-white shadow-sm cursor-pointer"
+                        : "bg-[#181922] border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 cursor-pointer"
+                    )}
+                  >
+                    {d === 0 ? "0m" : `${d}m`}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -661,19 +860,50 @@ export default function OperationsPage() {
           <div className="bg-[#13141b] border border-zinc-800/90 hover:border-zinc-700/90 rounded-xl p-2.5 space-y-1.5 transition-colors">
             <div className="flex items-center justify-between text-[10px] font-mono">
               <span className="uppercase tracking-wider text-zinc-200 font-semibold">ACTION &amp; SENSORS</span>
-              <span className="text-zinc-300 font-mono text-[9px]">READY</span>
+              <span className={cn(
+                "font-mono text-[9px]",
+                !coordValidation.isValid
+                  ? "text-rose-400 font-bold"
+                  : bathymetryInfo.isLand
+                  ? "text-amber-400 font-bold"
+                  : "text-emerald-400 font-bold"
+              )}>
+                {!coordValidation.isValid ? "INVALID SECTOR" : bathymetryInfo.isLand ? "LAND SURFACE" : "READY"}
+              </span>
             </div>
 
             <button
               type="button"
               onClick={handlePredict}
-              disabled={isPredicting}
-              className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black font-bold text-xs font-sans flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99] disabled:opacity-75"
+              disabled={isPredicting || !coordValidation.isValid || bathymetryInfo.isLand}
+              className={cn(
+                "w-full py-2.5 px-3 rounded-lg text-xs font-sans flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-[0.99]",
+                coordValidation.isValid && !bathymetryInfo.isLand
+                  ? "bg-white hover:bg-zinc-200 text-black font-bold cursor-pointer"
+                  : "bg-zinc-800 text-zinc-500 border border-zinc-700 font-semibold cursor-not-allowed opacity-60"
+              )}
+              title={
+                !coordValidation.isValid
+                  ? `Prediction disabled: coordinates must be within highlighted area (${HIGHLIGHTED_BOUNDS.label})`
+                  : bathymetryInfo.isLand
+                  ? "Prediction & 3D Slice disabled: selected coordinate is on land"
+                  : "Predict Ocean State & Open 3D Slice"
+              }
             >
               {isPredicting ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin text-black" />
                   <span>Computing 3D Ocean Model...</span>
+                </>
+              ) : !coordValidation.isValid ? (
+                <>
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Outside Highlighted Area (Disabled)</span>
+                </>
+              ) : bathymetryInfo.isLand ? (
+                <>
+                  <MapPinOff className="w-3.5 h-3.5 text-amber-400" />
+                  <span>3D Depth Slice Disabled (Land Surface)</span>
                 </>
               ) : (
                 <>
@@ -713,78 +943,172 @@ export default function OperationsPage() {
             {/* Coordinate Inputs */}
             <div className="space-y-2">
               {/* Latitude */}
-              <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
-                <span className="text-[#888888] text-xs font-mono">Latitude</span>
+              <div className={cn(
+                "bg-[#161616] border rounded-lg px-3 py-2 flex items-center justify-between transition-colors",
+                modalCoordValidation.latError
+                  ? "border-rose-500/80 bg-rose-950/20 text-rose-200 ring-1 ring-rose-500/30"
+                  : "border-[#262626] focus-within:border-white/60"
+              )}>
+                <span className={cn("text-xs font-mono", modalCoordValidation.latError ? "text-rose-400 font-semibold" : "text-[#888888]")}>
+                  Latitude
+                </span>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     step="0.0001"
-                    min="-20"
-                    max="25"
-                    value={modalLat}
-                    onChange={(e) => setModalLat(parseFloat(e.target.value) || 0)}
-                    className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                    value={isNaN(modalLat) ? "" : modalLat}
+                    onChange={(e) => setModalLat(e.target.value === "" ? NaN : parseFloat(e.target.value))}
+                    className={cn(
+                      "w-20 bg-transparent font-bold text-xs text-right focus:outline-none font-mono",
+                      modalCoordValidation.latError ? "text-rose-200 placeholder-rose-700" : "text-white"
+                    )}
                     placeholder="15.4"
                   />
-                  <span className="text-[#666666] font-mono text-xs w-6 text-right">
-                    {modalLat >= 0 ? "°N" : "°S"}
+                  <span className={cn("font-mono text-xs w-6 text-right", modalCoordValidation.latError ? "text-rose-400" : "text-[#666666]")}>
+                    {!isNaN(modalLat) ? (modalLat >= 0 ? "°N" : "°S") : "--"}
                   </span>
                 </div>
               </div>
 
               {/* Longitude */}
-              <div className="bg-[#161616] border border-[#262626] rounded-lg px-3 py-2 flex items-center justify-between focus-within:border-white/60 transition-colors">
-                <span className="text-[#888888] text-xs font-mono">Longitude</span>
+              <div className={cn(
+                "bg-[#161616] border rounded-lg px-3 py-2 flex items-center justify-between transition-colors",
+                modalCoordValidation.lonError
+                  ? "border-rose-500/80 bg-rose-950/20 text-rose-200 ring-1 ring-rose-500/30"
+                  : "border-[#262626] focus-within:border-white/60"
+              )}>
+                <span className={cn("text-xs font-mono", modalCoordValidation.lonError ? "text-rose-400 font-semibold" : "text-[#888888]")}>
+                  Longitude
+                </span>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     step="0.0001"
-                    min="53"
-                    max="99"
-                    value={modalLon}
-                    onChange={(e) => setModalLon(parseFloat(e.target.value) || 0)}
-                    className="w-20 bg-transparent text-white font-bold text-xs text-right focus:outline-none font-mono"
+                    value={isNaN(modalLon) ? "" : modalLon}
+                    onChange={(e) => setModalLon(e.target.value === "" ? NaN : parseFloat(e.target.value))}
+                    className={cn(
+                      "w-20 bg-transparent font-bold text-xs text-right focus:outline-none font-mono",
+                      modalCoordValidation.lonError ? "text-rose-200 placeholder-rose-700" : "text-white"
+                    )}
                     placeholder="71.2"
                   />
-                  <span className="text-[#666666] font-mono text-xs w-6 text-right">
-                    {modalLon >= 0 ? "°E" : "°W"}
+                  <span className={cn("font-mono text-xs w-6 text-right", modalCoordValidation.lonError ? "text-rose-400" : "text-[#666666]")}>
+                    {!isNaN(modalLon) ? (modalLon >= 0 ? "°E" : "°W") : "--"}
                   </span>
                 </div>
               </div>
 
-              {/* Depth Selection */}
-              <div className="bg-[#161616] border border-[#262626] rounded-lg p-3 space-y-2">
+              {/* Invalid Modal Coordinates Alert */}
+              {!modalCoordValidation.isValid && (
+                <div
+                  role="alert"
+                  className="p-2.5 bg-rose-950/40 border border-rose-500/60 rounded-lg space-y-1 text-xs text-rose-200 animate-in fade-in duration-150"
+                >
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5 animate-pulse" />
+                    <div className="space-y-0.5">
+                      <div className="font-bold text-rose-300 text-[11px]">
+                        Outside Highlighted Area
+                      </div>
+                      <p className="text-[10px] text-rose-200/90 leading-snug">
+                        {modalCoordValidation.message}
+                      </p>
+                      <div className="text-[9px] text-rose-400/90 font-mono pt-0.5">
+                        Valid Bounds: {HIGHLIGHTED_BOUNDS.label}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Land Surface Alert in Modal */}
+              {modalCoordValidation.isValid && modalBathymetryInfo.isLand && (
+                <div
+                  role="alert"
+                  className="p-2.5 bg-amber-950/40 border border-amber-500/60 rounded-lg space-y-1 text-xs text-amber-200 animate-in fade-in duration-150"
+                >
+                  <div className="flex items-start gap-2">
+                    <MapPinOff className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <div className="font-bold text-amber-300 text-[11px]">
+                        Terrestrial Land Coordinate
+                      </div>
+                      <p className="text-[10px] text-amber-200/90 leading-snug">
+                        Selected location is on land ({modalBathymetryInfo.description}). Subsurface ocean sounding and 3D depth slices require marine waters.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Depth Selection with Bathymetric Capping */}
+              <div className={cn("bg-[#161616] border border-[#262626] rounded-lg p-3 space-y-2", modalBathymetryInfo.isLand && "opacity-60")}>
                 <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-[#666666] uppercase tracking-wide">DEPTH PROFILE</span>
-                  <span className="text-white font-bold text-xs">{modalDepth}m</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#666666] uppercase tracking-wide">DEPTH PROFILE</span>
+                    {modalBathymetryInfo.isLand ? (
+                      <span className="px-1.5 py-0.2 bg-rose-950/60 border border-rose-500/40 text-rose-300 rounded text-[9px]">
+                        Land Surface
+                      </span>
+                    ) : modalBathymetryInfo.isContinentalShelf ? (
+                      <span className="px-1.5 py-0.2 bg-amber-950/60 border border-amber-500/40 text-amber-300 rounded text-[9px]">
+                        Shelf Capped
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2 font-mono">
+                    <span className="text-[10px] text-[#666666]">
+                      {modalBathymetryInfo.isLand ? "Land Surface" : `Seafloor: ~${modalBathymetryInfo.seafloorDepth}m`}
+                    </span>
+                    <span className={cn("font-bold text-xs", modalBathymetryInfo.isLand ? "text-[#666666]" : "text-white")}>
+                      {modalBathymetryInfo.isLand ? "N/A" : `${modalDepth}m`}
+                    </span>
+                  </div>
                 </div>
 
                 <input
                   type="range"
                   min="0"
-                  max="2000"
-                  step="10"
+                  max={modalBathymetryInfo.maxSafeDepth}
+                  step={modalBathymetryInfo.maxSafeDepth <= 100 ? 5 : 10}
                   value={modalDepth}
-                  onChange={(e) => setModalDepth(Number(e.target.value))}
-                  className="w-full accent-white h-1 bg-[#222222] rounded appearance-none cursor-pointer"
+                  disabled={modalBathymetryInfo.isLand || !modalCoordValidation.isValid}
+                  onChange={(e) => !modalBathymetryInfo.isLand && setModalDepth(Number(e.target.value))}
+                  className={cn(
+                    "w-full h-1 bg-[#222222] rounded appearance-none",
+                    modalBathymetryInfo.isLand ? "cursor-not-allowed opacity-40" : "accent-white cursor-pointer"
+                  )}
                 />
 
                 <div className="grid grid-cols-6 gap-1 text-center pt-0.5">
-                  {[0, 50, 150, 500, 1000, 2000].map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setModalDepth(d)}
-                      className={cn(
-                        "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer",
-                        modalDepth === d
-                          ? "bg-white text-black font-bold border-white"
-                          : "bg-[#121212] border-[#222222] text-[#888888] hover:text-white"
-                      )}
-                    >
-                      {d === 0 ? "0m" : `${d}m`}
-                    </button>
-                  ))}
+                  {[0, 50, 150, 500, 1000, 2000].map((d) => {
+                    const isExceeded = modalBathymetryInfo.isLand || d > modalBathymetryInfo.seafloorDepth;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => !isExceeded && setModalDepth(d)}
+                        disabled={isExceeded}
+                        title={
+                          modalBathymetryInfo.isLand
+                            ? "Depth sounding disabled on land"
+                            : isExceeded
+                            ? `Exceeds local seafloor (${modalBathymetryInfo.seafloorDepth}m)`
+                            : `Set depth to ${d}m`
+                        }
+                        className={cn(
+                          "py-1 rounded text-[10px] font-mono border transition-all truncate",
+                          isExceeded
+                            ? "bg-[#101010] border-[#1a1a1a] text-[#444444] cursor-not-allowed line-through opacity-40"
+                            : modalDepth === d
+                            ? "bg-white text-black font-bold border-white cursor-pointer"
+                            : "bg-[#121212] border-[#222222] text-[#888888] hover:text-white cursor-pointer"
+                        )}
+                      >
+                        {d === 0 ? "0m" : `${d}m`}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -794,9 +1118,27 @@ export default function OperationsPage() {
               <button
                 type="button"
                 onClick={handleApplyModalCoordinates}
-                className="w-full py-2.5 px-3 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs font-sans flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-[0.99]"
+                disabled={!modalCoordValidation.isValid || modalBathymetryInfo.isLand}
+                className={cn(
+                  "w-full py-2.5 px-3 rounded-lg text-xs font-sans flex items-center justify-center gap-1.5 transition-all shadow-md",
+                  modalCoordValidation.isValid && !modalBathymetryInfo.isLand
+                    ? "bg-white hover:bg-neutral-200 text-black font-bold cursor-pointer active:scale-[0.99]"
+                    : "bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed opacity-60 font-semibold"
+                )}
               >
-                <span>Set Coordinates &amp; Depth</span>
+                {!modalCoordValidation.isValid ? (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Outside Highlighted Area</span>
+                  </>
+                ) : modalBathymetryInfo.isLand ? (
+                  <>
+                    <MapPinOff className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Land Surface Selected (Ocean Only)</span>
+                  </>
+                ) : (
+                  <span>Set Coordinates &amp; Depth</span>
+                )}
               </button>
 
               <button

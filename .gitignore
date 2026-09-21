@@ -51,3 +51,7 @@ venv/
 
 # Startup scripts
 start_all.bat
+
+# Scratch & local testing
+backend_backup/
+test_backend.py

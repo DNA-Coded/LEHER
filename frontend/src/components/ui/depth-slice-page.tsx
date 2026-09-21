@@ -19,7 +19,11 @@ import {
   X,
   Layers,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Waves,
+  ShieldAlert,
+  Anchor,
+  MapPinOff
 } from 'lucide-react';
 import { predictOceanState } from '@/lib/api/oceanPredictionService';
 import { computeMaritimeActivitySummary, computeSeawaterDensity } from '@/lib/maritimeHazardAnalytics';
@@ -31,7 +35,10 @@ import { InSituSensorModal } from '@/components/ocean/InSituSensorModal';
 import { OCEAN_REGIONS } from '@/lib/ocean/regions';
 import { getCssGradient, getLinearColor, getLogColor, VARIABLE_DEFAULTS, type ColorbarState } from '@/lib/ocean/colorScales';
 import type { ColorScaleName } from '@/types/ocean';
-import { fetchHazardEvents, fetchEcosystemData, type HazardEvent, type EcosystemCell } from '@/services/oceanApi';
+import { fetchHazardEvents, fetchEcosystemData, fetchModelSliceAt, fetchVectorSliceAt, type HazardEvent, type EcosystemCell } from '@/services/oceanApi';
+import { getBathymetricSeafloorDepth, type BathymetryInfo } from '@/lib/ocean/bathymetry';
+import { DataProvenanceBadge } from '@/components/ui/DataProvenanceBadge';
+import { evaluateDataProvenance } from '@/lib/ocean/provenance';
 
 const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabel: string }> = {
   IST: { name: 'IST (India Standard)', timeZone: 'Asia/Kolkata', offsetLabel: 'UTC+05:30' },
@@ -56,7 +63,8 @@ interface WaterColumnLayer {
   dirStr: string;
 }
 
-function getZoneLabel(d: number): string {
+function getZoneLabel(d: number, seafloorDepth?: number): string {
+  if (seafloorDepth && d >= seafloorDepth - 5) return 'Benthic Boundary / Seafloor';
   if (d === 0) return 'Surface Photic Zone';
   if (d <= 50) return 'Epipelagic Mixed Layer';
   if (d <= 200) return 'Thermocline Transition';
@@ -105,14 +113,16 @@ const CURRENT_STOPS: ColorStop[] = [
 ];
 
 const CHLOROPHYLL_STOPS: ColorStop[] = [
-  [0.001, '#06081c'], // Deep aphotic depletion (2000m)
-  [0.015, '#1e164d'], // Oligotrophic twilight zone (500m)
-  [0.050, '#004c9e'], // Deep photic boundary (150m)
-  [0.150, '#00a8ff'], // Lower euphotic layer (100m)
-  [0.350, '#00e5bb'], // Moderate phytoplankton (75m)
-  [0.600, '#00c853'], // Productive photic peak (surface-30m) - rich emerald
-  [1.100, '#76ff03'], // Active phytoplankton bloom - neon lime
-  [1.800, '#00ff55'], // High-density eutrophic bloom - intense green
+  [0.000, '#031c14'], // Deep aphotic depletion (0.00 mg/m³) - subtle dark translucent forest tint
+  [0.030, '#052e20'], // Faint deep marine green
+  [0.075, '#064832'], // Low twilight green
+  [0.150, '#085f41'], // Mild lower photic green
+  [0.300, '#0a8258'], // Moderate aquatic green
+  [0.550, '#059669'], // Standard coastal euphotic emerald green
+  [0.900, '#00b84f'], // High phytoplankton vibrant green
+  [1.400, '#00e668'], // Rich biological bloom emerald
+  [2.200, '#00ff73'], // High-density eutrophic bloom radiant green
+  [3.500, '#66ff00'], // Peak phytoplankton intense fluorescent lime-green
 ];
 
 function interpolateColorRamp(value: number, stops: ColorStop[]): THREE.Color {
@@ -137,6 +147,120 @@ function getLayerColor(val: number, variable: 'temperature' | 'salinity' | 'curr
   return interpolateColorRamp(val, TEMP_STOPS);
 }
 
+// ── Nautical Compass Rose Texture for Seabed Base ──
+function createCompassRoseTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  const cx = 512;
+  const cy = 512;
+
+  // Clear & dark pedestal base
+  ctx.fillStyle = '#060d1a';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 500, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outer border ring
+  ctx.strokeStyle = '#00f5d4';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 480, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Secondary inner ring
+  ctx.strokeStyle = '#00a896';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 440, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Subtle concentric radar range rings
+  [120, 240, 360].forEach((r) => {
+    ctx.strokeStyle = 'rgba(0, 245, 212, 0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Degree ticks
+  for (let deg = 0; deg < 360; deg += 5) {
+    const rad = (deg - 90) * (Math.PI / 180);
+    const isMajor = deg % 90 === 0;
+    const isMedium = deg % 30 === 0;
+    const innerR = isMajor ? 415 : isMedium ? 435 : 455;
+    const outerR = 478;
+
+    ctx.strokeStyle = isMajor ? '#00f5d4' : isMedium ? 'rgba(0, 245, 212, 0.6)' : 'rgba(255, 255, 255, 0.25)';
+    ctx.lineWidth = isMajor ? 4 : isMedium ? 2 : 1;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(rad) * innerR, cy + Math.sin(rad) * innerR);
+    ctx.lineTo(cx + Math.cos(rad) * outerR, cy + Math.sin(rad) * outerR);
+    ctx.stroke();
+
+    // Degree numbers on 30° intervals
+    if (isMedium && !isMajor) {
+      const textR = 390;
+      ctx.fillStyle = 'rgba(0, 245, 212, 0.7)';
+      ctx.font = 'bold 22px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${deg}°`, cx + Math.cos(rad) * textR, cy + Math.sin(rad) * textR);
+    }
+  }
+
+  // Crosshair axes
+  ctx.strokeStyle = 'rgba(0, 245, 212, 0.35)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, 60); ctx.lineTo(cx, 964);
+  ctx.moveTo(60, cy); ctx.lineTo(964, cy);
+  ctx.stroke();
+
+  // True North Arrowhead Pointer (Pointing UP in texture = -Z in 3D scene)
+  ctx.fillStyle = '#ff2a5f';
+  ctx.beginPath();
+  ctx.moveTo(cx, 75);
+  ctx.lineTo(cx - 28, 165);
+  ctx.lineTo(cx, 145);
+  ctx.lineTo(cx + 28, 165);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Cardinal labels
+  ctx.font = 'bold 56px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // N (Red/White)
+  ctx.fillStyle = '#ff2a5f';
+  ctx.fillText('N', cx, 205);
+  ctx.font = 'bold 22px monospace';
+  ctx.fillStyle = '#ff6b8b';
+  ctx.fillText('TRUE NORTH (0°)', cx, 245);
+
+  // E, S, W
+  ctx.font = 'bold 50px monospace';
+  ctx.fillStyle = '#00f5d4';
+  ctx.fillText('E', 870, cy);
+  ctx.fillText('S', cx, 870);
+  ctx.fillText('W', 154, cy);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = true;
+  return texture;
+}
+
 export default function DepthSlicePage() {
   // Read lat, lon, depth, sensor from query params
   const [queryParams] = useState(() => {
@@ -155,13 +279,66 @@ export default function DepthSlicePage() {
 
   const [lat] = useState<number>(queryParams.lat);
   const [lon] = useState<number>(queryParams.lon);
-  const [selectedDepth, setSelectedDepth] = useState<number>(queryParams.depth);
+
+  const bathymetryInfo: BathymetryInfo = useMemo(() => {
+    return getBathymetricSeafloorDepth(lat, lon);
+  }, [lat, lon]);
+
+  const [selectedDepth, setSelectedDepth] = useState<number>(() => {
+    return Math.min(queryParams.depth, bathymetryInfo.maxSafeDepth);
+  });
+
+  useEffect(() => {
+    if (selectedDepth > bathymetryInfo.maxSafeDepth) {
+      setSelectedDepth(bathymetryInfo.maxSafeDepth);
+    }
+  }, [bathymetryInfo.maxSafeDepth, selectedDepth]);
   const [activeTab, setActiveTab] = useState<'telemetry' | 'layers' | 'profile'>('telemetry');
   const [geometryType, setGeometryType] = useState<'cylinder' | 'cuboid'>('cylinder');
   const [activeVariable, setActiveVariable] = useState<'temperature' | 'salinity' | 'currents' | 'chlorophyll'>('temperature');
   const [panelCollapsed, setPanelCollapsed] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
+  const [realFetchedData, setRealFetchedData] = useState<any>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadRealData = async () => {
+      try {
+        setFetchError(null);
+        setRealFetchedData(null);
+        if (activeVariable === 'currents') {
+          const vectors = await fetchVectorSliceAt(selectedDepth, lat, lon, 1.0);
+          if (mounted && vectors && vectors.length > 0) {
+            const centerVec = vectors[Math.floor(vectors.length / 2)] || vectors[0];
+            setRealFetchedData({
+               current_speed: centerVec.magnitude,
+               dirDeg: centerVec.directionDeg,
+               uo: centerVec.u,
+               vo: centerVec.v
+            });
+          }
+        } else {
+          const slice = await fetchModelSliceAt(activeVariable, selectedDepth, lat, lon, 1.0);
+          if (mounted && slice && slice.values.length > 0) {
+            const centerIdx = Math.floor(slice.gridHeight / 2) * slice.gridWidth + Math.floor(slice.gridWidth / 2);
+            let val = slice.values[centerIdx];
+            if (isNaN(val)) val = slice.values.find(v => !isNaN(v)) || 0;
+            
+            if (activeVariable === 'temperature') setRealFetchedData({ thetao: val });
+            if (activeVariable === 'salinity') setRealFetchedData({ so: val });
+            if (activeVariable === 'chlorophyll') setRealFetchedData({ chlorophyll: val });
+          }
+        }
+      } catch (err: any) {
+        console.warn('Failed to fetch real data slice:', err);
+        if (mounted) setFetchError(err?.message || 'Model slice unavailable');
+      }
+    };
+    loadRealData();
+    return () => { mounted = false; };
+  }, [activeVariable, selectedDepth, lat, lon]);
 
   // Changeable units state
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
@@ -193,6 +370,17 @@ export default function DepthSlicePage() {
     return () => clearInterval(timer);
   }, [isSeasonPlaying]);
 
+  // Compute applicable vertical depths constrained by local seafloor bathymetry
+  const applicableDepths = useMemo(() => {
+    const filtered = STANDARD_DEPTHS.filter((d) => d <= bathymetryInfo.maxSafeDepth);
+    // If the seafloor is shallower than 2000m and not already explicitly represented, append the seafloor level
+    if (bathymetryInfo.maxSafeDepth < 2000 && !filtered.includes(bathymetryInfo.maxSafeDepth)) {
+      filtered.push(bathymetryInfo.maxSafeDepth);
+      filtered.sort((a, b) => a - b);
+    }
+    return filtered.length > 0 ? filtered : [0];
+  }, [bathymetryInfo.maxSafeDepth]);
+
   // Generate water column data using predictOceanState modulated by season
   const waterColumn = useMemo<WaterColumnLayer[]>(() => {
     const sMod = {
@@ -202,7 +390,7 @@ export default function DepthSlicePage() {
       ne_monsoon: { temp: -0.6, current: 0.9, sal: 0.1 },
     }[selectedSeason];
 
-    return STANDARD_DEPTHS.map((d) => {
+    return applicableDepths.map((d) => {
       const res = predictOceanState(lat, lon, d);
       const baseT = res.variables.thetao?.value ?? (28.5 * Math.exp(-d / 380) + 2.0);
       const thetao = Math.max(1.5, baseT + sMod.temp * Math.exp(-d / 250));
@@ -226,7 +414,7 @@ export default function DepthSlicePage() {
         dirStr,
       };
     });
-  }, [lat, lon, selectedSeason]);
+  }, [applicableDepths, lat, lon, selectedSeason]);
 
   // ── Phase 2: Colorbar Editor state ──────────────────────────────────────
   const [colorbarState, setColorbarState] = useState<ColorbarState>(() => ({
@@ -284,7 +472,11 @@ export default function DepthSlicePage() {
     return bestIdx;
   }, [waterColumn, selectedDepth]);
 
-  const activeLayer = waterColumn[selectedIndex] || waterColumn[0];
+  const activeLayerBase = waterColumn[selectedIndex] || waterColumn[0];
+  const activeLayer = useMemo(() => {
+    if (realFetchedData) return { ...activeLayerBase, ...realFetchedData };
+    return activeLayerBase;
+  }, [activeLayerBase, realFetchedData]);
 
   // Base prediction for region name and telemetry stats
   const basePrediction = useMemo(() => predictOceanState(lat, lon, selectedDepth), [lat, lon, selectedDepth]);
@@ -343,6 +535,16 @@ export default function DepthSlicePage() {
       mounted = false;
     };
   }, [lat, lon]);
+
+  // Data Provenance Lineage: Reanalysis vs ML vs Simulation
+  const provenanceInfo = useMemo(() => {
+    return evaluateDataProvenance(lat, lon, {
+      isBackendConnected: true,
+      isRealDataFetched: Boolean(realFetchedData),
+      isMlNearby: activeHazards.some((h) => Math.hypot(h.latitude - lat, h.longitude - lon) < 3.0),
+      backendError: fetchError,
+    });
+  }, [lat, lon, realFetchedData, activeHazards, fetchError]);
 
   // Rakshak Intelligence ML Model Inference (SIH PS 26067)
   const mlPredictions = useMemo(() => {
@@ -489,11 +691,13 @@ export default function DepthSlicePage() {
   const waveMeshRef = useRef<THREE.Mesh | null>(null);
   const meniscusMeshRef = useRef<THREE.Mesh | THREE.LineSegments | null>(null);
   const particlesMeshRef = useRef<THREE.Points | null>(null);
-  const particleVelocitiesRef = useRef<{ vx: number; vz: number; bobFreq: number; bobAmp: number }[]>([]);
+  const particleVelocitiesRef = useRef<{ vx: number; vz: number; baseY: number; bobFreq: number; bobAmp: number }[]>([]);
   const layerGroupsRef = useRef<{
     grp: THREE.Group;
     sliceWaveMesh: THREE.Mesh;
     slabMat: THREE.MeshPhysicalMaterial;
+    arrowGrp?: THREE.Group;
+    reticleGrp?: THREE.Group;
     idx: number;
     baseY: number;
     curX: number;
@@ -511,6 +715,22 @@ export default function DepthSlicePage() {
   const hudSpriteRef = useRef<THREE.Sprite | null>(null);
   const hudCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const hudTextureRef = useRef<THREE.CanvasTexture | null>(null);
+
+  // Camera heading & Viewport compass state
+  const [cameraHeading, setCameraHeading] = useState<number>(315);
+
+  const handleAlignNorth = useCallback(() => {
+    if (!cameraRef.current || !controlsRef.current) return;
+    const cam = cameraRef.current;
+    const ctrl = controlsRef.current;
+    const target = ctrl.target;
+    const radius = Math.hypot(cam.position.x - target.x, cam.position.z - target.z) || 8.0;
+    const currentY = cam.position.y;
+    cam.position.set(0, currentY, radius);
+    ctrl.target.set(0, 0, 0);
+    ctrl.update();
+    setCameraHeading(0);
+  }, []);
 
   // Real-time clock
   useEffect(() => {
@@ -545,7 +765,10 @@ export default function DepthSlicePage() {
   // Update Floating Holographic HUD Card
   const updateExtractedHud = useCallback((idx: number) => {
     if (!hudCanvasRef.current || !hudTextureRef.current) return;
-    const layer = waterColumn[idx];
+    let layer = waterColumn[idx];
+    if (idx === selectedIndex && realFetchedData) {
+      layer = { ...layer, ...realFetchedData };
+    }
     if (!layer) return;
 
     const canvas = hudCanvasRef.current;
@@ -589,7 +812,7 @@ export default function DepthSlicePage() {
 
     ctx.fillStyle = '#7aa0c4';
     ctx.font = '500 14px sans-serif';
-    ctx.fillText(getZoneLabel(layer.depth), 22, 74);
+    ctx.fillText(getZoneLabel(layer.depth, bathymetryInfo.seafloorDepth), 22, 74);
 
     ctx.strokeStyle = 'rgba(0, 229, 255, 0.25)';
     ctx.lineWidth = 1;
@@ -630,16 +853,16 @@ export default function DepthSlicePage() {
 
     // Chlorophyll
     if (activeVariable === 'chlorophyll') {
-      ctx.fillStyle = 'rgba(192, 132, 252, 0.24)';
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.24)';
       ctx.fillRect(16, 194, w - 32, 26);
     }
-    ctx.fillStyle = '#c084fc';
+    ctx.fillStyle = '#34d399';
     ctx.fillText(`Chl-a:`, 24, 214);
     ctx.fillStyle = '#ffffff';
     ctx.fillText(`${layer.chlorophyll.toFixed(3)} mg/m³`, 140, 214);
 
     hudTextureRef.current.needsUpdate = true;
-  }, [waterColumn, activeVariable]);
+  }, [waterColumn, activeVariable, selectedIndex, realFetchedData]);
 
   // Initialize Three.js scene once
   useEffect(() => {
@@ -667,6 +890,15 @@ export default function DepthSlicePage() {
     controls.maxDistance = 18;
     controls.maxPolarAngle = Math.PI / 2 + 0.25;
     controlsRef.current = controls;
+
+    const updateHeading = () => {
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      const heading = Math.round((Math.atan2(dir.x, -dir.z) * 180) / Math.PI + 360) % 360;
+      setCameraHeading(heading);
+    };
+    controls.addEventListener('change', updateHeading);
+    updateHeading();
 
     // Lighting
     scene.add(new THREE.AmbientLight(0x90caf9, 0.85));
@@ -704,9 +936,17 @@ export default function DepthSlicePage() {
       time += 0.016;
       controls.update();
 
-      // 1. Dynamic Ocean Surface Waves Calculation
+      // 1. Dynamic Ocean Surface Waves Calculation - Driven by Surface Current Velocity
       const waveMesh = waveMeshRef.current;
       if (waveMesh && waveMesh.geometry.userData.origX) {
+        const sSpeed = waterColumn[0]?.current_speed ?? 0.06;
+        // Velocity factor: scaled gracefully across realistic current speeds
+        const sVelFactor = Math.max(0.4, Math.min(2.4, sSpeed / 0.06));
+        // Calibrated rolling wave amplitude: clearly visible ocean swells without spikiness
+        const sWaveAmp = 0.066 * Math.pow(sVelFactor, 0.52);
+        // Fluid rhythmic wave frequency proportional to velocity
+        const sWaveFreq = 2.1 * Math.pow(sVelFactor, 0.55);
+
         const posAttr = waveMesh.geometry.attributes.position;
         const origX = waveMesh.geometry.userData.origX;
         const origY = waveMesh.geometry.userData.origY;
@@ -715,16 +955,16 @@ export default function DepthSlicePage() {
         for (let i = 0; i < count; i++) {
           const ox = origX[i];
           const oy = origY[i];
-          const w1 = Math.sin(ox * 2.2 + oy * 1.5 + time * 2.4) * 0.055;
-          const w2 = Math.cos(ox * 3.1 - oy * 2.0 + time * 1.9) * 0.035;
-          const w3 = Math.sin((ox + oy) * 4.6 + time * 3.4) * 0.018;
+          const w1 = Math.sin(ox * 1.8 + oy * 1.2 + time * sWaveFreq) * sWaveAmp;
+          const w2 = Math.cos(ox * 2.4 - oy * 1.6 + time * (sWaveFreq * 0.82)) * (sWaveAmp * 0.55);
+          const w3 = Math.sin((ox * 1.2 + oy * 2.2) + time * (sWaveFreq * 1.15)) * (sWaveAmp * 0.28);
           const dist = Math.hypot(ox, oy);
-          const w4 = Math.cos(dist * 4.0 - time * 2.7) * 0.016;
+          const w4 = Math.cos(dist * 2.5 - time * (sWaveFreq * 0.90)) * (sWaveAmp * 0.18);
           posAttr.array[i * 3 + 2] = w1 + w2 + w3 + w4;
         }
         posAttr.needsUpdate = true;
         waveMesh.geometry.computeVertexNormals();
-        (waveMesh.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.42 + Math.sin(time * 2.5) * 0.08;
+        (waveMesh.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.44 + Math.sin(time * sWaveFreq) * 0.08;
       }
 
       // 2. Meniscus bobbing
@@ -737,7 +977,7 @@ export default function DepthSlicePage() {
       sunCausticLight.position.x = Math.sin(time * 1.1) * 2.0;
       sunCausticLight.position.z = Math.cos(time * 0.9) * 2.0;
 
-      // 4. Suspended Marine Snow & Plankton Drift
+      // 4. Salinity-Stratified Suspended White Salt Particles & Marine Snow
       const particles = particlesMeshRef.current;
       const vels = particleVelocitiesRef.current;
       if (particles && vels.length > 0) {
@@ -746,7 +986,7 @@ export default function DepthSlicePage() {
           const vel = vels[i];
           pArray[i * 3] += vel.vx;
           pArray[i * 3 + 2] += vel.vz;
-          pArray[i * 3 + 1] += Math.sin(time * vel.bobFreq) * vel.bobAmp;
+          pArray[i * 3 + 1] = vel.baseY + Math.sin(time * vel.bobFreq) * vel.bobAmp;
 
           // Wrap boundaries
           const dSq = pArray[i * 3] * pArray[i * 3] + pArray[i * 3 + 2] * pArray[i * 3 + 2];
@@ -770,29 +1010,42 @@ export default function DepthSlicePage() {
         item.grp.scale.setScalar(item.curScale);
         item.grp.position.y = item.baseY + item.curLift + Math.sin(time * 1.3 + item.idx * 0.45) * 0.012;
 
-        // Dynamic 3D undulating waves on the extracted slice top
+        // Dynamic 3D undulating waves on the extracted slice top - driven by local layer velocity
         const sliceWave = item.sliceWaveMesh;
         if (sliceWave && sliceWave.geometry.userData.origX) {
           const isExtracted = item.curX > 0.15;
-          const slideProgress = Math.min(1.0, item.curX / 4.0);
+          const slideProgress = Math.min(1.0, item.curX / 3.8);
           const sPos = sliceWave.geometry.attributes.position;
           const sOrigX = sliceWave.geometry.userData.origX;
           const sOrigY = sliceWave.geometry.userData.origY;
           const sCount = sPos.count;
-          const sAmp = (isExtracted ? 1.35 : 0.2) * Math.max(0.15, slideProgress);
+
+          // Physical velocity at this specific depth layer
+          const layerSpeed = waterColumn[item.idx]?.current_speed ?? 0.04;
+          const layerVelFactor = Math.max(0.35, Math.min(2.4, layerSpeed / 0.06));
+
+          // Base amplitude: extracted slice gets full swell, in-column upper layers get graceful visible undulation
+          const depthDecay = Math.max(0.35, 1.0 - (item.idx / waterColumn.length) * 0.65);
+          const baseAmp = isExtracted
+            ? (0.85 + 0.15 * slideProgress)
+            : (item.idx <= 1 ? 0.65 : 0.40 * depthDecay);
+
+          const sAmp = baseAmp * (0.058 * Math.pow(layerVelFactor, 0.52));
+          const layerWaveFreq = time * (1.8 * Math.pow(layerVelFactor, 0.55));
 
           for (let j = 0; j < sCount; j++) {
             const ox = sOrigX[j];
             const oy = sOrigY[j];
-            const sw1 = Math.sin(ox * 3.0 + oy * 2.2 + time * 3.0) * (0.045 * sAmp);
-            const sw2 = Math.cos(ox * 3.8 - oy * 2.6 + time * 2.3) * (0.032 * sAmp);
-            sPos.array[j * 3 + 2] = sw1 + sw2;
+            const sw1 = Math.sin(ox * (1.9 + 0.25 * layerVelFactor) + oy * 1.4 + layerWaveFreq) * sAmp;
+            const sw2 = Math.cos(ox * 2.5 - oy * (1.6 + 0.25 * layerVelFactor) + layerWaveFreq * 0.85) * (sAmp * 0.55);
+            const sw3 = Math.sin((ox + oy) * 2.8 + layerWaveFreq * 1.1) * (sAmp * 0.22);
+            sPos.array[j * 3 + 2] = sw1 + sw2 + sw3;
           }
           sPos.needsUpdate = true;
           sliceWave.geometry.computeVertexNormals();
 
           if (isExtracted) {
-            (sliceWave.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.55 + Math.sin(time * 2.8) * 0.15;
+            (sliceWave.material as THREE.MeshPhysicalMaterial).emissiveIntensity = 0.58 + Math.sin(layerWaveFreq) * 0.12;
           }
         }
       });
@@ -878,6 +1131,7 @@ export default function DepthSlicePage() {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       canvas.removeEventListener('click', handleCanvasClick);
+      controls.removeEventListener('change', updateHeading);
       ro.disconnect();
       renderer.dispose();
       controls.dispose();
@@ -963,17 +1217,20 @@ export default function DepthSlicePage() {
     const _cbMax = colorbarState.maxVal;
     const _cbMap = colorbarState.colormap as ColorScaleName;
     const _cbMode = colorbarState.scaleMode;
-    const getSurfaceRgb = (v: number) =>
-      _cbMode === 'log' && activeVariable === 'chlorophyll'
-        ? getLogColor(v, _cbMin, _cbMax, _cbMap)
-        : getLinearColor(v, _cbMin, _cbMax, _cbMap);
-    const [sr, sg, sb] = getSurfaceRgb(surfaceVal);
-    const surfaceColor = new THREE.Color(sr / 255, sg / 255, sb / 255);
+    const surfaceColor =
+      activeVariable === 'chlorophyll'
+        ? getLayerColor(surfaceVal, 'chlorophyll')
+        : (() => {
+            const [sr, sg, sb] = _cbMode === 'log'
+              ? getLogColor(surfaceVal, _cbMin, _cbMax, _cbMap)
+              : getLinearColor(surfaceVal, _cbMin, _cbMax, _cbMap);
+            return new THREE.Color(sr / 255, sg / 255, sb / 255);
+          })();
 
     const capMat = new THREE.MeshPhysicalMaterial({
       color: surfaceColor,
       emissive: surfaceColor,
-      emissiveIntensity: 0.45,
+      emissiveIntensity: activeVariable === 'chlorophyll' ? 0.55 : 0.45,
       roughness: 0.08,
       metalness: 0.1,
       transmission: 0.62,
@@ -1010,46 +1267,110 @@ export default function DepthSlicePage() {
       meniscusMeshRef.current = meniscus;
     }
 
-    // 3. Suspended Marine Snow & Plankton Particles
-    const pCount = 280;
+    // vExaggeration: scale BLOCK_HEIGHT by exaggeration factor relative to 150x baseline
+    const vScale = colorbarState.vExaggeration / 150;
+    const effHeight = BLOCK_HEIGHT * vScale;
+    const effRadius = geometryType === 'cylinder' ? BLOCK_RADIUS * 0.88 : (BLOCK_WIDTH / 2) * 0.88;
+
+    // 3. Salinity-Stratified Suspended White Salt Particles & Marine Snow
+    // Higher salinity depth levels spawn significantly more white salt particles; lower salinity has fewer particles
+    const salValues = waterColumn.map((l) => l.so);
+    const minSal = Math.min(...salValues);
+    const maxSal = Math.max(...salValues);
+    const salDelta = Math.max(0.4, maxSal - minSal);
+
+    // Compute salinity-proportional sampling weights for each layer
+    const layerWeights = waterColumn.map((layer) => {
+      const norm = Math.max(0.04, Math.min(1.0, (layer.so - minSal) / salDelta));
+      // Power curve gives high salinity levels 6x - 8x more white particles than low salinity levels
+      return Math.pow(norm, 1.85) * 0.88 + 0.12;
+    });
+    const totalWeight = layerWeights.reduce((a, b) => a + b, 0);
+
+    const pCount = 520; // Crisp particle pool for vivid salinity stratification
     const pGeo = new THREE.BufferGeometry();
     const pPositions = new Float32Array(pCount * 3);
     const pColors = new Float32Array(pCount * 3);
-    const vels: { vx: number; vz: number; bobFreq: number; bobAmp: number }[] = [];
+    const vels: { vx: number; vz: number; baseY: number; bobFreq: number; bobAmp: number }[] = [];
 
-    for (let i = 0; i < pCount; i++) {
-      const y = (Math.random() - 0.5) * (BLOCK_HEIGHT * 0.92);
-      const r = Math.sqrt(Math.random()) * (BLOCK_RADIUS * 0.88);
-      const theta = Math.random() * Math.PI * 2;
-      const x = Math.cos(theta) * r;
-      const z = Math.sin(theta) * r;
-      pPositions[i * 3] = x;
-      pPositions[i * 3 + 1] = y;
-      pPositions[i * 3 + 2] = z;
+    let pIdx = 0;
+    waterColumn.forEach((layer, lIdx) => {
+      const layerWeight = layerWeights[lIdx];
+      // Target number of white particles allocated to this depth level
+      const layerPCount = Math.max(4, Math.round(pCount * (layerWeight / totalWeight)));
+      const layerRatio = layer.depth / maxDepth;
+      const layerY = effHeight / 2 - layerRatio * effHeight;
+      const bandThickness = (effHeight / Math.max(1, waterColumn.length)) * 0.95;
 
-      const depthRatio = (BLOCK_HEIGHT / 2 - y) / BLOCK_HEIGHT;
-      if (depthRatio < 0.22) {
-        pColors[i * 3] = 0.1; pColors[i * 3 + 1] = 0.95; pColors[i * 3 + 2] = 0.85;
-      } else {
-        pColors[i * 3] = 0.65; pColors[i * 3 + 1] = 0.85; pColors[i * 3 + 2] = 1.0;
+      const layerSpeed = Math.max(0.008, layer.current_speed);
+      const dirRad = (layer.dirDeg * Math.PI) / 180;
+      // Drift velocity scales directly with layer current velocity
+      const driftVx = Math.sin(dirRad) * layerSpeed * 0.007;
+      const driftVz = Math.cos(dirRad) * layerSpeed * 0.007;
+
+      for (let k = 0; k < layerPCount && pIdx < pCount; k++) {
+        const y = layerY + (Math.random() - 0.5) * bandThickness;
+        const r = Math.sqrt(Math.random()) * effRadius;
+        const theta = Math.random() * Math.PI * 2;
+        const x = geometryType === 'cylinder' ? Math.cos(theta) * r : (Math.random() - 0.5) * BLOCK_WIDTH * 0.88;
+        const z = geometryType === 'cylinder' ? Math.sin(theta) * r : (Math.random() - 0.5) * BLOCK_WIDTH * 0.88;
+
+        pPositions[pIdx * 3] = x;
+        pPositions[pIdx * 3 + 1] = y;
+        pPositions[pIdx * 3 + 2] = z;
+
+        // Pure crystalline white salt particles
+        const brightness = 0.95 + Math.random() * 0.05;
+        pColors[pIdx * 3] = brightness;
+        pColors[pIdx * 3 + 1] = brightness * (0.97 + Math.random() * 0.03);
+        pColors[pIdx * 3 + 2] = 1.0;
+
+        vels.push({
+          vx: driftVx + (Math.random() - 0.5) * 0.0006,
+          vz: driftVz + (Math.random() - 0.5) * 0.0006,
+          baseY: y,
+          bobFreq: 1.0 + layerSpeed * 6.0 + Math.random() * 1.5,
+          bobAmp: 0.0006 + layerSpeed * 0.004,
+        });
+
+        pIdx++;
       }
+    });
 
-      const decay = Math.exp(-depthRatio * 3.2);
+    // Fill remainder slots if rounding left gaps
+    while (pIdx < pCount) {
+      const lIdx = Math.floor(Math.random() * waterColumn.length);
+      const layer = waterColumn[lIdx];
+      const layerRatio = layer.depth / maxDepth;
+      const layerY = effHeight / 2 - layerRatio * effHeight;
+      const y = layerY + (Math.random() - 0.5) * 0.12;
+      const r = Math.sqrt(Math.random()) * effRadius;
+      const theta = Math.random() * Math.PI * 2;
+
+      pPositions[pIdx * 3] = Math.cos(theta) * r;
+      pPositions[pIdx * 3 + 1] = y;
+      pPositions[pIdx * 3 + 2] = Math.sin(theta) * r;
+      pColors[pIdx * 3] = 0.98;
+      pColors[pIdx * 3 + 1] = 0.98;
+      pColors[pIdx * 3 + 2] = 1.0;
       vels.push({
-        vx: (0.16 * decay + (Math.random() - 0.5) * 0.03) * 0.007,
-        vz: (-0.10 * decay + (Math.random() - 0.5) * 0.03) * 0.007,
-        bobFreq: 1.2 + Math.random() * 2.2,
-        bobAmp: 0.001 + Math.random() * 0.0025,
+        vx: 0.0004,
+        vz: -0.0004,
+        baseY: y,
+        bobFreq: 1.5,
+        bobAmp: 0.001,
       });
+      pIdx++;
     }
+
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
     pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
     particleVelocitiesRef.current = vels;
 
     const pMat = new THREE.PointsMaterial({
-      size: 0.065,
+      size: 0.072,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.88,
       vertexColors: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -1063,12 +1384,9 @@ export default function DepthSlicePage() {
     const SLIDE_FAR_Z = 1.25;
     const SLIDE_LIFT_Y = 0.28;
 
-    // vExaggeration: scale BLOCK_HEIGHT by exaggeration factor relative to 150x baseline
-    const vScale = colorbarState.vExaggeration / 150;
-
     waterColumn.forEach((layer, idx) => {
       const ratio = layer.depth / maxDepth;
-      const y = (BLOCK_HEIGHT * vScale) / 2 - ratio * (BLOCK_HEIGHT * vScale);
+      const y = effHeight / 2 - ratio * effHeight;
       const val =
         activeVariable === 'salinity'
           ? layer.so
@@ -1077,12 +1395,18 @@ export default function DepthSlicePage() {
           : activeVariable === 'chlorophyll'
           ? layer.chlorophyll
           : layer.thetao;
-      const [lr, lg, lb] =
-        _cbMode === 'log' && activeVariable === 'chlorophyll'
-          ? getLogColor(val, _cbMin, _cbMax, _cbMap)
-          : getLinearColor(val, _cbMin, _cbMax, _cbMap);
-      const color = new THREE.Color(lr / 255, lg / 255, lb / 255);
+
+      // Color mapping: for chlorophyll, use pure green spectrum (more green = high chlorophyll)
+      let color: THREE.Color;
+      if (activeVariable === 'chlorophyll') {
+        color = getLayerColor(val, 'chlorophyll');
+      } else {
+        const [lr, lg, lb] = getLinearColor(val, _cbMin, _cbMax, _cbMap);
+        color = new THREE.Color(lr / 255, lg / 255, lb / 255);
+      }
+
       const isHighlight = selectedIndex === idx;
+      const chlGlow = activeVariable === 'chlorophyll' ? Math.min(0.45, (val / 1.5) * 0.35) : 0;
 
       const grp = new THREE.Group();
       grp.position.set(isHighlight ? SLIDE_FAR_X : 0, y + (isHighlight ? SLIDE_LIFT_Y : 0), isHighlight ? SLIDE_FAR_Z : 0);
@@ -1097,7 +1421,7 @@ export default function DepthSlicePage() {
       const slabMat = new THREE.MeshPhysicalMaterial({
         color,
         emissive: color,
-        emissiveIntensity: isHighlight ? 0.42 : 0.08,
+        emissiveIntensity: isHighlight ? 0.48 : 0.08 + chlGlow,
         transmission: 0.78,
         transparent: true,
         opacity: isHighlight ? 0.94 : 0.22,
@@ -1131,7 +1455,7 @@ export default function DepthSlicePage() {
       const sliceWaveMat = new THREE.MeshPhysicalMaterial({
         color,
         emissive: color,
-        emissiveIntensity: isHighlight ? 0.68 : 0.25,
+        emissiveIntensity: isHighlight ? 0.68 : 0.25 + chlGlow,
         roughness: 0.08,
         metalness: 0.08,
         transmission: 0.65,
@@ -1165,15 +1489,16 @@ export default function DepthSlicePage() {
         grp.add(edges);
       }
 
-      // D. Current Velocity 3D Arrow
-      const arrowLength = Math.max(0.35, Math.min(1.3, layer.current_speed * 5.2));
+      // D. Current Velocity 3D Arrow (Exclusively on Selected / Extracted Slice)
+      const arrowLength = Math.max(0.38, Math.min(1.35, layer.current_speed * 5.4));
       const angle = Math.atan2(layer.vo, layer.uo);
       const arrowGrp = new THREE.Group();
       arrowGrp.rotation.y = -angle;
       arrowGrp.position.y = sliceThickness / 2 + 0.04;
+      arrowGrp.visible = isHighlight;
 
       const shaft = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.025, 0.025, arrowLength, 8),
+        new THREE.CylinderGeometry(0.026, 0.026, arrowLength, 8),
         new THREE.MeshBasicMaterial({ color: 0x00ffcc })
       );
       shaft.position.set(arrowLength / 2, 0, 0);
@@ -1187,12 +1512,57 @@ export default function DepthSlicePage() {
       cone.position.set(arrowLength, 0, 0);
       cone.rotation.z = -Math.PI / 2;
       arrowGrp.add(cone);
+
       grp.add(arrowGrp);
+
+      // E. Slice-Level Compass Reticle (Only on Selected / Extracted Slice)
+      const reticleGrp = new THREE.Group();
+      reticleGrp.position.y = sliceThickness / 2 + 0.015;
+      reticleGrp.visible = isHighlight;
+
+      // True North Indicator Line (points along -Z)
+      const nLineGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, -0.85),
+      ]);
+      const nLineMat = new THREE.LineBasicMaterial({ color: 0xff2a5f, linewidth: 2, transparent: true, opacity: 0.9 });
+      const nLine = new THREE.Line(nLineGeo, nLineMat);
+      reticleGrp.add(nLine);
+
+      // True North Arrowhead on slice
+      const nHeadGeo = new THREE.ConeGeometry(0.05, 0.12, 6);
+      const nHeadMat = new THREE.MeshBasicMaterial({ color: 0xff2a5f });
+      const nHead = new THREE.Mesh(nHeadGeo, nHeadMat);
+      nHead.position.set(0, 0, -0.85);
+      nHead.rotation.x = -Math.PI / 2;
+      reticleGrp.add(nHead);
+
+      // East, South, West axis cross lines
+      const crossGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-0.75, 0, 0), // West
+        new THREE.Vector3(0.75, 0, 0),  // East
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, 0.75),  // South
+      ]);
+      const crossMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.35 });
+      const crossLines = new THREE.LineSegments(crossGeo, crossMat);
+      reticleGrp.add(crossLines);
+
+      // Compass Ring
+      const ringGeo2 = new THREE.RingGeometry(0.74, 0.76, 32);
+      const ringMat2 = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+      const ringMesh2 = new THREE.Mesh(ringGeo2, ringMat2);
+      ringMesh2.rotation.x = -Math.PI / 2;
+      reticleGrp.add(ringMesh2);
+
+      grp.add(reticleGrp);
 
       layerGroupsRef.current.push({
         grp,
         sliceWaveMesh,
         slabMat,
+        arrowGrp,
+        reticleGrp,
         idx,
         baseY: y,
         curX: isHighlight ? SLIDE_FAR_X : 0,
@@ -1231,15 +1601,18 @@ export default function DepthSlicePage() {
       extractionSocketRef.current = socket;
     }
 
-    // Seabed base
-    const baseGeo =
-      geometryType === 'cylinder'
-        ? new THREE.CircleGeometry(BLOCK_RADIUS + 0.08, 48)
-        : new THREE.PlaneGeometry(BLOCK_WIDTH + 0.15, BLOCK_WIDTH + 0.15);
-    const baseMat = new THREE.MeshStandardMaterial({ color: 0x001428, roughness: 0.92, metalness: 0.2 });
+    // Seabed base with High-Precision Holographic Nautical Compass Rose
+    const baseRadius = geometryType === 'cylinder' ? BLOCK_RADIUS + 0.35 : (BLOCK_WIDTH / 2) + 0.35;
+    const baseGeo = new THREE.CircleGeometry(baseRadius, 64);
+    const baseMat = new THREE.MeshBasicMaterial({
+      map: createCompassRoseTexture(),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95,
+    });
     const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-    baseMesh.position.set(0, -BLOCK_HEIGHT / 2 - 0.02, 0);
-    baseMesh.rotation.x = Math.PI / 2;
+    baseMesh.position.set(0, -effHeight / 2 - 0.04, 0);
+    baseMesh.rotation.x = -Math.PI / 2;
     waterGroup.add(baseMesh);
 
     // ── 20°C Thermocline Isosurface Mesh (Phase 4) ──
@@ -1308,6 +1681,13 @@ export default function DepthSlicePage() {
       item.targetZ = isHighlight ? SLIDE_FAR_Z : 0;
       item.targetLift = isHighlight ? SLIDE_LIFT_Y : 0;
       item.targetScale = isHighlight ? 1.08 : 1.0;
+
+      if (item.arrowGrp) {
+        item.arrowGrp.visible = isHighlight;
+      }
+      if (item.reticleGrp) {
+        item.reticleGrp.visible = isHighlight;
+      }
 
       if (item.sliceWaveMesh) {
         (item.sliceWaveMesh.material as THREE.MeshPhysicalMaterial).emissiveIntensity = isHighlight ? 0.68 : 0.25;
@@ -1397,6 +1777,128 @@ export default function DepthSlicePage() {
     return { title, valStr, gradCss, pct, ticks, hexCol };
   }, [activeLayer, activeVariable, tempUnit, velocityUnit, colorbarState]);
 
+  // ── Block render if coordinate is on terrestrial land surface ──
+  if (bathymetryInfo.isLand) {
+    return (
+      <div className="min-h-screen w-full bg-[#0d0d11] text-white flex flex-col font-sans select-none relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Minimal Header */}
+        <header className="h-16 border-b border-white/[0.08] px-6 flex items-center justify-between z-10 shrink-0 bg-[#060608]/40 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                sessionStorage.setItem('leher_ops_returned_from_subscreen', 'true');
+                if (window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  window.location.href = '/operations';
+                }
+              }}
+              className="p-2 rounded-xl bg-[#141418] hover:bg-[#202028] border border-white/10 text-neutral-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+            >
+              <ArrowLeft className="w-4 h-4 text-cyan-400" />
+              <span>Back</span>
+            </button>
+            <a href="/" className="flex items-center gap-2 text-white font-bold text-sm">
+              <img src="/logo.png" alt="Leher Logo" className="h-6 w-auto" />
+              <span>Leher • 3D Volumetric Depth Slice</span>
+            </a>
+          </div>
+          <a
+            href="/operations"
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-mono text-white transition-all"
+          >
+            Open Operations
+          </a>
+        </header>
+
+        {/* Main Content Card */}
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-8 z-10">
+          <div className="max-w-xl w-full bg-[#131318]/90 border border-amber-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 backdrop-blur-xl text-center">
+            <div className="flex flex-col items-center space-y-3">
+              <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-amber-400 shadow-inner">
+                <MapPinOff className="w-10 h-10" />
+              </div>
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                Terrestrial Land Surface Detected
+              </span>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                3D Ocean Depth Slice Unavailable
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-md">
+                The requested coordinate <span className="text-white font-mono font-bold">({lat >= 0 ? `${lat.toFixed(3)}°N` : `${Math.abs(lat).toFixed(3)}°S`}, {lon >= 0 ? `${lon.toFixed(3)}°E` : `${Math.abs(lon).toFixed(3)}°W`})</span> is located on land ({bathymetryInfo.description}). Subsurface ocean water column and 3D volumetric slices are only applicable to marine waters.
+              </p>
+            </div>
+
+            {/* Quick Explore Recommended Ocean Coordinates */}
+            <div className="bg-[#181820] border border-white/10 rounded-xl p-4 text-left space-y-2.5">
+              <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wide">
+                Try Verified Ocean Bathymetric Coordinates:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = '/depth-slice?lat=14.5&lon=73.2&depth=150'; }}
+                  className="p-2.5 rounded-lg bg-[#101014] hover:bg-[#20202c] border border-white/10 hover:border-cyan-400 text-left transition-all cursor-pointer group"
+                >
+                  <div className="text-[10px] font-mono text-cyan-300 font-bold group-hover:text-cyan-200">
+                    Continental Slope
+                  </div>
+                  <div className="text-xs text-white font-mono mt-0.5">14.5°N, 73.2°E</div>
+                  <div className="text-[10px] text-neutral-400 font-mono">Seafloor: ~460m</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = '/depth-slice?lat=21.0&lon=72.3&depth=30'; }}
+                  className="p-2.5 rounded-lg bg-[#101014] hover:bg-[#20202c] border border-white/10 hover:border-amber-400 text-left transition-all cursor-pointer group"
+                >
+                  <div className="text-[10px] font-mono text-amber-300 font-bold group-hover:text-amber-200">
+                    Continental Shelf
+                  </div>
+                  <div className="text-xs text-white font-mono mt-0.5">21.0°N, 72.3°E</div>
+                  <div className="text-[10px] text-neutral-400 font-mono">Seafloor: ~35m</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = '/depth-slice?lat=15.0&lon=68.0&depth=500'; }}
+                  className="p-2.5 rounded-lg bg-[#101014] hover:bg-[#20202c] border border-white/10 hover:border-emerald-400 text-left transition-all cursor-pointer group"
+                >
+                  <div className="text-[10px] font-mono text-emerald-300 font-bold group-hover:text-emerald-200">
+                    Deep Basin
+                  </div>
+                  <div className="text-xs text-white font-mono mt-0.5">15.0°N, 68.0°E</div>
+                  <div className="text-[10px] text-neutral-400 font-mono">Seafloor: ~3400m</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Navigation Actions */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => { window.location.href = `/operations?lat=14.5&lon=73.2&depth=150`; }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-xs transition-all cursor-pointer shadow-md"
+              >
+                Go to Ocean Operations
+              </button>
+              <button
+                type="button"
+                onClick={() => { window.location.href = '/'; }}
+                className="py-2.5 px-4 rounded-xl bg-[#1a1a22] hover:bg-[#252532] border border-white/10 text-white font-semibold text-xs transition-all cursor-pointer"
+              >
+                Landing Page
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-full bg-[#141416] text-white flex flex-col overflow-hidden font-sans select-none">
       {/* ── TOP NAVIGATION BAR (Exact Main Repo Layout) ── */}
@@ -1441,9 +1943,16 @@ export default function DepthSlicePage() {
             <div>
               <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
                 <span>3D Volumetric Depth Slice</span>
+                <DataProvenanceBadge provenance={provenanceInfo} compact className="hidden sm:inline-block" />
               </div>
-              <div className="text-[11px] text-[#888888] font-mono hidden md:block">
-                {basePrediction.location.regionName} ({lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`}, {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}) @ {selectedDepth}m
+              <div className="text-[11px] text-[#888888] font-mono hidden md:flex items-center gap-1.5">
+                <span>{basePrediction.location.regionName} ({lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`}, {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}) @ {selectedDepth}m</span>
+                <span className="text-cyan-400 font-medium">• Seafloor: ~{bathymetryInfo.seafloorDepth}m ({bathymetryInfo.zone})</span>
+                {bathymetryInfo.isContinentalShelf && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                    SHELF CAPPED
+                  </span>
+                )}
               </div>
             </div>
           </a>
@@ -1518,7 +2027,7 @@ export default function DepthSlicePage() {
               </div>
               <h3 className="text-sm font-bold text-white mt-0.5 truncate">Depth &amp; Variable Telemetry</h3>
               <div className="text-[10px] font-mono text-[#888888] mt-0.5">
-                Level: <span className="text-cyan-400 font-bold">{selectedDepth}m</span> • {getZoneLabel(selectedDepth)}
+                Level: <span className="text-cyan-400 font-bold">{selectedDepth}m</span> • {getZoneLabel(selectedDepth, bathymetryInfo.seafloorDepth)}
               </div>
             </div>
 
@@ -1538,7 +2047,25 @@ export default function DepthSlicePage() {
             <div className="bg-[#121215] border border-[#222222] rounded-xl p-3 space-y-2">
               <div className="flex items-center justify-between text-[10px] font-mono">
                 <span className="text-[#888888] uppercase tracking-wide font-bold">DEPTH CONTROLLER</span>
-                <span className="text-white font-bold text-xs">{selectedDepth === 0 ? '0m (Surface)' : `${selectedDepth}m`}</span>
+                <span className="text-white font-bold text-xs flex items-center gap-1.5">
+                  <span>{selectedDepth === 0 ? '0m (Surface)' : `${selectedDepth}m`}</span>
+                  {bathymetryInfo.isContinentalShelf && (
+                    <span className="text-[9px] text-amber-400 font-mono border border-amber-500/30 px-1 py-0.5 rounded bg-amber-500/10">
+                      SHELF CAPPED
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              {/* Seafloor Bathymetry Subtitle */}
+              <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 pt-0.5">
+                <span className="flex items-center gap-1 text-cyan-400">
+                  <Waves className="w-3 h-3" />
+                  <span>Seafloor Bathymetry:</span>
+                </span>
+                <span className="font-semibold text-white">
+                  ~{bathymetryInfo.seafloorDepth}m ({bathymetryInfo.zone})
+                </span>
               </div>
 
               <input
@@ -1556,22 +2083,36 @@ export default function DepthSlicePage() {
 
               {/* Tick Presets */}
               <div className="grid grid-cols-6 gap-1 pt-1">
-                {[0, 50, 150, 500, 1000, 2000].map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => setSelectedDepth(d)}
-                    className={cn(
-                      "py-1 rounded text-[10px] font-mono border transition-all cursor-pointer text-center truncate",
-                      selectedDepth === d
-                        ? "bg-white text-black font-bold border-white"
-                        : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white"
-                    )}
-                  >
-                    {d === 0 ? "0m" : `${d}m`}
-                  </button>
-                ))}
+                {[0, 50, 150, 500, 1000, 2000].map((d) => {
+                  const isExceedingSeafloor = d > bathymetryInfo.seafloorDepth;
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      disabled={isExceedingSeafloor}
+                      onClick={() => !isExceedingSeafloor && setSelectedDepth(Math.min(d, bathymetryInfo.maxSafeDepth))}
+                      title={isExceedingSeafloor ? `Exceeds seafloor depth (~${bathymetryInfo.seafloorDepth}m at this location)` : undefined}
+                      className={cn(
+                        "py-1 rounded text-[10px] font-mono border transition-all text-center truncate",
+                        isExceedingSeafloor
+                          ? "bg-[#101012] border-[#1c1c1f] text-zinc-600 opacity-40 cursor-not-allowed line-through"
+                          : selectedDepth === d
+                          ? "bg-white text-black font-bold border-white cursor-pointer"
+                          : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white cursor-pointer"
+                      )}
+                    >
+                      {d === 0 ? "0m" : `${d}m`}
+                    </button>
+                  );
+                })}
               </div>
+
+              {bathymetryInfo.isContinentalShelf && (
+                <div className="text-[10px] font-mono text-amber-300/80 bg-amber-950/20 border border-amber-500/20 rounded p-1.5 flex items-center gap-1.5 mt-1">
+                  <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                  <span>Sub-seabed depths ({'>'}{bathymetryInfo.seafloorDepth}m) locked to local bathymetry.</span>
+                </div>
+              )}
             </div>
 
             {/* Changeable Units & Shape Toggles */}
@@ -1831,6 +2372,74 @@ export default function DepthSlicePage() {
         <div ref={mountRef} className="flex-1 h-full relative overflow-hidden bg-gradient-to-b from-[#26262b] via-[#1e1e22] to-[#18181b]">
           <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
+          {/* Tactical Navigational Compass HUD */}
+          <div className="absolute top-3 left-3 z-10 bg-[#0d0f17]/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-3 shadow-2xl flex items-center gap-3.5 font-mono pointer-events-auto select-none">
+            {/* Interactive Rotating Compass Dial */}
+            <div className="relative w-14 h-14 rounded-full bg-[#070b12] border border-cyan-500/40 flex items-center justify-center shadow-inner group shrink-0">
+              {/* Outer dial rotating with camera azimuth */}
+              <div 
+                className="absolute inset-0 rounded-full flex items-center justify-center transition-transform duration-75 ease-out"
+                style={{ transform: `rotate(${-cameraHeading}deg)` }}
+              >
+                {/* Cardinal N */}
+                <span className="absolute top-1 text-[9px] font-extrabold text-rose-400">N</span>
+                {/* Cardinal E */}
+                <span className="absolute right-1.5 text-[9px] font-bold text-cyan-300">E</span>
+                {/* Cardinal S */}
+                <span className="absolute bottom-1 text-[9px] font-bold text-neutral-400">S</span>
+                {/* Cardinal W */}
+                <span className="absolute left-1.5 text-[9px] font-bold text-neutral-400">W</span>
+                {/* Subtle North pointer pip */}
+                <div className="absolute top-3.5 w-1 h-1 rounded-full bg-rose-500 shadow-[0_0_6px_#f43f5e]" />
+              </div>
+
+              {/* Active Layer Current Flow Vector Needle */}
+              <div 
+                className="absolute w-full h-full flex items-center justify-center transition-transform duration-150 ease-out pointer-events-none"
+                style={{ transform: `rotate(${activeLayer.dirDeg - cameraHeading}deg)` }}
+                title={`Current flow heading: ${Math.round(activeLayer.dirDeg)}° (${activeLayer.dirStr})`}
+              >
+                <div className="h-6 w-0.5 bg-gradient-to-t from-transparent via-cyan-400 to-white rounded-full shadow-[0_0_8px_#00ffcc] relative -top-3">
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rotate-45 bg-white shadow-[0_0_6px_#00ffcc]" />
+                </div>
+              </div>
+
+              {/* Center Pivot */}
+              <div className="w-2 h-2 rounded-full bg-cyan-400 border border-black shadow" />
+            </div>
+
+            {/* Readout & Alignment Controls */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Compass className="w-3 h-3 text-cyan-400" />
+                  FLOW VECTOR TELEMETRY
+                </span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 font-bold">
+                  {selectedDepth}m
+                </span>
+              </div>
+              <div className="text-xs font-bold text-white flex items-center gap-2">
+                <span className="text-cyan-300">{Math.round(activeLayer.dirDeg)}° {activeLayer.dirStr}</span>
+                <span className="text-neutral-500">•</span>
+                <span>{formatVelocity(activeLayer.current_speed)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] text-neutral-400">
+                <span>uo: <strong className="text-white">{activeLayer.uo >= 0 ? '+' : ''}{activeLayer.uo.toFixed(2)}</strong></span>
+                <span>vo: <strong className="text-white">{activeLayer.vo >= 0 ? '+' : ''}{activeLayer.vo.toFixed(2)}</strong></span>
+                <button
+                  type="button"
+                  onClick={handleAlignNorth}
+                  className="ml-1 px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 border border-white/20 text-[9px] text-neutral-200 hover:text-white transition-all cursor-pointer font-bold flex items-center gap-1 active:scale-95"
+                  title="Snap camera view to True North"
+                >
+                  <span className="text-rose-400 font-extrabold">N</span>
+                  <span>Align</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Left Expand Trigger (when left panel is minimized) */}
           {isLeftPanelMinimized && (
             <button
@@ -1950,32 +2559,38 @@ export default function DepthSlicePage() {
                     </div>
                   </div>
 
-                  {/* Coordinates & Depth Selected */}
-                  <div className="bg-[#18181c] border border-[#262626] rounded-xl p-2.5 grid grid-cols-3 gap-2 text-center font-mono">
+                  {/* Coordinates, Depth & Seafloor Selected */}
+                  <div className="bg-[#18181c] border border-[#262626] rounded-xl p-2.5 grid grid-cols-4 gap-1 text-center font-mono">
                     <div className="border-r border-[#262626] pr-1">
                       <div className="text-[9px] text-[#666666] uppercase">Latitude</div>
-                      <div className="text-xs font-bold text-white">
-                        {lat >= 0 ? `${lat.toFixed(3)}°N` : `${Math.abs(lat).toFixed(3)}°S`}
+                      <div className="text-xs font-bold text-white truncate">
+                        {lat >= 0 ? `${lat.toFixed(2)}°N` : `${Math.abs(lat).toFixed(2)}°S`}
                       </div>
                     </div>
                     <div className="border-r border-[#262626] pr-1">
                       <div className="text-[9px] text-[#666666] uppercase">Longitude</div>
-                      <div className="text-xs font-bold text-white">
-                        {lon >= 0 ? `${lon.toFixed(3)}°E` : `${Math.abs(lon).toFixed(3)}°W`}
+                      <div className="text-xs font-bold text-white truncate">
+                        {lon >= 0 ? `${lon.toFixed(2)}°E` : `${Math.abs(lon).toFixed(2)}°W`}
                       </div>
                     </div>
-                    <div>
+                    <div className="border-r border-[#262626] pr-1">
                       <div className="text-[9px] text-[#666666] uppercase">Depth</div>
                       <div className="text-xs font-bold text-cyan-400">
                         {selectedDepth}m
                       </div>
                     </div>
+                    <div>
+                      <div className="text-[9px] text-[#666666] uppercase">Seafloor</div>
+                      <div className="text-xs font-bold text-amber-300">
+                        ~{bathymetryInfo.seafloorDepth}m
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Basin / Region */}
+                  {/* Basin / Region & Seafloor Zone */}
                   <div className="flex items-center justify-between text-[10px] font-mono px-1">
-                    <span className="text-[#888888] uppercase tracking-wide">BASIN / REGION</span>
-                    <span className="text-white font-bold">{activeSensor.basin}</span>
+                    <span className="text-[#888888] uppercase tracking-wide">BASIN / ZONE</span>
+                    <span className="text-white font-bold truncate max-w-[200px]">{activeSensor.basin} • {bathymetryInfo.zone}</span>
                   </div>
 
                   {/* Inspect Profile Button */}
@@ -1988,6 +2603,43 @@ export default function DepthSlicePage() {
                     <span>Inspect Profile of the Area</span>
                     <ArrowUpRight className="w-3.5 h-3.5 text-black" />
                   </button>
+                </div>
+
+                {/* DATA PROVENANCE & SOURCE TELEMETRY */}
+                <div className="p-3.5 rounded-2xl bg-[#121215] border border-[#222222] space-y-2.5 shadow-inner font-mono text-[10px]">
+                  <div className="flex items-center justify-between border-b border-[#1e1e1e] pb-2">
+                    <span className="text-[10px] text-neutral-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                      <Radio className="w-3.5 h-3.5 text-cyan-400" />
+                      DATA LINEAGE & PROVENANCE
+                    </span>
+                    <DataProvenanceBadge provenance={provenanceInfo} compact />
+                  </div>
+
+                  <div className="space-y-1.5 divide-y divide-[#1a1a1f]/60 text-[10px]">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[#888888]">Primary Dataset</span>
+                      <span className="font-bold text-white truncate max-w-[150px]" title={provenanceInfo.details.dataset}>
+                        {provenanceInfo.details.dataset}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[#888888]">Nearest Grid Node</span>
+                      <span className="font-bold text-cyan-300">{provenanceInfo.details.nearestGridPoint}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[#888888]">Snapping Distance</span>
+                      <span className={provenanceInfo.isSparseOrOffset ? "font-bold text-rose-400" : "font-bold text-emerald-400"}>
+                        {provenanceInfo.details.snappingDistance}
+                      </span>
+                    </div>
+                  </div>
+
+                  {provenanceInfo.isSparseOrOffset && (
+                    <div className="p-2 bg-amber-950/30 border border-amber-500/30 rounded-lg text-[9px] text-amber-300 flex items-start gap-1">
+                      <AlertTriangle className="w-3 h-3 shrink-0 text-amber-400 mt-0.5" />
+                      <span>Observation node is {provenanceInfo.gridOffsetKm} km from pin. Sub-grid variance expected.</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. RAKSHAK INTELLIGENCE PREDICTIONS (ML Model Output) */}
@@ -2003,6 +2655,14 @@ export default function DepthSlicePage() {
                   </div>
 
                   <div className="space-y-1.5 divide-y divide-[#1a1a1f]/60">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[#888888]">Operating Depth</span>
+                      <span className="font-bold text-cyan-300">{selectedDepth}m (Seafloor: ~{bathymetryInfo.seafloorDepth}m)</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[#888888]">Benthic Classification</span>
+                      <span className="font-bold text-white">{bathymetryInfo.zone}</span>
+                    </div>
                     <div className="flex justify-between items-center py-1">
                       <span className="text-[#888888]">Coastal Proximity</span>
                       <span className="font-bold text-white">{mlPredictions.coastalProximity}</span>
@@ -2148,16 +2808,16 @@ export default function DepthSlicePage() {
 
                     {/* Depth markers */}
                     <text x="34" y="24" fill="#666666" fontSize="9" textAnchor="end">0m</text>
-                    <text x="34" y="65" fill="#666666" fontSize="9" textAnchor="end">200m</text>
-                    <text x="34" y="105" fill="#666666" fontSize="9" textAnchor="end">500m</text>
-                    <text x="34" y="145" fill="#666666" fontSize="9" textAnchor="end">1000m</text>
-                    <text x="34" y="185" fill="#666666" fontSize="9" textAnchor="end">2000m</text>
+                    <text x="34" y="65" fill="#666666" fontSize="9" textAnchor="end">{Math.round(bathymetryInfo.maxSafeDepth * 0.25)}m</text>
+                    <text x="34" y="105" fill="#666666" fontSize="9" textAnchor="end">{Math.round(bathymetryInfo.maxSafeDepth * 0.5)}m</text>
+                    <text x="34" y="145" fill="#666666" fontSize="9" textAnchor="end">{Math.round(bathymetryInfo.maxSafeDepth * 0.75)}m</text>
+                    <text x="34" y="185" fill="#666666" fontSize="9" textAnchor="end">{bathymetryInfo.maxSafeDepth}m</text>
 
                     {/* Temp Curve */}
                     <path
                       d={waterColumn
                         .map((l, i) => {
-                          const maxD = 2000;
+                          const maxD = Math.max(bathymetryInfo.maxSafeDepth, 10);
                           const x = 40 + (Math.max(0, Math.min(32, l.thetao)) / 32) * 270;
                           const y = 20 + Math.pow(l.depth / maxD, 0.6) * 165;
                           return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
@@ -2172,7 +2832,7 @@ export default function DepthSlicePage() {
                     <path
                       d={waterColumn
                         .map((l, i) => {
-                          const maxD = 2000;
+                          const maxD = Math.max(bathymetryInfo.maxSafeDepth, 10);
                           const x = 40 + ((Math.max(33, Math.min(37, l.so)) - 33) / 4) * 270;
                           const y = 20 + Math.pow(l.depth / maxD, 0.6) * 165;
                           return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;

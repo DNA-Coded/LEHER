@@ -54,3 +54,74 @@ export function vector3ToLatLon(v: THREE.Vector3, radius?: number): { lat: numbe
   
   return { lat, lon };
 }
+
+export const HIGHLIGHTED_BOUNDS = {
+  minLat: -20.0,
+  maxLat: 25.0,
+  minLon: 53.0,
+  maxLon: 99.0,
+  label: "20°S – 25°N, 53°E – 99°E",
+  latRangeStr: "20°S to 25°N (-20° to +25°)",
+  lonRangeStr: "53°E to 99°E (53° to 99°)",
+};
+
+export interface CoordinateValidationResult {
+  isValid: boolean;
+  latError?: string;
+  lonError?: string;
+  message?: string;
+}
+
+/**
+ * Check if the given latitude and longitude coordinates fall within
+ * the highlighted operational Indian Ocean sector.
+ */
+export function isCoordinateInHighlightedArea(lat: number, lon: number): boolean {
+  if (typeof lat !== 'number' || typeof lon !== 'number' || isNaN(lat) || isNaN(lon)) {
+    return false;
+  }
+  return (
+    lat >= HIGHLIGHTED_BOUNDS.minLat &&
+    lat <= HIGHLIGHTED_BOUNDS.maxLat &&
+    lon >= HIGHLIGHTED_BOUNDS.minLon &&
+    lon <= HIGHLIGHTED_BOUNDS.maxLon
+  );
+}
+
+/**
+ * Validates coordinate inputs against the highlighted bounding area and returns
+ * descriptive error feedback if coordinates are invalid or outside the operational sector.
+ */
+export function validateCoordinates(lat: number, lon: number): CoordinateValidationResult {
+  if (isCoordinateInHighlightedArea(lat, lon)) {
+    return { isValid: true };
+  }
+
+  let latError: string | undefined;
+  let lonError: string | undefined;
+
+  if (typeof lat !== 'number' || isNaN(lat)) {
+    latError = 'Latitude value is required';
+  } else if (lat < HIGHLIGHTED_BOUNDS.minLat || lat > HIGHLIGHTED_BOUNDS.maxLat) {
+    const latFormatted = lat >= 0 ? `${lat.toFixed(2)}°N` : `${Math.abs(lat).toFixed(2)}°S`;
+    latError = `Latitude ${latFormatted} is outside highlighted sector (${HIGHLIGHTED_BOUNDS.latRangeStr})`;
+  }
+
+  if (typeof lon !== 'number' || isNaN(lon)) {
+    lonError = 'Longitude value is required';
+  } else if (lon < HIGHLIGHTED_BOUNDS.minLon || lon > HIGHLIGHTED_BOUNDS.maxLon) {
+    const lonFormatted = lon >= 0 ? `${lon.toFixed(2)}°E` : `${Math.abs(lon).toFixed(2)}°W`;
+    lonError = `Longitude ${lonFormatted} is outside highlighted sector (${HIGHLIGHTED_BOUNDS.lonRangeStr})`;
+  }
+
+  const parts = [latError, lonError].filter(Boolean);
+  const message = parts.join('. ');
+
+  return {
+    isValid: false,
+    latError,
+    lonError,
+    message,
+  };
+}
+
