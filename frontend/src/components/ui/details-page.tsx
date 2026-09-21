@@ -280,7 +280,37 @@ export default function DetailsPage() {
           </button>
 
           <button
-            onClick={() => downloadMissionDossierPdf({ lat: params.lat, lon: params.lon, depth: params.depth })}
+            onClick={() => downloadMissionDossierPdf({ 
+              lat: params.lat, 
+              lon: params.lon, 
+              depth: params.depth,
+              activeReadings: {
+                temperature: predictionResult.variables.thetao?.value,
+                salinity: predictionResult.variables.so?.value,
+                currentSpeedMs: predictionResult.summary.currentSpeedMs,
+                currentDirectionDeg: predictionResult.summary.currentDirectionDeg,
+                currentDirectionCompass: predictionResult.summary.currentDirectionCompass,
+                uo: predictionResult.variables.uo?.value,
+                vo: predictionResult.variables.vo?.value,
+                thermalContrast: predictionResult.summary.thermalContrastStr,
+                chlorophyll: predictionResult.variables.chl?.value,
+                density: seawaterDensity,
+                soundSpeed: soundSpeed.toFixed(1),
+                bottomT: predictionResult.variables.bottomT?.value,
+                zos: predictionResult.variables.zos?.value,
+                mlotst: predictionResult.variables.mlotst?.value,
+                coastalProximity: (predictionResult.summary.coastalProximityKm / 100).toFixed(2),
+                cycloneProbStr: cycloneData.probabilityStr,
+                predictedSurgeStr: cycloneData.surgeHeightM ? `${cycloneData.surgeHeightM.toFixed(2)} meters` : '0.08 meters',
+                fishingZoneStatus: safeZoneData.category,
+                ecosystemScore: ecosystemData.overallScore,
+                ecosystemStatus: ecosystemData.overallStatus,
+                coralBleaching: `${ecosystemData.coralBleachingRisk}/100`,
+                algalBloomRisk: `${ecosystemData.algalBloomRisk}/100`,
+                fishStress: `${ecosystemData.fishStressIndex}/100`,
+                hypoxiaRisk: `${ecosystemData.hypoxiaRisk}/100`,
+              }
+            })}
             className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer"
             title="Export Official INCOIS Maritime Tactical Dossier (PDF)"
           >
