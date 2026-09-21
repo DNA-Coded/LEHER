@@ -140,6 +140,29 @@ export default function OperationsPage() {
     }
   }, []);
 
+  // Listen for coordinates from Earth iframe inspection
+  useEffect(() => {
+    const handleEarthMessage = (e: MessageEvent) => {
+      if (!e.data || typeof e.data !== "object") return;
+      if (e.data.type === "earth:location") {
+        const lat = typeof e.data.latitude === "number" ? e.data.latitude : 0;
+        const lon = typeof e.data.longitude === "number" ? e.data.longitude : 0;
+        const roundedLat = parseFloat(lat.toFixed(4));
+        const roundedLon = parseFloat(lon.toFixed(4));
+        setInputLat(roundedLat);
+        setInputLon(roundedLon);
+        const info = getBathymetricSeafloorDepth(roundedLat, roundedLon);
+        if (info.isLand) {
+          setWorkbenchDepth(0);
+        } else if (workbenchDepth > info.maxSafeDepth) {
+          setWorkbenchDepth(info.maxSafeDepth);
+        }
+      }
+    };
+    window.addEventListener("message", handleEarthMessage);
+    return () => window.removeEventListener("message", handleEarthMessage);
+  }, [workbenchDepth]);
+
   // Update earth location when inputs change
   useEffect(() => {
     sendToEarthIframe({
@@ -219,13 +242,14 @@ export default function OperationsPage() {
     setIsPredicting(true);
     sessionStorage.setItem('leher_ops_returned_from_subscreen', 'true');
     sessionStorage.setItem('leher_ops_subscreen_visited', 'true');
+    const safeDepth = Math.min(workbenchDepth, bathymetryInfo.maxSafeDepth);
     const sensorParam = selectedSensorId ? `&sensor=${encodeURIComponent(selectedSensorId)}` : '';
-    const targetUrl = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${workbenchDepth}${sensorParam}`;
+    const targetUrl = `/depth-slice?lat=${inputLat}&lon=${inputLon}&depth=${safeDepth}${sensorParam}`;
     setTimeout(() => {
       setIsPredicting(false);
       window.location.href = targetUrl;
     }, 250);
-  }, [inputLat, inputLon, workbenchDepth, selectedSensorId, coordValidation.isValid, bathymetryInfo.isLand]);
+  }, [inputLat, inputLon, workbenchDepth, selectedSensorId, coordValidation.isValid, bathymetryInfo.isLand, bathymetryInfo.maxSafeDepth]);
 
   // Locate yourself via Geolocation
   const handleLocateMe = useCallback(() => {
@@ -726,9 +750,9 @@ export default function OperationsPage() {
               min="0"
               max={bathymetryInfo.maxSafeDepth}
               step={bathymetryInfo.maxSafeDepth <= 100 ? 5 : 10}
-              value={workbenchDepth}
+              value={Math.min(workbenchDepth, bathymetryInfo.maxSafeDepth)}
               disabled={bathymetryInfo.isLand || !coordValidation.isValid}
-              onChange={(e) => !bathymetryInfo.isLand && setWorkbenchDepth(Number(e.target.value))}
+              onChange={(e) => !bathymetryInfo.isLand && setWorkbenchDepth(Math.min(Number(e.target.value), bathymetryInfo.maxSafeDepth))}
               className={cn(
                 "w-full h-1 bg-zinc-800 rounded appearance-none",
                 bathymetryInfo.isLand ? "cursor-not-allowed opacity-40" : "accent-white cursor-pointer"
@@ -737,18 +761,18 @@ export default function OperationsPage() {
 
             <div className="grid grid-cols-6 gap-1 text-center pt-0.5">
               {[0, 50, 150, 500, 1000, 2000].map((d) => {
-                const isExceeded = bathymetryInfo.isLand || d > bathymetryInfo.seafloorDepth;
+                const isExceeded = bathymetryInfo.isLand || d > bathymetryInfo.maxSafeDepth;
                 return (
                   <button
                     key={d}
                     type="button"
-                    onClick={() => !isExceeded && setWorkbenchDepth(d)}
+                    onClick={() => !isExceeded && setWorkbenchDepth(Math.min(d, bathymetryInfo.maxSafeDepth))}
                     disabled={isExceeded}
                     title={
                       bathymetryInfo.isLand
                         ? "Depth sounding disabled on land"
                         : isExceeded
-                        ? `Exceeds local seafloor (${bathymetryInfo.seafloorDepth}m)`
+                        ? `Prohibited: Exceeds seafloor depth (~${bathymetryInfo.seafloorDepth}m / max safe: ${bathymetryInfo.maxSafeDepth}m)`
                         : `Set depth to ${d}m`
                     }
                     className={cn(
@@ -1072,9 +1096,9 @@ export default function OperationsPage() {
                   min="0"
                   max={modalBathymetryInfo.maxSafeDepth}
                   step={modalBathymetryInfo.maxSafeDepth <= 100 ? 5 : 10}
-                  value={modalDepth}
+                  value={Math.min(modalDepth, modalBathymetryInfo.maxSafeDepth)}
                   disabled={modalBathymetryInfo.isLand || !modalCoordValidation.isValid}
-                  onChange={(e) => !modalBathymetryInfo.isLand && setModalDepth(Number(e.target.value))}
+                  onChange={(e) => !modalBathymetryInfo.isLand && setModalDepth(Math.min(Number(e.target.value), modalBathymetryInfo.maxSafeDepth))}
                   className={cn(
                     "w-full h-1 bg-[#222222] rounded appearance-none",
                     modalBathymetryInfo.isLand ? "cursor-not-allowed opacity-40" : "accent-white cursor-pointer"
@@ -1083,18 +1107,18 @@ export default function OperationsPage() {
 
                 <div className="grid grid-cols-6 gap-1 text-center pt-0.5">
                   {[0, 50, 150, 500, 1000, 2000].map((d) => {
-                    const isExceeded = modalBathymetryInfo.isLand || d > modalBathymetryInfo.seafloorDepth;
+                    const isExceeded = modalBathymetryInfo.isLand || d > modalBathymetryInfo.maxSafeDepth;
                     return (
                       <button
                         key={d}
                         type="button"
-                        onClick={() => !isExceeded && setModalDepth(d)}
+                        onClick={() => !isExceeded && setModalDepth(Math.min(d, modalBathymetryInfo.maxSafeDepth))}
                         disabled={isExceeded}
                         title={
                           modalBathymetryInfo.isLand
                             ? "Depth sounding disabled on land"
                             : isExceeded
-                            ? `Exceeds local seafloor (${modalBathymetryInfo.seafloorDepth}m)`
+                            ? `Prohibited: Exceeds seafloor depth (~${modalBathymetryInfo.seafloorDepth}m / max safe: ${modalBathymetryInfo.maxSafeDepth}m)`
                             : `Set depth to ${d}m`
                         }
                         className={cn(

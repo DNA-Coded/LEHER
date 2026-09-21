@@ -63,7 +63,7 @@ function App() {
   if (route === 'depth-slice') {
     return (
       <Suspense fallback={<RouteLoadingFallback />}>
-        <DepthSlicePage />
+        <DepthSlicePage key={`${window.location.pathname}${window.location.search}`} />
       </Suspense>
     );
   }

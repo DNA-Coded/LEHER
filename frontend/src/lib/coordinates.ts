@@ -57,11 +57,11 @@ export function vector3ToLatLon(v: THREE.Vector3, radius?: number): { lat: numbe
 
 export const HIGHLIGHTED_BOUNDS = {
   minLat: -20.0,
-  maxLat: 25.0,
+  maxLat: 20.0,
   minLon: 53.0,
   maxLon: 99.0,
-  label: "20°S – 25°N, 53°E – 99°E",
-  latRangeStr: "20°S to 25°N (-20° to +25°)",
+  label: "20°S – 20°N, 53°E – 99°E",
+  latRangeStr: "20°S to 20°N (-20° to +20°)",
   lonRangeStr: "53°E to 99°E (53° to 99°)",
 };
 

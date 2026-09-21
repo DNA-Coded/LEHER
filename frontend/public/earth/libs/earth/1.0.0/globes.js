@@ -45,7 +45,7 @@ var globes = function() {
         };
     }
 
-    var CONCENTRIC_BBOX = makeDenseBBox(53, -20, 99, 25, 0.5);
+    var CONCENTRIC_BBOX = makeDenseBBox(53, -20, 99, 20, 0.5);
 
     function standardGlobe() {
         return {
@@ -199,7 +199,7 @@ var globes = function() {
                 // Regional Graticule grid within this region
                 activeGroup.append("path")
                     .attr("class", "graticule")
-                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 20]]))
                     .attr("d", path);
 
                 // Subtle sweeping tactical telemetry scan beam
@@ -225,8 +225,8 @@ var globes = function() {
                     .attr("class", "sector-hud-overlay");
 
                 var corners = [
-                    { id: "nw", coord: [53, 25], label: "NW 25°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
-                    { id: "ne", coord: [99, 25], label: "NE 25°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
+                    { id: "nw", coord: [53, 20], label: "NW 20°N 53°E", path: "M 0 16 L 0 0 L 16 0", textDx: -10, textDy: -8, anchor: "end" },
+                    { id: "ne", coord: [99, 20], label: "NE 20°N 99°E", path: "M 0 16 L 0 0 L -16 0", textDx: 10, textDy: -8, anchor: "start" },
                     { id: "se", coord: [99, -20],  label: "SE 20°S 99°E",  path: "M 0 -16 L 0 0 L -16 0", textDx: 10, textDy: 18, anchor: "start" },
                     { id: "sw", coord: [53, -20],  label: "SW 20°S 53°E",  path: "M 0 -16 L 0 0 L 16 0", textDx: -10, textDy: 18, anchor: "end" }
                 ];
@@ -277,12 +277,12 @@ var globes = function() {
         return newGlobe({
             isConcentric: true,
             isBounded: true,
-            boundsGeo: { minLon: 53, maxLon: 99, minLat: -20, maxLat: 25 },
+            boundsGeo: { minLon: 53, maxLon: 99, minLat: -20, maxLat: 20 },
             newProjection: function(view) {
                 return d3.geo.conicEquidistant()
                     .center([0, 0])
                     .rotate([-76, 0])
-                    .parallels([-20, 25])
+                    .parallels([-20, 20])
                     .precision(0.1);
             },
             bounds: function(view) {
@@ -410,13 +410,13 @@ var globes = function() {
                 // Concentric Latitude & Longitude Graticule grid within this region
                 activeGroup.append("path")
                     .attr("class", "graticule")
-                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 20]]))
                     .attr("d", path);
 
                 // Equator and major division lines
                 activeGroup.append("path")
                     .attr("class", "hemisphere")
-                    .datum(d3.geo.graticule().minorStep([0, 5]).majorStep([0, 5]).extent([[53, 4], [99, 25]]))
+                    .datum(d3.geo.graticule().minorStep([0, 5]).majorStep([0, 5]).extent([[53, 4], [99, 20]]))
                     .attr("d", path);
 
                 // Subtle sweeping tactical telemetry scan beam
@@ -596,7 +596,7 @@ var globes = function() {
 
                 activeGroup.append("path")
                     .attr("class", "graticule")
-                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 20]]))
                     .attr("d", path);
 
                 activeGroup.append("rect")
@@ -718,7 +718,7 @@ var globes = function() {
                 activeGroup.append("path")
                     .attr("class", "graticule")
                     .attr("clip-path", "url(#clip-water)")
-                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 25]]))
+                    .datum(d3.geo.graticule().step([5, 5]).extent([[53, 4], [99, 20]]))
                     .attr("d", path);
 
                 activeGroup.append("rect")

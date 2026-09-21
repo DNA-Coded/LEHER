@@ -143,7 +143,7 @@ const timeZoneMap: Record<TimeZone, { name: string; timeZone: string; offsetLabe
 };
 
 export const PROJECTION_METADATA: Record<string, string> = {
-  concentric_region: "Concentric Bounded (20°S–25°N, 53°–99°E)",
+  concentric_region: "Concentric Bounded (20°S–20°N, 53°–99°E)",
   orthographic: "3D Globe (Orthographic)",
   equirectangular: "Flat Map (Plate Carrée)",
   winkel3: "Winkel Tripel (Compromise)",
@@ -155,7 +155,7 @@ export const PROJECTION_METADATA: Record<string, string> = {
 };
 
 export const PROJECTION_LIST = [
-  { key: 'concentric_region', name: 'Concentric Bounded (20°S–25°N, 53°–99°E)', desc: 'Latitudinally & Longitudinally Bounded Focus', badge: 'BOUNDED' },
+  { key: 'concentric_region', name: 'Concentric Bounded (20°S–20°N, 53°–99°E)', desc: 'Latitudinally & Longitudinally Bounded Focus', badge: 'BOUNDED' },
   { key: 'orthographic', name: '3D Globe', desc: 'Spherical Orthographic', badge: '3D' },
   { key: 'equirectangular', name: 'Flat Map', desc: 'Plate Carrée Cylindrical', badge: 'FLAT' },
   { key: 'winkel3', name: 'Winkel Tripel', desc: 'Compromise World Map', badge: 'GLOBAL' },
@@ -922,9 +922,9 @@ export default function LeherLandingPage() {
           min="0" 
           max={bathymetryInfo.maxSafeDepth} 
           step={bathymetryInfo.maxSafeDepth <= 100 ? 5 : 10} 
-          value={workbenchDepth} 
+          value={Math.min(workbenchDepth, bathymetryInfo.maxSafeDepth)} 
           disabled={bathymetryInfo.isLand || !coordValidation.isValid}
-          onChange={(e) => !bathymetryInfo.isLand && setWorkbenchDepth(Number(e.target.value))} 
+          onChange={(e) => !bathymetryInfo.isLand && setWorkbenchDepth(Math.min(Number(e.target.value), bathymetryInfo.maxSafeDepth))} 
           className={cn(
             "w-full h-1 bg-[#222222] rounded appearance-none",
             bathymetryInfo.isLand ? "cursor-not-allowed opacity-40" : "accent-white cursor-pointer"
@@ -933,18 +933,18 @@ export default function LeherLandingPage() {
 
         <div className="grid grid-cols-6 gap-1 text-center">
           {[0, 50, 150, 500, 1000, 2000].map((d) => {
-            const isExceeded = bathymetryInfo.isLand || d > bathymetryInfo.seafloorDepth;
+            const isExceeded = bathymetryInfo.isLand || d > bathymetryInfo.maxSafeDepth;
             return (
               <button
                 key={d}
                 type="button"
-                onClick={() => !isExceeded && setWorkbenchDepth(d)}
+                onClick={() => !isExceeded && setWorkbenchDepth(Math.min(d, bathymetryInfo.maxSafeDepth))}
                 disabled={isExceeded}
                 title={
                   bathymetryInfo.isLand
                     ? "Depth sounding disabled on land"
                     : isExceeded
-                    ? `Exceeds local seafloor (${bathymetryInfo.seafloorDepth}m)`
+                    ? `Prohibited: Exceeds seafloor depth (~${bathymetryInfo.seafloorDepth}m / max safe: ${bathymetryInfo.maxSafeDepth}m)`
                     : `Set depth to ${d}m`
                 }
                 className={cn(

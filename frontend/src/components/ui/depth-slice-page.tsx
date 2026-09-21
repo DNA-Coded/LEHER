@@ -125,6 +125,18 @@ const CHLOROPHYLL_STOPS: ColorStop[] = [
   [3.500, '#66ff00'], // Peak phytoplankton intense fluorescent lime-green
 ];
 
+const OCEAN_DEPTH_STOPS: ColorStop[] = [
+  [0,    '#00d4ff'], // 0m Surface - luminous tropical cyan-blue
+  [30,   '#00b4d8'], // 30m Photic
+  [75,   '#0096c7'], // 75m Subsurface
+  [150,  '#0077b6'], // 150m Upper thermocline
+  [300,  '#023e8a'], // 300m Mid-depth - rich royal blue
+  [500,  '#031d68'], // 500m Deep mesopelagic
+  [1000, '#03045e'], // 1000m Twilight - deep midnight navy
+  [1500, '#020626'], // 1500m Bathypelagic
+  [2000, '#010314'], // 2000m Abyssal floor - dark oceanic abyss
+];
+
 function interpolateColorRamp(value: number, stops: ColorStop[]): THREE.Color {
   if (value <= stops[0][0]) return new THREE.Color(stops[0][1]);
   if (value >= stops[stops.length - 1][0]) return new THREE.Color(stops[stops.length - 1][1]);
@@ -140,7 +152,8 @@ function interpolateColorRamp(value: number, stops: ColorStop[]): THREE.Color {
   return new THREE.Color(stops[stops.length - 1][1]);
 }
 
-function getLayerColor(val: number, variable: 'temperature' | 'salinity' | 'currents' | 'chlorophyll'): THREE.Color {
+function getLayerColor(val: number, variable: 'temperature' | 'salinity' | 'currents' | 'chlorophyll' | 'depth'): THREE.Color {
+  if (variable === 'depth') return interpolateColorRamp(val, OCEAN_DEPTH_STOPS);
   if (variable === 'salinity') return interpolateColorRamp(val, SALINITY_STOPS);
   if (variable === 'currents') return interpolateColorRamp(val, CURRENT_STOPS);
   if (variable === 'chlorophyll') return interpolateColorRamp(val, CHLOROPHYLL_STOPS);
@@ -263,39 +276,173 @@ function createCompassRoseTexture(): THREE.CanvasTexture {
 
 export default function DepthSlicePage() {
   // Read lat, lon, depth, sensor from query params
-  const [queryParams] = useState(() => {
+  const [lat, setLat] = useState<number>(() => {
     const search = new URLSearchParams(window.location.search);
-    const lat = parseFloat(search.get('lat') || '15.4');
-    const lon = parseFloat(search.get('lon') || '71.2');
-    const depth = parseInt(search.get('depth') || '150', 10);
-    const sensor = search.get('sensor') || '';
-    return {
-      lat: isNaN(lat) ? 15.4 : lat,
-      lon: isNaN(lon) ? 71.2 : lon,
-      depth: isNaN(depth) ? 150 : depth,
-      sensor,
-    };
+    const parsedLat = parseFloat(search.get('lat') || '15.4');
+    return isNaN(parsedLat) ? 15.4 : parsedLat;
   });
 
-  const [lat] = useState<number>(queryParams.lat);
-  const [lon] = useState<number>(queryParams.lon);
+  const [lon, setLon] = useState<number>(() => {
+    const search = new URLSearchParams(window.location.search);
+    const parsedLon = parseFloat(search.get('lon') || '71.2');
+    return isNaN(parsedLon) ? 71.2 : parsedLon;
+  });
+
+  const [initialSensor] = useState<string>(() => {
+    const search = new URLSearchParams(window.location.search);
+    return search.get('sensor') || '';
+  });
 
   const bathymetryInfo: BathymetryInfo = useMemo(() => {
     return getBathymetricSeafloorDepth(lat, lon);
   }, [lat, lon]);
 
+  // Dynamic Smart Depth Presets (Generated strictly within 0m to maxSafeDepth)
+  const smartDepthPresets = useMemo(() => {
+    const maxSafe = bathymetryInfo.maxSafeDepth;
+    if (maxSafe >= 2000) {
+      return [0, 50, 150, 500, 1000, 2000];
+    }
+    if (maxSafe <= 40) {
+      const step = Math.max(5, Math.floor(maxSafe / 4));
+      const pts = [0];
+      for (let d = step; d < maxSafe; d += step) pts.push(d);
+      if (!pts.includes(maxSafe)) pts.push(maxSafe);
+      return pts;
+    }
+    if (maxSafe <= 100) {
+      const step = 20;
+      const pts = [0];
+      for (let d = step; d < maxSafe; d += step) pts.push(d);
+      if (!pts.includes(maxSafe)) pts.push(maxSafe);
+      return pts;
+    }
+    if (maxSafe <= 350) {
+      // e.g. 248m -> [0, 50, 100, 150, 200, 248]
+      const step = 50;
+      const pts = [0];
+      for (let d = step; d < maxSafe; d += step) pts.push(d);
+      if (!pts.includes(maxSafe)) pts.push(maxSafe);
+      return pts;
+    }
+    if (maxSafe <= 800) {
+      const step = 100;
+      const pts = [0];
+      for (let d = step; d < maxSafe; d += step) pts.push(d);
+      if (!pts.includes(maxSafe)) pts.push(maxSafe);
+      return pts;
+    }
+    const step = 250;
+    const pts = [0];
+    for (let d = step; d < maxSafe; d += step) pts.push(d);
+    if (!pts.includes(maxSafe)) pts.push(maxSafe);
+    return pts;
+  }, [bathymetryInfo.maxSafeDepth]);
+
   const [selectedDepth, setSelectedDepth] = useState<number>(() => {
-    return Math.min(queryParams.depth, bathymetryInfo.maxSafeDepth);
+    const search = new URLSearchParams(window.location.search);
+    const depth = parseInt(search.get('depth') || '150', 10);
+    const info = getBathymetricSeafloorDepth(lat, lon);
+    return Math.min(isNaN(depth) ? 150 : depth, info.maxSafeDepth);
   });
 
+  // Safe depth setter: guarantees depths beyond the local bathymetric seafloor ceiling can NEVER be selected
+  const handleSetSafeDepth = useCallback((targetDepth: number) => {
+    const safe = Math.min(Math.max(0, targetDepth), bathymetryInfo.maxSafeDepth);
+    setSelectedDepth(safe);
+  }, [bathymetryInfo.maxSafeDepth]);
+
+  // Sync state if URL query params change dynamically
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    const qLat = parseFloat(search.get('lat') || '');
+    const qLon = parseFloat(search.get('lon') || '');
+    const qDepth = parseInt(search.get('depth') || '', 10);
+    if (!isNaN(qLat) && qLat !== lat) setLat(qLat);
+    if (!isNaN(qLon) && qLon !== lon) setLon(qLon);
+    if (!isNaN(qDepth)) {
+      const curInfo = getBathymetricSeafloorDepth(!isNaN(qLat) ? qLat : lat, !isNaN(qLon) ? qLon : lon);
+      setSelectedDepth(Math.min(qDepth, curInfo.maxSafeDepth));
+    }
+  }, [lat, lon]);
+
+  // Enforce depth ceiling strictly: whenever bathymetry ceiling changes or selectedDepth exceeds it, clamp immediately
   useEffect(() => {
     if (selectedDepth > bathymetryInfo.maxSafeDepth) {
       setSelectedDepth(bathymetryInfo.maxSafeDepth);
     }
   }, [bathymetryInfo.maxSafeDepth, selectedDepth]);
+
+  // Quick switch location handler
+  const handleSelectOceanLocation = useCallback((newLat: number, newLon: number, defaultDepth: number = 0) => {
+    setLat(newLat);
+    setLon(newLon);
+    const info = getBathymetricSeafloorDepth(newLat, newLon);
+    const safeD = Math.min(defaultDepth, info.maxSafeDepth);
+    setSelectedDepth(safeD);
+    const newUrl = `/depth-slice?lat=${newLat}&lon=${newLon}&depth=${safeD}`;
+    window.history.pushState(null, '', newUrl);
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'telemetry' | 'layers' | 'profile'>('telemetry');
   const [geometryType, setGeometryType] = useState<'cylinder' | 'cuboid'>('cylinder');
-  const [activeVariable, setActiveVariable] = useState<'temperature' | 'salinity' | 'currents' | 'chlorophyll'>('temperature');
+
+  // Interactive Multi-Parameter Feature Checkboxes
+  interface ActiveSliceParameters {
+    temperature: boolean; // Enables temperature gradient (mutually exclusive with chlorophyll)
+    chlorophyll: boolean; // Enables green chlorophyll gradient (mutually exclusive with temperature)
+    salinity: boolean;    // Enables white salt particles
+    velocity: boolean;    // Enables dynamic velocity-scaled wave swells and 3D arrow
+  }
+
+  const [activeParams, setActiveParams] = useState<ActiveSliceParameters>({
+    temperature: false,
+    chlorophyll: false,
+    salinity: false,
+    velocity: false,
+  });
+
+  const toggleTemperature = useCallback(() => {
+    setActiveParams((prev) => ({
+      ...prev,
+      temperature: !prev.temperature,
+      chlorophyll: !prev.temperature ? false : prev.chlorophyll,
+    }));
+  }, []);
+
+  const toggleChlorophyll = useCallback(() => {
+    setActiveParams((prev) => ({
+      ...prev,
+      chlorophyll: !prev.chlorophyll,
+      temperature: !prev.chlorophyll ? false : prev.temperature,
+    }));
+  }, []);
+
+  const toggleSalinity = useCallback(() => {
+    setActiveParams((prev) => ({
+      ...prev,
+      salinity: !prev.salinity,
+    }));
+  }, []);
+
+  const toggleVelocity = useCallback(() => {
+    setActiveParams((prev) => ({
+      ...prev,
+      velocity: !prev.velocity,
+    }));
+  }, []);
+
+  // Derived activeVariable for telemetry & data slice fetcher
+  const activeVariable: 'temperature' | 'salinity' | 'currents' | 'chlorophyll' = activeParams.temperature
+    ? 'temperature'
+    : activeParams.chlorophyll
+    ? 'chlorophyll'
+    : activeParams.salinity
+    ? 'salinity'
+    : activeParams.velocity
+    ? 'currents'
+    : 'temperature';
+
   const [panelCollapsed, setPanelCollapsed] = useState<boolean>(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
@@ -625,8 +772,8 @@ export default function DepthSlicePage() {
 
   // Resolve selected In-Situ observation platform or synthesize station for custom coordinates
   const activeSensor: InSituSensor = useMemo(() => {
-    if (queryParams.sensor) {
-      const direct = IN_SITU_SENSORS.find(s => s.id === queryParams.sensor);
+    if (initialSensor) {
+      const direct = IN_SITU_SENSORS.find(s => s.id === initialSensor);
       if (direct) return direct;
     }
     // Find closest sensor by distance
@@ -660,8 +807,8 @@ export default function DepthSlicePage() {
       qcFlag: '1 - Good' as const,
       surfaceTemp: waterColumn[0]?.thetao ?? 28.5,
       surfaceSalinity: waterColumn[0]?.so ?? 35.2,
-      maxDepth: 2000,
-      description: `${regionDesc} Monitored for thermocline stability, current velocity vectors, and halocline stratification across 0–2000m.`,
+      maxDepth: bathymetryInfo.maxSafeDepth,
+      description: `${regionDesc} Monitored for thermocline stability, current velocity vectors, and halocline stratification across 0–${bathymetryInfo.maxSafeDepth}m.`,
       operationalRole: 'High-resolution ocean state prediction, CTD layer profiling, and acoustic velocity diagnostics.',
       profile: waterColumn.map(w => ({
         depth: w.depth,
@@ -677,7 +824,7 @@ export default function DepthSlicePage() {
         { lat: lat, lon: lon, daysAgo: 0 },
       ]
     };
-  }, [queryParams.sensor, lat, lon, basePrediction, waterColumn]);
+  }, [initialSensor, lat, lon, basePrediction, waterColumn, bathymetryInfo.maxSafeDepth]);
 
   // Three.js References
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -693,6 +840,8 @@ export default function DepthSlicePage() {
   const meniscusMeshRef = useRef<THREE.Mesh | THREE.LineSegments | null>(null);
   const particlesMeshRef = useRef<THREE.Points | null>(null);
   const particleVelocitiesRef = useRef<{ vx: number; vz: number; baseY: number; bobFreq: number; bobAmp: number }[]>([]);
+  const bedrockMeshRef = useRef<THREE.Mesh | null>(null);
+  const yTopRef = useRef<number>(2.9);
   const layerGroupsRef = useRef<{
     grp: THREE.Group;
     sliceWaveMesh: THREE.Mesh;
@@ -719,6 +868,23 @@ export default function DepthSlicePage() {
 
   // Camera heading & Viewport compass state
   const [cameraHeading, setCameraHeading] = useState<number>(315);
+
+  const activeParamsRef = useRef<ActiveSliceParameters>(activeParams);
+  useEffect(() => {
+    activeParamsRef.current = activeParams;
+    if (particlesMeshRef.current) {
+      particlesMeshRef.current.visible = activeParams.salinity;
+    }
+    layerGroupsRef.current.forEach((item) => {
+      const isHighlight = selectedIndex === item.idx;
+      if (item.arrowGrp) {
+        item.arrowGrp.visible = isHighlight && activeParams.velocity;
+      }
+      if (item.reticleGrp) {
+        item.reticleGrp.visible = isHighlight && activeParams.velocity;
+      }
+    });
+  }, [activeParams, selectedIndex]);
 
   const handleAlignNorth = useCallback(() => {
     if (!cameraRef.current || !controlsRef.current) return;
@@ -937,16 +1103,17 @@ export default function DepthSlicePage() {
       time += 0.016;
       controls.update();
 
-      // 1. Dynamic Ocean Surface Waves Calculation - Driven by Surface Current Velocity
+      // 1. Dynamic Ocean Surface Waves Calculation - Driven by Surface Current Velocity when enabled
       const waveMesh = waveMeshRef.current;
+      const isVelocityActive = activeParamsRef.current.velocity;
       if (waveMesh && waveMesh.geometry.userData.origX) {
         const sSpeed = waterColumn[0]?.current_speed ?? 0.06;
         // Velocity factor: scaled gracefully across realistic current speeds
         const sVelFactor = Math.max(0.4, Math.min(2.4, sSpeed / 0.06));
-        // Calibrated rolling wave amplitude: clearly visible ocean swells without spikiness
-        const sWaveAmp = 0.066 * Math.pow(sVelFactor, 0.52);
-        // Fluid rhythmic wave frequency proportional to velocity
-        const sWaveFreq = 2.1 * Math.pow(sVelFactor, 0.55);
+        // When velocity is checked: dynamic velocity-scaled swell; when unchecked: small, slow baseline waves
+        const sWaveAmp = isVelocityActive ? (0.066 * Math.pow(sVelFactor, 0.52)) : 0.020;
+        // Fluid rhythmic wave frequency proportional to velocity when active
+        const sWaveFreq = isVelocityActive ? (2.1 * Math.pow(sVelFactor, 0.55)) : 0.90;
 
         const posAttr = waveMesh.geometry.attributes.position;
         const origX = waveMesh.geometry.userData.origX;
@@ -971,7 +1138,7 @@ export default function DepthSlicePage() {
       // 2. Meniscus bobbing
       const meniscus = meniscusMeshRef.current;
       if (meniscus) {
-        meniscus.position.y = BLOCK_HEIGHT / 2 + 0.018 + Math.sin(time * 2.2) * 0.012;
+        meniscus.position.y = yTopRef.current + 0.018 + Math.sin(time * 2.2) * 0.012;
       }
 
       // 3. Sun caustic light ray bob
@@ -1031,8 +1198,12 @@ export default function DepthSlicePage() {
             ? (0.85 + 0.15 * slideProgress)
             : (item.idx <= 1 ? 0.65 : 0.40 * depthDecay);
 
-          const sAmp = baseAmp * (0.058 * Math.pow(layerVelFactor, 0.52));
-          const layerWaveFreq = time * (1.8 * Math.pow(layerVelFactor, 0.55));
+          const sAmp = isVelocityActive
+            ? (baseAmp * 0.058 * Math.pow(layerVelFactor, 0.52))
+            : (baseAmp * 0.016);
+          const layerWaveFreq = isVelocityActive
+            ? (time * 1.8 * Math.pow(layerVelFactor, 0.55))
+            : (time * 0.85);
 
           for (let j = 0; j < sCount; j++) {
             const ox = sOrigX[j];
@@ -1108,10 +1279,17 @@ export default function DepthSlicePage() {
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
+
+      // Bedrock / solid lithosphere is strictly unclickable
+      if (bedrockMeshRef.current) {
+        const bedrockHits = raycaster.intersectObject(bedrockMeshRef.current, true);
+        if (bedrockHits.length > 0) return;
+      }
+
       const meshes: THREE.Mesh[] = [];
       layerGroupsRef.current.forEach((item) => {
         item.grp.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
+          if ((child as THREE.Mesh).isMesh && !child.userData.isBedrock && child.userData.isClickable !== false) {
             child.userData.parentIdx = item.idx;
             meshes.push(child as THREE.Mesh);
           }
@@ -1122,7 +1300,7 @@ export default function DepthSlicePage() {
       if (hits.length > 0) {
         const hitIdx = hits[0].object.userData.parentIdx;
         if (typeof hitIdx === 'number' && waterColumn[hitIdx]) {
-          setSelectedDepth(waterColumn[hitIdx].depth);
+          handleSetSafeDepth(waterColumn[hitIdx].depth);
         }
       }
     };
@@ -1137,7 +1315,7 @@ export default function DepthSlicePage() {
       renderer.dispose();
       controls.dispose();
     };
-  }, [waterColumn]);
+  }, [waterColumn, handleSetSafeDepth]);
 
   // Keep control's userData updated with selectedIndex for animation loop
   useEffect(() => {
@@ -1162,13 +1340,30 @@ export default function DepthSlicePage() {
     const BLOCK_HEIGHT = 5.8;
     const BLOCK_RADIUS = 1.6;
     const BLOCK_WIDTH = 3.0;
-    const maxDepth = waterColumn[waterColumn.length - 1]?.depth || 2000;
+    const maxSafe = bathymetryInfo.maxSafeDepth;
+    const vScale = colorbarState.vExaggeration / 150;
+    const totalEffHeight = BLOCK_HEIGHT * vScale;
 
-    // 1. Outer Translucent Water Column
+    // Distribute height between active water column and solid subterranean bedrock
+    const isShallow = maxSafe < 2000;
+    const depthRatio = isShallow
+      ? Math.max(0.28, Math.min(0.92, Math.pow(maxSafe / 2000, 0.44)))
+      : 1.0;
+    const waterHeight = totalEffHeight * depthRatio;
+    const bedrockHeight = totalEffHeight - waterHeight;
+
+    const yTop = totalEffHeight / 2;
+    const ySeafloor = yTop - waterHeight;
+    const yBottom = -totalEffHeight / 2;
+    const waterCenterY = yTop - waterHeight / 2;
+    const bedrockCenterY = ySeafloor - bedrockHeight / 2;
+    yTopRef.current = yTop;
+
+    // 1. Outer Translucent Water Column (Trimmed strictly to water depth)
     const outerGeo =
       geometryType === 'cylinder'
-        ? new THREE.CylinderGeometry(BLOCK_RADIUS, BLOCK_RADIUS, BLOCK_HEIGHT, 64, 32, false)
-        : new THREE.BoxGeometry(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_WIDTH, 24, 32, 24);
+        ? new THREE.CylinderGeometry(BLOCK_RADIUS, BLOCK_RADIUS, waterHeight, 64, 32, false)
+        : new THREE.BoxGeometry(BLOCK_WIDTH, waterHeight, BLOCK_WIDTH, 24, 32, 24);
 
     const outerMat = new THREE.MeshPhysicalMaterial({
       color: 0x004c8c,
@@ -1187,6 +1382,8 @@ export default function DepthSlicePage() {
       depthWrite: false,
     });
     const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+    outerMesh.position.set(0, waterCenterY, 0);
+    outerMesh.userData = { isWater: true, isClickable: false };
     waterGroup.add(outerMesh);
 
     // 2. Realistic 3D Dynamic Ocean Water Surface with Waves (Main Column Cap)
@@ -1205,33 +1402,16 @@ export default function DepthSlicePage() {
     }
     capGeo.userData = { origX, origY };
 
-    const surfaceVal =
-      activeVariable === 'salinity'
-        ? waterColumn[0].so
-        : activeVariable === 'currents'
-        ? waterColumn[0].current_speed
-        : activeVariable === 'chlorophyll'
-        ? waterColumn[0].chlorophyll
-        : waterColumn[0].thetao;
-    // Use colorbarState from closure (captured by the useEffect)
-    const _cbMin = colorbarState.minVal;
-    const _cbMax = colorbarState.maxVal;
-    const _cbMap = colorbarState.colormap as ColorScaleName;
-    const _cbMode = colorbarState.scaleMode;
-    const surfaceColor =
-      activeVariable === 'chlorophyll'
-        ? getLayerColor(surfaceVal, 'chlorophyll')
-        : (() => {
-            const [sr, sg, sb] = _cbMode === 'log'
-              ? getLogColor(surfaceVal, _cbMin, _cbMax, _cbMap)
-              : getLinearColor(surfaceVal, _cbMin, _cbMax, _cbMap);
-            return new THREE.Color(sr / 255, sg / 255, sb / 255);
-          })();
+    const surfaceColor = activeParams.chlorophyll
+      ? getLayerColor(waterColumn[0].chlorophyll, 'chlorophyll')
+      : activeParams.temperature
+      ? getLayerColor(waterColumn[0].thetao, 'temperature')
+      : getLayerColor(0, 'depth');
 
     const capMat = new THREE.MeshPhysicalMaterial({
       color: surfaceColor,
       emissive: surfaceColor,
-      emissiveIntensity: activeVariable === 'chlorophyll' ? 0.55 : 0.45,
+      emissiveIntensity: activeParams.chlorophyll ? 0.55 : activeParams.temperature ? 0.45 : 0.35,
       roughness: 0.08,
       metalness: 0.1,
       transmission: 0.62,
@@ -1245,8 +1425,9 @@ export default function DepthSlicePage() {
       depthWrite: false,
     });
     const capMesh = new THREE.Mesh(capGeo, capMat);
-    capMesh.position.set(0, BLOCK_HEIGHT / 2 + 0.015, 0);
+    capMesh.position.set(0, yTop + 0.015, 0);
     capMesh.rotation.x = -Math.PI / 2;
+    capMesh.userData = { isWater: true, isClickable: false };
     waterGroup.add(capMesh);
     waveMeshRef.current = capMesh;
 
@@ -1255,22 +1436,99 @@ export default function DepthSlicePage() {
       const ringGeo = new THREE.RingGeometry(BLOCK_RADIUS - 0.04, BLOCK_RADIUS + 0.02, 64);
       const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5a0, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
       const meniscus = new THREE.Mesh(ringGeo, ringMat);
-      meniscus.position.set(0, BLOCK_HEIGHT / 2 + 0.02, 0);
+      meniscus.position.set(0, yTop + 0.02, 0);
       meniscus.rotation.x = -Math.PI / 2;
+      meniscus.userData = { isClickable: false };
       waterGroup.add(meniscus);
       meniscusMeshRef.current = meniscus;
     } else {
       const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(BLOCK_WIDTH * 0.99, 0.02, BLOCK_WIDTH * 0.99));
       const edgeMat = new THREE.LineBasicMaterial({ color: 0x00f5a0, transparent: true, opacity: 0.65 });
       const meniscus = new THREE.LineSegments(edgeGeo, edgeMat);
-      meniscus.position.set(0, BLOCK_HEIGHT / 2 + 0.01, 0);
+      meniscus.position.set(0, yTop + 0.01, 0);
+      meniscus.userData = { isClickable: false };
       waterGroup.add(meniscus);
       meniscusMeshRef.current = meniscus;
     }
 
-    // vExaggeration: scale BLOCK_HEIGHT by exaggeration factor relative to 150x baseline
-    const vScale = colorbarState.vExaggeration / 150;
-    const effHeight = BLOCK_HEIGHT * vScale;
+    // 2.5. Solid Subterranean Bedrock / Lithosphere Substrate (Below Seafloor Boundary)
+    if (isShallow && bedrockHeight > 0.05) {
+      const bedrockGeo =
+        geometryType === 'cylinder'
+          ? new THREE.CylinderGeometry(BLOCK_RADIUS * 1.015, BLOCK_RADIUS * 1.035, bedrockHeight, 64, 16, false)
+          : new THREE.BoxGeometry(BLOCK_WIDTH * 1.015, bedrockHeight, BLOCK_WIDTH * 1.015);
+
+      const bedrockMat = new THREE.MeshStandardMaterial({
+        color: 0x141210, // Deep basalt lithospheric rock
+        roughness: 0.96,
+        metalness: 0.12,
+        side: THREE.DoubleSide,
+      });
+      const bedrockMesh = new THREE.Mesh(bedrockGeo, bedrockMat);
+      bedrockMesh.position.set(0, bedrockCenterY, 0);
+      bedrockMesh.userData = { isBedrock: true, isClickable: false };
+      waterGroup.add(bedrockMesh);
+      bedrockMeshRef.current = bedrockMesh;
+
+      // Geological Strata Wireframe Contours
+      const strataGeo =
+        geometryType === 'cylinder'
+          ? new THREE.CylinderGeometry(BLOCK_RADIUS * 1.018, BLOCK_RADIUS * 1.038, bedrockHeight, 32, 6, true)
+          : new THREE.BoxGeometry(BLOCK_WIDTH * 1.018, bedrockHeight, BLOCK_WIDTH * 1.018);
+      const strataMat = new THREE.MeshBasicMaterial({
+        color: 0x3d352c, // Strata sediment lines
+        wireframe: true,
+        transparent: true,
+        opacity: 0.28,
+      });
+      const strataMesh = new THREE.Mesh(strataGeo, strataMat);
+      strataMesh.position.set(0, bedrockCenterY, 0);
+      strataMesh.userData = { isBedrock: true, isClickable: false };
+      waterGroup.add(strataMesh);
+
+      // Solid Seafloor Surface Cap (Basalt bed sealing bottom of water column)
+      const seafloorCapGeo =
+        geometryType === 'cylinder'
+          ? new THREE.CircleGeometry(BLOCK_RADIUS * 1.015, 64)
+          : new THREE.PlaneGeometry(BLOCK_WIDTH * 1.015, BLOCK_WIDTH * 1.015);
+      const seafloorCapMat = new THREE.MeshStandardMaterial({
+        color: 0x211c18, // Seafloor basalt top
+        roughness: 0.90,
+        metalness: 0.18,
+        side: THREE.DoubleSide,
+      });
+      const seafloorCapMesh = new THREE.Mesh(seafloorCapGeo, seafloorCapMat);
+      seafloorCapMesh.position.set(0, ySeafloor, 0);
+      seafloorCapMesh.rotation.x = -Math.PI / 2;
+      seafloorCapMesh.userData = { isBedrock: true, isClickable: false };
+      waterGroup.add(seafloorCapMesh);
+
+      // Glowing Amber Benthic Boundary Seam Marker
+      if (geometryType === 'cylinder') {
+        const seamGeo = new THREE.RingGeometry(BLOCK_RADIUS * 0.97, BLOCK_RADIUS * 1.05, 64);
+        const seamMat = new THREE.MeshBasicMaterial({
+          color: 0xf59e0b, // Amber glow
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.92,
+        });
+        const seamMesh = new THREE.Mesh(seamGeo, seamMat);
+        seamMesh.position.set(0, ySeafloor + 0.006, 0);
+        seamMesh.rotation.x = -Math.PI / 2;
+        seamMesh.userData = { isBedrock: true, isClickable: false };
+        waterGroup.add(seamMesh);
+      } else {
+        const seamEdgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(BLOCK_WIDTH * 1.03, 0.02, BLOCK_WIDTH * 1.03));
+        const seamEdgeMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 2 });
+        const seamMesh = new THREE.LineSegments(seamEdgeGeo, seamEdgeMat);
+        seamMesh.position.set(0, ySeafloor + 0.006, 0);
+        seamMesh.userData = { isBedrock: true, isClickable: false };
+        waterGroup.add(seamMesh);
+      }
+    } else {
+      bedrockMeshRef.current = null;
+    }
+
     const effRadius = geometryType === 'cylinder' ? BLOCK_RADIUS * 0.88 : (BLOCK_WIDTH / 2) * 0.88;
 
     // 3. Salinity-Stratified Suspended White Salt Particles & Marine Snow
@@ -1299,9 +1557,9 @@ export default function DepthSlicePage() {
       const layerWeight = layerWeights[lIdx];
       // Target number of white particles allocated to this depth level
       const layerPCount = Math.max(4, Math.round(pCount * (layerWeight / totalWeight)));
-      const layerRatio = layer.depth / maxDepth;
-      const layerY = effHeight / 2 - layerRatio * effHeight;
-      const bandThickness = (effHeight / Math.max(1, waterColumn.length)) * 0.95;
+      const layerRatio = maxSafe > 0 ? layer.depth / maxSafe : 0;
+      const layerY = yTop - layerRatio * waterHeight;
+      const bandThickness = (waterHeight / Math.max(1, waterColumn.length)) * 0.95;
 
       const layerSpeed = Math.max(0.008, layer.current_speed);
       const dirRad = (layer.dirDeg * Math.PI) / 180;
@@ -1310,7 +1568,8 @@ export default function DepthSlicePage() {
       const driftVz = Math.cos(dirRad) * layerSpeed * 0.007;
 
       for (let k = 0; k < layerPCount && pIdx < pCount; k++) {
-        const y = layerY + (Math.random() - 0.5) * bandThickness;
+        const rawY = layerY + (Math.random() - 0.5) * bandThickness;
+        const y = Math.max(ySeafloor + 0.04, Math.min(yTop - 0.04, rawY));
         const r = Math.sqrt(Math.random()) * effRadius;
         const theta = Math.random() * Math.PI * 2;
         const x = geometryType === 'cylinder' ? Math.cos(theta) * r : (Math.random() - 0.5) * BLOCK_WIDTH * 0.88;
@@ -1342,9 +1601,10 @@ export default function DepthSlicePage() {
     while (pIdx < pCount) {
       const lIdx = Math.floor(Math.random() * waterColumn.length);
       const layer = waterColumn[lIdx];
-      const layerRatio = layer.depth / maxDepth;
-      const layerY = effHeight / 2 - layerRatio * effHeight;
-      const y = layerY + (Math.random() - 0.5) * 0.12;
+      const layerRatio = maxSafe > 0 ? layer.depth / maxSafe : 0;
+      const layerY = yTop - layerRatio * waterHeight;
+      const rawY = layerY + (Math.random() - 0.5) * 0.12;
+      const y = Math.max(ySeafloor + 0.04, Math.min(yTop - 0.04, rawY));
       const r = Math.sqrt(Math.random()) * effRadius;
       const theta = Math.random() * Math.PI * 2;
 
@@ -1377,6 +1637,7 @@ export default function DepthSlicePage() {
       depthWrite: false,
     });
     const particles = new THREE.Points(pGeo, pMat);
+    particles.visible = activeParams.salinity;
     waterGroup.add(particles);
     particlesMeshRef.current = particles;
 
@@ -1386,28 +1647,21 @@ export default function DepthSlicePage() {
     const SLIDE_LIFT_Y = 0.28;
 
     waterColumn.forEach((layer, idx) => {
-      const ratio = layer.depth / maxDepth;
-      const y = effHeight / 2 - ratio * effHeight;
-      const val =
-        activeVariable === 'salinity'
-          ? layer.so
-          : activeVariable === 'currents'
-          ? layer.current_speed
-          : activeVariable === 'chlorophyll'
-          ? layer.chlorophyll
-          : layer.thetao;
+      const ratio = maxSafe > 0 ? layer.depth / maxSafe : 0;
+      const y = yTop - ratio * waterHeight;
 
-      // Color mapping: for chlorophyll, use pure green spectrum (more green = high chlorophyll)
+      // Color mapping: for chlorophyll, use pure green; for temperature, scientific gradient; else plain blue depth
       let color: THREE.Color;
-      if (activeVariable === 'chlorophyll') {
-        color = getLayerColor(val, 'chlorophyll');
+      if (activeParams.chlorophyll) {
+        color = getLayerColor(layer.chlorophyll, 'chlorophyll');
+      } else if (activeParams.temperature) {
+        color = getLayerColor(layer.thetao, 'temperature');
       } else {
-        const [lr, lg, lb] = getLinearColor(val, _cbMin, _cbMax, _cbMap);
-        color = new THREE.Color(lr / 255, lg / 255, lb / 255);
+        color = getLayerColor(layer.depth, 'depth');
       }
 
       const isHighlight = selectedIndex === idx;
-      const chlGlow = activeVariable === 'chlorophyll' ? Math.min(0.45, (val / 1.5) * 0.35) : 0;
+      const chlGlow = activeParams.chlorophyll ? Math.min(0.45, (layer.chlorophyll / 1.5) * 0.35) : 0;
 
       const grp = new THREE.Group();
       grp.position.set(isHighlight ? SLIDE_FAR_X : 0, y + (isHighlight ? SLIDE_LIFT_Y : 0), isHighlight ? SLIDE_FAR_Z : 0);
@@ -1490,13 +1744,13 @@ export default function DepthSlicePage() {
         grp.add(edges);
       }
 
-      // D. Current Velocity 3D Arrow (Exclusively on Selected / Extracted Slice)
+      // D. Current Velocity 3D Arrow (Exclusively on Selected / Extracted Slice when Velocity Enabled)
       const arrowLength = Math.max(0.38, Math.min(1.35, layer.current_speed * 5.4));
       const angle = Math.atan2(layer.vo, layer.uo);
       const arrowGrp = new THREE.Group();
       arrowGrp.rotation.y = -angle;
       arrowGrp.position.y = sliceThickness / 2 + 0.04;
-      arrowGrp.visible = isHighlight;
+      arrowGrp.visible = isHighlight && activeParams.velocity;
 
       const shaft = new THREE.Mesh(
         new THREE.CylinderGeometry(0.026, 0.026, arrowLength, 8),
@@ -1516,10 +1770,10 @@ export default function DepthSlicePage() {
 
       grp.add(arrowGrp);
 
-      // E. Slice-Level Compass Reticle (Only on Selected / Extracted Slice)
+      // E. Slice-Level Compass Reticle (Only on Selected / Extracted Slice when Velocity Enabled)
       const reticleGrp = new THREE.Group();
       reticleGrp.position.y = sliceThickness / 2 + 0.015;
-      reticleGrp.visible = isHighlight;
+      reticleGrp.visible = isHighlight && activeParams.velocity;
 
       // True North Indicator Line (points along -Z)
       const nLineGeo = new THREE.BufferGeometry().setFromPoints([
@@ -1602,7 +1856,7 @@ export default function DepthSlicePage() {
       extractionSocketRef.current = socket;
     }
 
-    // Seabed base with High-Precision Holographic Nautical Compass Rose
+    // Seabed base with High-Precision Holographic Nautical Compass Rose (at true bedrock base)
     const baseRadius = geometryType === 'cylinder' ? BLOCK_RADIUS + 0.35 : (BLOCK_WIDTH / 2) + 0.35;
     const baseGeo = new THREE.CircleGeometry(baseRadius, 64);
     const baseMat = new THREE.MeshBasicMaterial({
@@ -1612,8 +1866,9 @@ export default function DepthSlicePage() {
       opacity: 0.95,
     });
     const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-    baseMesh.position.set(0, -effHeight / 2 - 0.04, 0);
+    baseMesh.position.set(0, yBottom - 0.04, 0);
     baseMesh.rotation.x = -Math.PI / 2;
+    baseMesh.userData = { isClickable: false };
     waterGroup.add(baseMesh);
 
     // ── 20°C Thermocline Isosurface Mesh (Phase 4) ──
@@ -1626,49 +1881,53 @@ export default function DepthSlicePage() {
           break;
         }
       }
-      const ratio20 = d20 / maxDepth;
-      const y20 = (BLOCK_HEIGHT * vScale) / 2 - ratio20 * (BLOCK_HEIGHT * vScale);
+      if (d20 <= maxSafe) {
+        const ratio20 = d20 / maxSafe;
+        const y20 = yTop - ratio20 * waterHeight;
 
-      const isoGeo =
-        geometryType === 'cylinder'
-          ? new THREE.CylinderGeometry(BLOCK_RADIUS * 0.99, BLOCK_RADIUS * 0.99, 0.06, 48, 4, true)
-          : new THREE.BoxGeometry(BLOCK_WIDTH * 0.99, 0.06, BLOCK_WIDTH * 0.99, 16, 1, 16);
+        const isoGeo =
+          geometryType === 'cylinder'
+            ? new THREE.CylinderGeometry(BLOCK_RADIUS * 0.99, BLOCK_RADIUS * 0.99, 0.06, 48, 4, true)
+            : new THREE.BoxGeometry(BLOCK_WIDTH * 0.99, 0.06, BLOCK_WIDTH * 0.99, 16, 1, 16);
 
-      const isoMat = new THREE.MeshStandardMaterial({
-        color: 0x00f5d4,
-        emissive: 0x00a896,
-        emissiveIntensity: 0.55,
-        transparent: true,
-        opacity: 0.75,
-        roughness: 0.12,
-        metalness: 0.25,
-        side: THREE.DoubleSide,
-      });
-      const isoMesh = new THREE.Mesh(isoGeo, isoMat);
-      isoMesh.position.set(0, y20, 0);
-      waterGroup.add(isoMesh);
+        const isoMat = new THREE.MeshStandardMaterial({
+          color: 0x00f5d4,
+          emissive: 0x00a896,
+          emissiveIntensity: 0.55,
+          transparent: true,
+          opacity: 0.75,
+          roughness: 0.12,
+          metalness: 0.25,
+          side: THREE.DoubleSide,
+        });
+        const isoMesh = new THREE.Mesh(isoGeo, isoMat);
+        isoMesh.position.set(0, y20, 0);
+        isoMesh.userData = { isClickable: false };
+        waterGroup.add(isoMesh);
 
-      // Wireframe / contour accent ring
-      const ringGeo =
-        geometryType === 'cylinder'
-          ? new THREE.RingGeometry(BLOCK_RADIUS * 0.94, BLOCK_RADIUS * 1.01, 48)
-          : new THREE.PlaneGeometry(BLOCK_WIDTH * 1.01, BLOCK_WIDTH * 1.01);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: 0xffd166,
-        transparent: true,
-        opacity: 0.85,
-        side: THREE.DoubleSide,
-        wireframe: true,
-      });
-      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.position.set(0, y20 + 0.02, 0);
-      ringMesh.rotation.x = Math.PI / 2;
-      waterGroup.add(ringMesh);
+        // Wireframe / contour accent ring
+        const ringGeo =
+          geometryType === 'cylinder'
+            ? new THREE.RingGeometry(BLOCK_RADIUS * 0.94, BLOCK_RADIUS * 1.01, 48)
+            : new THREE.PlaneGeometry(BLOCK_WIDTH * 1.01, BLOCK_WIDTH * 1.01);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0xffd166,
+          transparent: true,
+          opacity: 0.85,
+          side: THREE.DoubleSide,
+          wireframe: true,
+        });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.position.set(0, y20 + 0.02, 0);
+        ringMesh.rotation.x = Math.PI / 2;
+        ringMesh.userData = { isClickable: false };
+        waterGroup.add(ringMesh);
+      }
     }
 
     // Initial HUD update
     updateExtractedHud(selectedIndex);
-  }, [geometryType, activeVariable, waterColumn, updateExtractedHud, colorbarState, showIsosurface20C]);
+  }, [geometryType, activeParams.temperature, activeParams.chlorophyll, activeParams.salinity, activeParams.velocity, waterColumn, updateExtractedHud, colorbarState, showIsosurface20C, bathymetryInfo.maxSafeDepth]);
 
   // Handle Depth Selection Updates (Slide target interpolation trigger)
   useEffect(() => {
@@ -1684,10 +1943,10 @@ export default function DepthSlicePage() {
       item.targetScale = isHighlight ? 1.08 : 1.0;
 
       if (item.arrowGrp) {
-        item.arrowGrp.visible = isHighlight;
+        item.arrowGrp.visible = isHighlight && activeParams.velocity;
       }
       if (item.reticleGrp) {
-        item.reticleGrp.visible = isHighlight;
+        item.reticleGrp.visible = isHighlight && activeParams.velocity;
       }
 
       if (item.sliceWaveMesh) {
@@ -1712,71 +1971,53 @@ export default function DepthSlicePage() {
     }
   }, []);
 
-  // Compute Color Scale Legend values — now driven by colorbarState
+  // Compute Color Scale Legend values — driven by activeParams
   const legendConfig = useMemo(() => {
-    const { colormap, scaleMode, minVal, maxVal } = colorbarState;
-    const def = VARIABLE_DEFAULTS[activeVariable];
+    const { colormap, minVal, maxVal } = colorbarState;
 
-    let title = 'θ₀ Temperature';
-    let curVal = activeLayer.thetao;
-    let valStr = `${activeLayer.thetao.toFixed(2)} °C`;
-
-    if (activeVariable === 'temperature') {
-      if (tempUnit === 'F') {
-        title = 'θ₀ Temperature (°F)';
-        valStr = `${((activeLayer.thetao * 9) / 5 + 32).toFixed(2)} °F`;
-      } else {
-        title = 'θ₀ Temperature (°C)';
-      }
-    } else if (activeVariable === 'salinity') {
-      title = 'S₀ Salinity';
-      curVal = activeLayer.so;
-      valStr = `${activeLayer.so.toFixed(2)} PSU`;
-    } else if (activeVariable === 'currents') {
-      curVal = activeLayer.current_speed;
-      if (velocityUnit === 'knots') {
-        title = 'Current Velocity (kts)';
-        valStr = `${(activeLayer.current_speed * 1.94384).toFixed(3)} kts`;
-      } else {
-        title = 'Current Velocity (m/s)';
-        valStr = `${activeLayer.current_speed.toFixed(3)} m/s`;
-      }
-    } else if (activeVariable === 'chlorophyll') {
-      title = '🌿 Chlorophyll-a';
-      curVal = activeLayer.chlorophyll;
-      valStr = `${activeLayer.chlorophyll.toFixed(3)} mg/m³`;
+    if (activeParams.temperature) {
+      const def = VARIABLE_DEFAULTS['temperature'];
+      const title = tempUnit === 'F' ? 'θ₀ Temperature (°F)' : 'θ₀ Temperature (°C)';
+      const curVal = activeLayer.thetao;
+      const valStr = tempUnit === 'F' ? `${((curVal * 9) / 5 + 32).toFixed(2)} °F` : `${curVal.toFixed(2)} °C`;
+      const pct = Math.max(0, Math.min(100, ((curVal - minVal) / (maxVal - minVal || 1)) * 100));
+      const gradCss = getCssGradient(colormap as ColorScaleName);
+      const mid = (minVal + maxVal) / 2;
+      const ticks = [`${minVal.toFixed(1)}`, `${mid.toFixed(1)}`, `${maxVal.toFixed(1)} ${def.unit}`];
+      const [lr, lg, lb] = getLinearColor(curVal, minVal, maxVal, colormap as ColorScaleName);
+      const hexCol = `#${lr.toString(16).padStart(2, '0')}${lg.toString(16).padStart(2, '0')}${lb.toString(16).padStart(2, '0')}`;
+      return { title, valStr, gradCss, pct, ticks, hexCol };
     }
 
-    // Position of the value indicator on the gradient bar
-    let pct: number;
-    if (scaleMode === 'log' && activeVariable === 'chlorophyll') {
-      const logMin = Math.log10(Math.max(minVal, 0.0001));
-      const logMax = Math.log10(Math.max(maxVal, 0.001));
-      pct = Math.max(0, Math.min(100, ((Math.log10(Math.max(curVal, 0.0001)) - logMin) / (logMax - logMin)) * 100));
-    } else {
-      pct = Math.max(0, Math.min(100, ((curVal - minVal) / (maxVal - minVal || 1)) * 100));
+    if (activeParams.chlorophyll) {
+      const title = '🌿 Chlorophyll';
+      const curVal = activeLayer.chlorophyll;
+      const valStr = `${curVal.toFixed(3)} mg/m³`;
+      const pct = Math.max(0, Math.min(100, (curVal / 2.5) * 100));
+      const gradCss = 'linear-gradient(to right, #031c14, #064832, #059669, #00b84f, #00ff73, #66ff00)';
+      const ticks = ['0.00', '1.20', '2.50+ mg/m³'];
+      const chlColor = getLayerColor(curVal, 'chlorophyll');
+      const hexCol = `#${chlColor.getHexString()}`;
+      return { title, valStr, gradCss, pct, ticks, hexCol };
     }
 
-    const gradCss = getCssGradient(colormap as ColorScaleName);
-
-    // Build tick labels from active range
-    const mid = ((minVal + maxVal) / 2);
+    // Default: Plain Oceanic Depth Model
+    const title = 'Oceanic Depth Gradient';
+    const curVal = activeLayer.depth;
+    const valStr = `${curVal}m (${getZoneLabel(curVal)})`;
+    const maxScale = Math.max(10, bathymetryInfo.maxSafeDepth);
+    const pct = Math.max(0, Math.min(100, (curVal / maxScale) * 100));
+    const gradCss = 'linear-gradient(to right, #00d4ff, #00b4d8, #0077b6, #023e8a, #03045e, #010314)';
+    const midScale = Math.round(maxScale / 2);
     const ticks = [
-      `${minVal.toFixed(def.step < 1 ? 2 : 1)}`,
-      `${mid.toFixed(def.step < 1 ? 2 : 1)}`,
-      `${maxVal.toFixed(def.step < 1 ? 2 : 1)} ${def.unit}`,
+      '0m (Surface)',
+      `${midScale}m`,
+      `${maxScale}m (${bathymetryInfo.isContinentalShelf ? 'Shelf' : 'Floor'})`
     ];
-
-    // Current value hex color from new colormap
-    const [lr, lg, lb] =
-      scaleMode === 'log' && activeVariable === 'chlorophyll'
-        ? getLogColor(curVal, minVal, maxVal, colormap as ColorScaleName)
-        : getLinearColor(curVal, minVal, maxVal, colormap as ColorScaleName);
-    const toHex = (n: number) => n.toString(16).padStart(2, '0');
-    const hexCol = `#${toHex(lr)}${toHex(lg)}${toHex(lb)}`;
-
+    const depthColor = getLayerColor(curVal, 'depth');
+    const hexCol = `#${depthColor.getHexString()}`;
     return { title, valStr, gradCss, pct, ticks, hexCol };
-  }, [activeLayer, activeVariable, tempUnit, velocityUnit, colorbarState]);
+  }, [activeParams, activeLayer, tempUnit, colorbarState, bathymetryInfo]);
 
   // ── Block render if coordinate is on terrestrial land surface ──
   if (bathymetryInfo.isLand) {
@@ -1982,6 +2223,27 @@ export default function DepthSlicePage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Quick Ocean Coordinates / Shelf Selector */}
+          <div className="hidden xl:flex items-center gap-1.5 bg-[#141414] px-2.5 py-1.5 rounded-xl border border-[#262626] font-mono text-xs">
+            <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <select
+              value={`${lat.toFixed(1)},${lon.toFixed(1)}`}
+              onChange={(e) => {
+                const [sLat, sLon] = e.target.value.split(',').map(Number);
+                handleSelectOceanLocation(sLat, sLon, 0);
+              }}
+              className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="15.4,71.2" className="bg-[#18181c] text-white">Arabian Sea Deep Basin (2000m Floor)</option>
+              <option value="21.0,72.3" className="bg-[#18181c] text-amber-300">Gulf of Khambhat (35m Shelf Capped)</option>
+              <option value="19.3,71.8" className="bg-[#18181c] text-amber-300">Mumbai Offshore Shelf (85m Shelf Capped)</option>
+              <option value="10.5,72.6" className="bg-[#18181c] text-amber-300">Lakshadweep Atoll Bank (90m Shelf Capped)</option>
+              <option value="8.8,79.0" className="bg-[#18181c] text-amber-300">Gulf of Mannar Bank (65m Shelf Capped)</option>
+              <option value="14.5,73.2" className="bg-[#18181c] text-cyan-300">Goa Continental Slope (460m Slope)</option>
+              <option value="14.0,86.5" className="bg-[#18181c] text-white">Bay of Bengal Basin (2000m Floor)</option>
+            </select>
+          </div>
+
           <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
             <span>{realTimeClock}</span>
             <select
@@ -2074,37 +2336,53 @@ export default function DepthSlicePage() {
               <input
                 type="range"
                 min="0"
-                max={waterColumn.length - 1}
-                step="1"
-                value={selectedIndex}
+                max={bathymetryInfo.maxSafeDepth}
+                step={bathymetryInfo.maxSafeDepth <= 100 ? 1 : 5}
+                value={Math.min(selectedDepth, bathymetryInfo.maxSafeDepth)}
                 onChange={(e) => {
-                  const idx = parseInt(e.target.value, 10);
-                  if (waterColumn[idx]) setSelectedDepth(waterColumn[idx].depth);
+                  handleSetSafeDepth(Number(e.target.value));
                 }}
-                className="w-full accent-white h-1.5 bg-[#1f1f1f] rounded appearance-none cursor-pointer"
+                className="w-full accent-cyan-400 h-1.5 bg-[#1f1f1f] rounded appearance-none cursor-pointer"
               />
 
-              {/* Tick Presets */}
-              <div className="grid grid-cols-6 gap-1 pt-1">
-                {[0, 50, 150, 500, 1000, 2000].map((d) => {
-                  const isExceedingSeafloor = d > bathymetryInfo.seafloorDepth;
+              <div className="flex justify-between text-[9px] font-mono text-[#666666] -mt-0.5">
+                <span>0m (Surface)</span>
+                <span className="text-cyan-400 font-semibold">{selectedDepth}m</span>
+                <span>
+                  ~{bathymetryInfo.maxSafeDepth}m ({bathymetryInfo.isContinentalShelf ? 'Shelf' : 'Floor'})
+                </span>
+              </div>
+
+              {/* Dynamic Smart Depth Presets (Constrained to Seafloor) */}
+              <div
+                className="grid gap-1 pt-1"
+                style={{
+                  gridTemplateColumns: `repeat(${smartDepthPresets.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {smartDepthPresets.map((d) => {
+                  const isSeafloor = d === bathymetryInfo.maxSafeDepth;
+                  const isSelected = selectedDepth === d;
                   return (
                     <button
                       key={d}
                       type="button"
-                      disabled={isExceedingSeafloor}
-                      onClick={() => !isExceedingSeafloor && setSelectedDepth(Math.min(d, bathymetryInfo.maxSafeDepth))}
-                      title={isExceedingSeafloor ? `Exceeds seafloor depth (~${bathymetryInfo.seafloorDepth}m at this location)` : undefined}
+                      onClick={() => handleSetSafeDepth(d)}
+                      title={
+                        isSeafloor
+                          ? `Benthic Seafloor Boundary (~${bathymetryInfo.seafloorDepth}m)`
+                          : `Set sounding depth to ${d}m`
+                      }
                       className={cn(
                         "py-1 rounded text-[10px] font-mono border transition-all text-center truncate",
-                        isExceedingSeafloor
-                          ? "bg-[#101012] border-[#1c1c1f] text-zinc-600 opacity-40 cursor-not-allowed line-through"
-                          : selectedDepth === d
-                          ? "bg-white text-black font-bold border-white cursor-pointer"
-                          : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white cursor-pointer"
+                        isSelected
+                          ? "bg-cyan-500 text-black font-bold border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.4)] cursor-pointer"
+                          : isSeafloor
+                          ? "bg-amber-950/40 border-amber-500/50 text-amber-300 hover:bg-amber-900/50 cursor-pointer font-semibold"
+                          : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#3a3a3a] cursor-pointer"
                       )}
                     >
-                      {d === 0 ? "0m" : `${d}m`}
+                      {d === 0 ? "0m" : isSeafloor ? `${d}m ⚓` : `${d}m`}
                     </button>
                   );
                 })}
@@ -2202,30 +2480,115 @@ export default function DepthSlicePage() {
               </div>
             </div>
 
-            {/* Variable Selector */}
-            <div className="space-y-1.5">
-              <div className="text-[9px] text-[#666666] font-mono uppercase tracking-wide">3D Layer Variable</div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {([
-                  { key: 'temperature', label: 'θ₀ Temperature' },
-                  { key: 'salinity',    label: 'S₀ Salinity' },
-                  { key: 'currents',    label: 'Velocity Vector' },
-                  { key: 'chlorophyll', label: '🌿 Chlorophyll-a' },
-                ] as const).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setActiveVariable(key)}
-                    className={cn(
-                      "py-1.5 px-2 text-[10px] font-mono rounded-lg border transition-all cursor-pointer text-center",
-                      activeVariable === key
-                        ? "bg-white text-black font-bold border-white shadow-sm"
-                        : "bg-[#141414] border-[#262626] text-[#888888] hover:text-white hover:border-[#333333]"
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
+            {/* Interactive Feature Parameters (Checkboxes) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[9px] text-neutral-400 font-mono uppercase tracking-wide">
+                <span>Active Model Parameters</span>
+                <span className="text-cyan-400/75 font-medium">
+                  {[activeParams.temperature && 'Temp', activeParams.chlorophyll && 'Chl', activeParams.salinity && 'Sal', activeParams.velocity && 'Waves'].filter(Boolean).join(' • ') || 'Plain Depth Model'}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 font-mono text-[10px]">
+                {/* 1. Temperature Checkbox */}
+                <label className={cn(
+                  "flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none",
+                  activeParams.temperature
+                    ? "bg-amber-500/[0.07] border-amber-500/25 text-neutral-200"
+                    : "bg-[#131316] border-[#222226] text-neutral-400 hover:border-[#2f2f35] hover:text-neutral-300"
+                )}>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={activeParams.temperature}
+                      onChange={toggleTemperature}
+                      className="w-3.5 h-3.5 rounded border-neutral-700/80 bg-neutral-900/80 text-amber-600/75 focus:ring-0 cursor-pointer accent-amber-600/75 opacity-85"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400/70 via-amber-400/70 to-rose-400/70" />
+                      <span className={cn("transition-colors", activeParams.temperature ? "text-neutral-200 font-medium" : "text-neutral-400")}>
+                        θ₀ Temperature
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] text-neutral-400">Color Gradient</span>
+                </label>
+
+                {/* 2. Chlorophyll Checkbox */}
+                <label className={cn(
+                  "flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none",
+                  activeParams.chlorophyll
+                    ? "bg-emerald-500/[0.07] border-emerald-500/25 text-neutral-200"
+                    : "bg-[#131316] border-[#222226] text-neutral-400 hover:border-[#2f2f35] hover:text-neutral-300"
+                )}>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={activeParams.chlorophyll}
+                      onChange={toggleChlorophyll}
+                      className="w-3.5 h-3.5 rounded border-neutral-700/80 bg-neutral-900/80 text-emerald-600/75 focus:ring-0 cursor-pointer accent-emerald-600/75 opacity-85"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-800 via-emerald-600/80 to-emerald-400/70" />
+                      <span className={cn("transition-colors", activeParams.chlorophyll ? "text-neutral-200 font-medium" : "text-neutral-400")}>
+                        🌿 Chlorophyll
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] text-neutral-400">Green Shades</span>
+                </label>
+
+                {/* 3. Salinity Checkbox */}
+                <label className={cn(
+                  "flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none",
+                  activeParams.salinity
+                    ? "bg-cyan-500/[0.07] border-cyan-500/25 text-neutral-200"
+                    : "bg-[#131316] border-[#222226] text-neutral-400 hover:border-[#2f2f35] hover:text-neutral-300"
+                )}>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={activeParams.salinity}
+                      onChange={toggleSalinity}
+                      className="w-3.5 h-3.5 rounded border-neutral-700/80 bg-neutral-900/80 text-cyan-600/75 focus:ring-0 cursor-pointer accent-cyan-600/75 opacity-85"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-neutral-300/80" />
+                      <span className={cn("transition-colors", activeParams.salinity ? "text-neutral-200 font-medium" : "text-neutral-400")}>
+                        S₀ Salinity
+                      </span>
+                    </div>
+                  </div>
+                  <span className={cn("text-[9px]", activeParams.salinity ? "text-cyan-300/80 font-medium" : "text-neutral-500")}>
+                    {activeParams.salinity ? 'Crystals Visible' : 'Hidden'}
+                  </span>
+                </label>
+
+                {/* 4. Velocity Swell & Vector Checkbox */}
+                <label className={cn(
+                  "flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none",
+                  activeParams.velocity
+                    ? "bg-sky-500/[0.07] border-sky-500/25 text-neutral-200"
+                    : "bg-[#131316] border-[#222226] text-neutral-400 hover:border-[#2f2f35] hover:text-neutral-300"
+                )}>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={activeParams.velocity}
+                      onChange={toggleVelocity}
+                      className="w-3.5 h-3.5 rounded border-neutral-700/80 bg-neutral-900/80 text-sky-600/75 focus:ring-0 cursor-pointer accent-sky-600/75 opacity-85"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <Waves className="w-3 h-3 text-sky-400/70" />
+                      <span className={cn("transition-colors", activeParams.velocity ? "text-neutral-200 font-medium" : "text-neutral-400")}>
+                        Velocity Swell &amp; Vectors
+                      </span>
+                    </div>
+                  </div>
+                  <span className={cn("text-[9px]", activeParams.velocity ? "text-sky-300/80 font-medium" : "text-neutral-500")}>
+                    {activeParams.velocity ? 'Dynamic Waves' : 'Calm Ripples'}
+                  </span>
+                </label>
               </div>
             </div>
 
@@ -2457,7 +2820,7 @@ export default function DepthSlicePage() {
               <span className="text-neutral-300 truncate max-w-[130px]">{getZoneLabel(selectedDepth)}</span>
             </div>
             <div className="bg-black/85 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/15 text-[10px] font-mono text-cyan-300 pointer-events-auto shadow-lg uppercase font-bold">
-              {activeVariable === 'temperature' ? 'θ₀ Temp' : activeVariable === 'salinity' ? 'S₀ Sal' : activeVariable === 'currents' ? 'Velocity' : 'Chl-a'}
+              {activeParams.temperature ? 'θ₀ Temp' : activeParams.chlorophyll ? 'Chl-a' : activeParams.salinity ? 'S₀ Sal' : activeParams.velocity ? 'Velocity' : 'Blue Depth'}
             </div>
           </div>
 
@@ -2782,17 +3145,25 @@ export default function DepthSlicePage() {
               <div className="space-y-2">
                 <div className="text-xs text-[#888888] pb-1">Click any depth level to inspect in 3D scene:</div>
                 <div className="space-y-1.5">
-                  {waterColumn.map((layer, idx) => (
-                    <div
-                      key={layer.depth}
-                      onClick={() => setSelectedDepth(layer.depth)}
-                      className={cn(
-                        "flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer",
-                        selectedIndex === idx
-                          ? "bg-cyan-950/40 border-cyan-500/60 shadow-md"
-                          : "bg-[#121212] border-[#222222] hover:bg-[#181818] hover:border-[#333333]"
-                      )}
-                    >
+                  {waterColumn.map((layer, idx) => {
+                    const isExceeded = layer.depth > bathymetryInfo.maxSafeDepth;
+                    return (
+                      <div
+                        key={layer.depth}
+                        onClick={() => {
+                          if (!isExceeded) {
+                            handleSetSafeDepth(layer.depth);
+                          }
+                        }}
+                        className={cn(
+                          "flex items-center justify-between p-2.5 rounded-xl border transition-all",
+                          isExceeded
+                            ? "opacity-35 cursor-not-allowed border-[#18181b] bg-[#0c0c0e] line-through"
+                            : selectedIndex === idx
+                            ? "bg-cyan-950/40 border-cyan-500/60 shadow-md cursor-pointer"
+                            : "bg-[#121212] border-[#222222] hover:bg-[#181818] hover:border-[#333333] cursor-pointer"
+                        )}
+                      >
                       <div className="flex items-center gap-2.5">
                         <div
                           className={cn(
@@ -2813,7 +3184,8 @@ export default function DepthSlicePage() {
                         {layer.current_speed.toFixed(3)} m/s
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -2896,7 +3268,7 @@ export default function DepthSlicePage() {
             sensor={activeSensor}
             onTargetCoordinates={(targetLat, targetLon, targetDepth) => {
               if (targetDepth !== undefined) {
-                setSelectedDepth(targetDepth);
+                handleSetSafeDepth(targetDepth);
               }
               setIsProfileModalOpen(false);
             }}
