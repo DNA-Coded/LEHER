@@ -6,12 +6,14 @@ interface DataProvenanceBadgeProps {
   provenance: DataProvenanceInfo;
   className?: string;
   compact?: boolean;
+  align?: 'left' | 'right';
 }
 
 export const DataProvenanceBadge: React.FC<DataProvenanceBadgeProps> = ({
   provenance,
   className = '',
   compact = false,
+  align = 'left',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -66,7 +68,7 @@ export const DataProvenanceBadge: React.FC<DataProvenanceBadgeProps> = ({
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="absolute left-0 top-full mt-2 w-80 sm:w-96 p-4 rounded-xl border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl z-50 text-slate-200 font-sans animate-in fade-in zoom-in-95 duration-150">
+          <div className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] p-4 rounded-xl border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl z-50 text-slate-200 font-sans animate-in fade-in zoom-in-95 duration-150`}>
             {/* Header */}
             <div className="flex items-start justify-between gap-2 pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">

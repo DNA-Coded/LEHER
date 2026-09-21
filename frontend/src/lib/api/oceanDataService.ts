@@ -380,7 +380,9 @@ export class OceanDataService {
     try {
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), 600);
-      const res = await fetch(`${this.apiBaseUrl.replace('/api/ocean', '/api/incois')}/status`, { signal: ctrl.signal });
+      // The backend defines the status endpoint at /api/v1/status
+      const baseUrl = this.apiBaseUrl.split('/api/')[0];
+      const res = await fetch(`${baseUrl}/api/v1/status`, { signal: ctrl.signal });
       clearTimeout(t);
       if (res.ok) {
         return { isOnline: true, source: "LIVE_INCOIS_LAS_BACKEND" };

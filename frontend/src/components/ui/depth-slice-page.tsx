@@ -2143,9 +2143,10 @@ export default function DepthSlicePage() {
 
   return (
     <div className="h-screen w-full bg-[#141416] text-white flex flex-col overflow-hidden font-sans select-none">
-      {/* ── TOP NAVIGATION BAR (Exact Main Repo Layout) ── */}
-      <header className="h-16 bg-[#060606]/25 backdrop-blur-2xl border-b border-white/[0.08] px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 shadow-lg shadow-black/20">
-        <div className="flex items-center gap-2 sm:gap-3">
+      {/* ── TOP NAVIGATION BAR ── */}
+      <header className="h-16 w-full max-w-full bg-[#0a0b10]/95 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-5 lg:px-6 flex items-center justify-between gap-3 sm:gap-4 z-30 shrink-0 shadow-lg shadow-black/20 overflow-hidden">
+        {/* Left: Navigation & Branding (Fluid flex child) */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {/* Back to Previous Link */}
           <button
             onClick={() => {
@@ -2156,75 +2157,55 @@ export default function DepthSlicePage() {
                 window.location.href = `/operations?lat=${lat}&lon=${lon}&depth=${selectedDepth}&from=depth-slice`;
               }
             }}
-            className="p-2 rounded-xl bg-[#141414] hover:bg-[#202020] border border-[#262626] text-[#cccccc] hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+            className="px-2.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shrink-0"
             title="Go back to previous page"
           >
-            <ArrowLeft className="w-4 h-4 text-cyan-400" />
-            <span className="hidden sm:inline">Previous Page</span>
+            <ArrowLeft className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span className="hidden xl:inline whitespace-nowrap">Previous Page</span>
+            <span className="hidden sm:inline xl:hidden whitespace-nowrap">Previous</span>
           </button>
 
           {/* Go to Landing Page */}
           <a
             href="/"
-            className="p-2 rounded-xl bg-[#141414] hover:bg-[#202020] border border-[#262626] text-[#cccccc] hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+            className="px-2.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shrink-0"
             title="Return to Leher Landing Page"
           >
-            <Home className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline">Landing Page</span>
+            <Home className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="hidden xl:inline whitespace-nowrap">Landing Page</span>
+            <span className="hidden sm:inline xl:hidden whitespace-nowrap">Landing</span>
           </a>
 
-          <div className="h-4 w-[1px] bg-[#222222] hidden sm:block" />
+          <div className="h-4 w-[1px] bg-white/10 hidden sm:block mx-0.5 shrink-0" />
 
-          <a href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity" title="Leher Home">
-            <img 
-              src="/logo.png" 
-              alt="Leher Logo" 
-              title="Leher" 
-              className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)]" 
-            />
-            <div>
-              <div className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
-                <span>3D Volumetric Depth Slice</span>
-                <DataProvenanceBadge provenance={provenanceInfo} compact className="hidden sm:inline-block" />
+          {/* Title & Coordinates (No depth measurement) */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <a href="/" className="shrink-0 hover:opacity-90 transition-opacity" title="Leher Home">
+              <img 
+                src="/logo.png" 
+                alt="Leher Logo" 
+                title="Leher" 
+                className="h-6 sm:h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(56,189,248,0.35)] shrink-0" 
+              />
+            </a>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <span className="font-bold text-xs sm:text-sm lg:text-base text-white tracking-tight truncate">3D Volumetric Depth Slice</span>
+                <DataProvenanceBadge provenance={provenanceInfo} compact className="hidden sm:inline-flex shrink-0" />
               </div>
-              <div className="text-[11px] text-[#888888] font-mono hidden md:flex items-center gap-1.5">
-                <span>{basePrediction.location.regionName} ({lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`}, {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}) @ {selectedDepth}m</span>
-                <span className="text-cyan-400 font-medium">• Seafloor: ~{bathymetryInfo.seafloorDepth}m ({bathymetryInfo.zone})</span>
-                {bathymetryInfo.isContinentalShelf && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
-                    SHELF CAPPED
-                  </span>
-                )}
+              <div className="text-[11px] text-zinc-400 font-mono hidden md:flex items-center gap-1.5 whitespace-nowrap truncate">
+                <span className="text-zinc-300 font-medium">{basePrediction.location.regionName}</span>
+                <span className="text-zinc-600">•</span>
+                <span>({lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`}, {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`})</span>
               </div>
             </div>
-          </a>
+          </div>
         </div>
 
-        {/* Center Primary Navigation */}
-        <div className="hidden lg:flex items-center gap-1 text-xs font-medium">
-          <a
-            href="/"
-            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            Home
-          </a>
-          <a
-            href="/about"
-            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            About
-          </a>
-          <a
-            href="/operations"
-            className="px-3 py-1.5 rounded-xl text-[#888888] hover:text-white hover:bg-white/[0.04] transition-colors"
-          >
-            Explore / Platform
-          </a>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Quick Ocean Coordinates / Shelf Selector */}
-          <div className="hidden xl:flex items-center gap-1.5 bg-[#141414] px-2.5 py-1.5 rounded-xl border border-[#262626] font-mono text-xs">
+        {/* Right Controls: Location Preset, Clock, Dossier (Always fitting cleanly) */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Quick Ocean Coordinates Preset Selector (xl+ only) */}
+          <div className="hidden xl:flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.07] px-2.5 py-1.5 rounded-xl border border-white/10 font-mono text-xs transition-colors shrink-0 max-w-[200px] 2xl:max-w-[240px]">
             <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <select
               value={`${lat.toFixed(1)},${lon.toFixed(1)}`}
@@ -2232,24 +2213,25 @@ export default function DepthSlicePage() {
                 const [sLat, sLon] = e.target.value.split(',').map(Number);
                 handleSelectOceanLocation(sLat, sLon, 0);
               }}
-              className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent text-zinc-200 font-mono text-xs focus:outline-none cursor-pointer truncate pr-1 w-full"
             >
-              <option value="15.4,71.2" className="bg-[#18181c] text-white">Arabian Sea Deep Basin (2000m Floor)</option>
-              <option value="21.0,72.3" className="bg-[#18181c] text-amber-300">Gulf of Khambhat (35m Shelf Capped)</option>
-              <option value="19.3,71.8" className="bg-[#18181c] text-amber-300">Mumbai Offshore Shelf (85m Shelf Capped)</option>
-              <option value="10.5,72.6" className="bg-[#18181c] text-amber-300">Lakshadweep Atoll Bank (90m Shelf Capped)</option>
-              <option value="8.8,79.0" className="bg-[#18181c] text-amber-300">Gulf of Mannar Bank (65m Shelf Capped)</option>
-              <option value="14.5,73.2" className="bg-[#18181c] text-cyan-300">Goa Continental Slope (460m Slope)</option>
-              <option value="14.0,86.5" className="bg-[#18181c] text-white">Bay of Bengal Basin (2000m Floor)</option>
+              <option value="15.4,71.2" className="bg-[#18181c] text-white">Arabian Sea Deep Basin (2000m)</option>
+              <option value="21.0,72.3" className="bg-[#18181c] text-amber-300">Gulf of Khambhat (35m)</option>
+              <option value="19.3,71.8" className="bg-[#18181c] text-amber-300">Mumbai Offshore (85m)</option>
+              <option value="10.5,72.6" className="bg-[#18181c] text-amber-300">Lakshadweep Atoll (90m)</option>
+              <option value="8.8,79.0" className="bg-[#18181c] text-amber-300">Gulf of Mannar (65m)</option>
+              <option value="14.5,73.2" className="bg-[#18181c] text-cyan-300">Goa Continental Slope (460m)</option>
+              <option value="14.0,86.5" className="bg-[#18181c] text-white">Bay of Bengal Basin (2000m)</option>
             </select>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-[#aaaaaa] bg-[#141414] px-3 py-1.5 rounded-xl border border-[#262626]">
-            <span>{realTimeClock}</span>
+          {/* Real-time Clock & Timezone Selector (lg+ only) */}
+          <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-zinc-300 bg-white/[0.04] px-2.5 py-1.5 rounded-xl border border-white/10 shrink-0">
+            <span className="whitespace-nowrap font-medium">{realTimeClock}</span>
             <select
               value={selectedTimeZone}
               onChange={(e) => setSelectedTimeZone(e.target.value as TimeZone)}
-              className="bg-[#1f1f1f] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-[#333333] focus:outline-none cursor-pointer hover:border-cyan-500 transition-colors"
+              className="bg-[#18181b] text-white text-xs font-mono rounded px-1.5 py-0.5 border border-white/15 focus:outline-none cursor-pointer hover:border-cyan-500/50 transition-colors shrink-0"
             >
               {Object.entries(timeZoneMap).map(([tz, info]) => (
                 <option key={tz} value={tz}>
@@ -2259,15 +2241,16 @@ export default function DepthSlicePage() {
             </select>
           </div>
 
+          {/* Hazard Dossier Button - Always visible, never cropped */}
           <button
             onClick={() => {
               window.open(`/hazards?lat=${lat}&lon=${lon}&depth=${selectedDepth}`, '_blank');
             }}
-            className="px-3 py-1.5 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/70 border border-cyan-800/50 text-xs font-mono font-medium text-cyan-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-cyan-950/70 hover:bg-cyan-900/90 border border-cyan-600/50 hover:border-cyan-400 text-xs font-mono font-medium text-cyan-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-sm shadow-cyan-950/50"
             title="Open Maritime Hazard Intelligence Dossier"
           >
-            <span>Hazard Dossier</span>
-            <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="whitespace-nowrap">Hazard Dossier</span>
+            <Maximize2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
           </button>
         </div>
       </header>
@@ -2286,7 +2269,7 @@ export default function DepthSlicePage() {
           {/* Panel Header */}
           <div className="p-3.5 border-b border-[#222222] flex justify-between items-center shrink-0">
             <div className="min-w-0 flex-1 pr-2">
-              <div className="text-[10px] text-[#666666] font-mono uppercase tracking-wider flex items-center gap-1.5">
+              <div className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider flex items-center gap-1.5">
                 <Sliders className="w-3 h-3 text-cyan-400" />
                 <span>PARAMETERS &amp; TELEMETRY</span>
               </div>
@@ -2299,7 +2282,7 @@ export default function DepthSlicePage() {
             <button
               type="button"
               onClick={() => setIsLeftPanelMinimized(true)}
-              className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[#888888] hover:text-white transition-all cursor-pointer shrink-0"
+              className="p-1.5 rounded-lg bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0"
               title="Minimize parameters panel"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -2307,29 +2290,13 @@ export default function DepthSlicePage() {
           </div>
 
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 custom-scrollbar font-sans">
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar font-sans">
             {/* Depth Controller */}
-            <div className="bg-[#121215] border border-[#222222] rounded-xl p-3 space-y-2">
+            <div className="bg-[#121215] border border-[#222222] rounded-xl p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[10px] font-mono">
-                <span className="text-[#888888] uppercase tracking-wide font-bold">DEPTH CONTROLLER</span>
-                <span className="text-white font-bold text-xs flex items-center gap-1.5">
-                  <span>{selectedDepth === 0 ? '0m (Surface)' : `${selectedDepth}m`}</span>
-                  {bathymetryInfo.isContinentalShelf && (
-                    <span className="text-[9px] text-amber-400 font-mono border border-amber-500/30 px-1 py-0.5 rounded bg-amber-500/10">
-                      SHELF CAPPED
-                    </span>
-                  )}
-                </span>
-              </div>
-
-              {/* Seafloor Bathymetry Subtitle */}
-              <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 pt-0.5">
-                <span className="flex items-center gap-1 text-cyan-400">
-                  <Waves className="w-3 h-3" />
-                  <span>Seafloor Bathymetry:</span>
-                </span>
-                <span className="font-semibold text-white">
-                  ~{bathymetryInfo.seafloorDepth}m ({bathymetryInfo.zone})
+                <span className="text-zinc-400 uppercase tracking-wider font-semibold">DEPTH CONTROLLER</span>
+                <span className="text-white font-bold text-xs">
+                  {selectedDepth === 0 ? '0m (Surface)' : `${selectedDepth}m`}
                 </span>
               </div>
 
@@ -2342,18 +2309,16 @@ export default function DepthSlicePage() {
                 onChange={(e) => {
                   handleSetSafeDepth(Number(e.target.value));
                 }}
-                className="w-full accent-cyan-400 h-1.5 bg-[#1f1f1f] rounded appearance-none cursor-pointer"
+                className="w-full accent-cyan-400 h-1.5 bg-[#1f1f23] rounded appearance-none cursor-pointer"
               />
 
-              <div className="flex justify-between text-[9px] font-mono text-[#666666] -mt-0.5">
-                <span>0m (Surface)</span>
-                <span className="text-cyan-400 font-semibold">{selectedDepth}m</span>
-                <span>
-                  ~{bathymetryInfo.maxSafeDepth}m ({bathymetryInfo.isContinentalShelf ? 'Shelf' : 'Floor'})
-                </span>
+              <div className="flex justify-between text-[9px] font-mono text-zinc-500 pt-0.5">
+                <span>0m</span>
+                <span className="text-zinc-300 font-medium">{selectedDepth}m</span>
+                <span>{bathymetryInfo.maxSafeDepth}m</span>
               </div>
 
-              {/* Dynamic Smart Depth Presets (Constrained to Seafloor) */}
+              {/* Dynamic Depth Presets */}
               <div
                 className="grid gap-1 pt-1"
                 style={{
@@ -2361,53 +2326,39 @@ export default function DepthSlicePage() {
                 }}
               >
                 {smartDepthPresets.map((d) => {
-                  const isSeafloor = d === bathymetryInfo.maxSafeDepth;
                   const isSelected = selectedDepth === d;
                   return (
                     <button
                       key={d}
                       type="button"
                       onClick={() => handleSetSafeDepth(d)}
-                      title={
-                        isSeafloor
-                          ? `Benthic Seafloor Boundary (~${bathymetryInfo.seafloorDepth}m)`
-                          : `Set sounding depth to ${d}m`
-                      }
+                      title={`Set sounding depth to ${d}m`}
                       className={cn(
-                        "py-1 rounded text-[10px] font-mono border transition-all text-center truncate",
+                        "py-1 rounded-lg text-[10px] font-mono border transition-all text-center truncate cursor-pointer",
                         isSelected
-                          ? "bg-cyan-500 text-black font-bold border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.4)] cursor-pointer"
-                          : isSeafloor
-                          ? "bg-amber-950/40 border-amber-500/50 text-amber-300 hover:bg-amber-900/50 cursor-pointer font-semibold"
-                          : "bg-[#161616] border-[#222222] text-[#888888] hover:text-white hover:border-[#3a3a3a] cursor-pointer"
+                          ? "bg-cyan-500/20 text-cyan-300 font-bold border-cyan-500/60 shadow-sm"
+                          : "bg-[#161619] border-[#242428] text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-[#202024]"
                       )}
                     >
-                      {d === 0 ? "0m" : isSeafloor ? `${d}m ⚓` : `${d}m`}
+                      {d}m
                     </button>
                   );
                 })}
               </div>
-
-              {bathymetryInfo.isContinentalShelf && (
-                <div className="text-[10px] font-mono text-amber-300/80 bg-amber-950/20 border border-amber-500/20 rounded p-1.5 flex items-center gap-1.5 mt-1">
-                  <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-                  <span>Sub-seabed depths ({'>'}{bathymetryInfo.seafloorDepth}m) locked to local bathymetry.</span>
-                </div>
-              )}
             </div>
 
             {/* Changeable Units & Shape Toggles */}
             <div className="grid grid-cols-3 gap-2">
               {/* Temp Unit */}
               <div className="bg-[#121215] border border-[#222222] rounded-xl p-2 text-center">
-                <div className="text-[9px] text-[#666666] font-mono uppercase mb-1">Temp Unit</div>
+                <div className="text-[9px] text-zinc-500 font-mono uppercase mb-1">Temp Unit</div>
                 <div className="flex bg-[#18181c] rounded-lg p-0.5 border border-[#262626]">
                   <button
                     type="button"
                     onClick={() => setTempUnit('C')}
                     className={cn(
                       "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
-                      tempUnit === 'C' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                      tempUnit === 'C' ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
                     )}
                   >
                     °C
@@ -2417,7 +2368,7 @@ export default function DepthSlicePage() {
                     onClick={() => setTempUnit('F')}
                     className={cn(
                       "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
-                      tempUnit === 'F' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                      tempUnit === 'F' ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
                     )}
                   >
                     °F
@@ -2427,14 +2378,14 @@ export default function DepthSlicePage() {
 
               {/* Velocity Unit */}
               <div className="bg-[#121215] border border-[#222222] rounded-xl p-2 text-center">
-                <div className="text-[9px] text-[#666666] font-mono uppercase mb-1">Velocity</div>
+                <div className="text-[9px] text-zinc-500 font-mono uppercase mb-1">Velocity</div>
                 <div className="flex bg-[#18181c] rounded-lg p-0.5 border border-[#262626]">
                   <button
                     type="button"
                     onClick={() => setVelocityUnit('ms')}
                     className={cn(
                       "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
-                      velocityUnit === 'ms' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                      velocityUnit === 'ms' ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
                     )}
                   >
                     m/s
@@ -2444,7 +2395,7 @@ export default function DepthSlicePage() {
                     onClick={() => setVelocityUnit('knots')}
                     className={cn(
                       "flex-1 py-0.5 text-[10px] font-mono rounded transition-all cursor-pointer",
-                      velocityUnit === 'knots' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                      velocityUnit === 'knots' ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
                     )}
                   >
                     kts
@@ -2454,14 +2405,14 @@ export default function DepthSlicePage() {
 
               {/* Geometry Shape */}
               <div className="bg-[#121215] border border-[#222222] rounded-xl p-2 text-center">
-                <div className="text-[9px] text-[#666666] font-mono uppercase mb-1">Shape</div>
+                <div className="text-[9px] text-zinc-500 font-mono uppercase mb-1">Shape</div>
                 <div className="flex bg-[#18181c] rounded-lg p-0.5 border border-[#262626]">
                   <button
                     type="button"
                     onClick={() => setGeometryType('cylinder')}
                     className={cn(
                       "flex-1 py-0.5 text-[9px] font-mono rounded transition-all cursor-pointer",
-                      geometryType === 'cylinder' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                      geometryType === 'cylinder' ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
                     )}
                   >
                     Cyl
@@ -2471,7 +2422,7 @@ export default function DepthSlicePage() {
                     onClick={() => setGeometryType('cuboid')}
                     className={cn(
                       "flex-1 py-0.5 text-[9px] font-mono rounded transition-all cursor-pointer",
-                      geometryType === 'cuboid' ? "bg-white text-black font-bold" : "text-[#888888] hover:text-white"
+                      geometryType === 'cuboid' ? "bg-white/[0.12] text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
                     )}
                   >
                     Cub
@@ -2482,9 +2433,9 @@ export default function DepthSlicePage() {
 
             {/* Interactive Feature Parameters (Checkboxes) */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-[9px] text-neutral-400 font-mono uppercase tracking-wide">
+              <div className="flex items-center justify-between text-[9px] text-zinc-500 font-mono uppercase tracking-wider">
                 <span>Active Model Parameters</span>
-                <span className="text-cyan-400/75 font-medium">
+                <span className="text-zinc-400 font-medium">
                   {[activeParams.temperature && 'Temp', activeParams.chlorophyll && 'Chl', activeParams.salinity && 'Sal', activeParams.velocity && 'Waves'].filter(Boolean).join(' • ') || 'Plain Depth Model'}
                 </span>
               </div>
@@ -2494,22 +2445,22 @@ export default function DepthSlicePage() {
                 <label className={cn(
                   "flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none",
                   activeParams.temperature
-                    ? "bg-amber-500/[0.07] border-amber-500/25 text-neutral-200"
-                    : "bg-[#131316] border-[#222226] text-neutral-400 hover:border-[#2f2f35] hover:text-neutral-300"
+                    ? "bg-white/[0.05] border-white/20 text-zinc-200"
+                    : "bg-[#131316] border-[#222226] text-zinc-400 hover:border-zinc-700 hover:text-zinc-300"
                 )}>
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={activeParams.temperature}
                       onChange={toggleTemperature}
-                      className="w-3.5 h-3.5 rounded border-neutral-700/80 bg-neutral-900/80 text-amber-600/75 focus:ring-0 cursor-pointer accent-amber-600/75 opacity-85"
+                      className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-900 text-cyan-500 focus:ring-0 cursor-pointer accent-cyan-500"
                     />
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400/70 via-amber-400/70 to-rose-400/70" />
                       <span className={cn("transition-colors", activeParams.temperature ? "text-neutral-200 font-medium" : "text-neutral-400")}>
-                        θ₀ Temperature
-                      </span>
-                    </div>
+                      🌡️ Temperature
+                    </span>
+                  </div>
                   </div>
                   <span className="text-[9px] text-neutral-400">Color Gradient</span>
                 </label>
@@ -2532,8 +2483,8 @@ export default function DepthSlicePage() {
                       <span className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-800 via-emerald-600/80 to-emerald-400/70" />
                       <span className={cn("transition-colors", activeParams.chlorophyll ? "text-neutral-200 font-medium" : "text-neutral-400")}>
                         🌿 Chlorophyll
-                      </span>
-                    </div>
+                    </span>
+                  </div>
                   </div>
                   <span className="text-[9px] text-neutral-400">Green Shades</span>
                 </label>
@@ -2555,9 +2506,9 @@ export default function DepthSlicePage() {
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-neutral-300/80" />
                       <span className={cn("transition-colors", activeParams.salinity ? "text-neutral-200 font-medium" : "text-neutral-400")}>
-                        S₀ Salinity
-                      </span>
-                    </div>
+                      🧂 Salinity
+                    </span>
+                  </div>
                   </div>
                   <span className={cn("text-[9px]", activeParams.salinity ? "text-cyan-300/80 font-medium" : "text-neutral-500")}>
                     {activeParams.salinity ? 'Crystals Visible' : 'Hidden'}
@@ -2581,9 +2532,9 @@ export default function DepthSlicePage() {
                     <div className="flex items-center gap-1.5">
                       <Waves className="w-3 h-3 text-sky-400/70" />
                       <span className={cn("transition-colors", activeParams.velocity ? "text-neutral-200 font-medium" : "text-neutral-400")}>
-                        Velocity Swell &amp; Vectors
-                      </span>
-                    </div>
+                      Velocity Swell &amp; Vectors
+                    </span>
+                  </div>
                   </div>
                   <span className={cn("text-[9px]", activeParams.velocity ? "text-sky-300/80 font-medium" : "text-neutral-500")}>
                     {activeParams.velocity ? 'Dynamic Waves' : 'Calm Ripples'}
@@ -2595,7 +2546,7 @@ export default function DepthSlicePage() {
             {/* Color Scale Legend */}
             <div className="bg-[#121215] border border-[#222222] rounded-xl p-2.5 space-y-1.5">
               <div className="flex justify-between items-center text-[10px] font-mono">
-                <span className="text-[#888888] font-bold">{legendConfig.title}</span>
+                <span className="text-zinc-400 font-bold">{legendConfig.title}</span>
                 <span className="flex items-center gap-1.5 text-white font-bold">
                   <span className="w-2 h-2 rounded-full border border-white/30" style={{ backgroundColor: legendConfig.hexCol }} />
                   {legendConfig.valStr}
@@ -2608,7 +2559,7 @@ export default function DepthSlicePage() {
                   style={{ left: `${legendConfig.pct}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[9px] text-[#666666] font-mono">
+              <div className="flex justify-between text-[9px] text-zinc-500 font-mono">
                 {legendConfig.ticks.map((t) => <span key={t}>{t}</span>)}
               </div>
             </div>
@@ -2617,17 +2568,17 @@ export default function DepthSlicePage() {
             <button
               type="button"
               onClick={handleResetCamera}
-              className="w-full py-2 rounded-xl bg-[#161616] hover:bg-[#202020] border border-[#262626] hover:border-[#3a3a3a] text-[11px] font-mono text-[#888888] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-2 rounded-xl bg-[#161619] hover:bg-[#202024] border border-[#26262a] hover:border-zinc-600 text-[11px] font-mono text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset 3D Scene View</span>
             </button>
 
-            {/* ── UNIFIED OCEAN PARAMETERS CARD (NO REPEATS, SINGLE CARD) ── */}
+            {/* ── UNIFIED OCEAN PARAMETERS CARD ── */}
             <div className="bg-[#121215] border border-[#222222] rounded-xl p-3 space-y-2 font-mono text-[10px]">
-              <div className="flex justify-between items-center text-[#666] pb-1.5 border-b border-[#1f1f1f]">
-                <span className="uppercase tracking-wide font-bold text-white flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <div className="flex justify-between items-center text-zinc-400 pb-1.5 border-b border-[#1f1f23]">
+                <span className="uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                   OCEAN PARAMETERS
                 </span>
                 <span className="uppercase tracking-wide font-bold text-[#888] text-[9px]">@{selectedDepth}m Sounding</span>
@@ -2941,7 +2892,7 @@ export default function DepthSlicePage() {
                     {/* Max Depth badge – right side of float header */}
                     <div className="flex-shrink-0 text-right">
                       <div className="text-[9px] text-[#666666] font-mono uppercase tracking-wider">Max Depth</div>
-                      <div className="text-sm font-bold text-cyan-300 font-mono">{activeSensor.maxDepth}m</div>
+                      <div className="text-sm font-bold text-white font-mono">{activeSensor.maxDepth}m</div>
                     </div>
                   </div>
 
@@ -2961,13 +2912,13 @@ export default function DepthSlicePage() {
                     </div>
                     <div className="border-r border-[#262626] pr-1">
                       <div className="text-[9px] text-[#666666] uppercase">Depth</div>
-                      <div className="text-xs font-bold text-cyan-400">
+                      <div className="text-xs font-bold text-white">
                         {selectedDepth}m
                       </div>
                     </div>
                     <div>
                       <div className="text-[9px] text-[#666666] uppercase">Seafloor</div>
-                      <div className="text-xs font-bold text-amber-300">
+                      <div className="text-xs font-bold text-white">
                         ~{bathymetryInfo.seafloorDepth}m
                       </div>
                     </div>
@@ -2998,7 +2949,7 @@ export default function DepthSlicePage() {
                       <Radio className="w-3.5 h-3.5 text-cyan-400" />
                       DATA LINEAGE & PROVENANCE
                     </span>
-                    <DataProvenanceBadge provenance={provenanceInfo} compact />
+                    <DataProvenanceBadge provenance={provenanceInfo} compact align="right" />
                   </div>
 
                   <div className="space-y-1.5 divide-y divide-[#1a1a1f]/60 text-[10px]">
@@ -3010,11 +2961,11 @@ export default function DepthSlicePage() {
                     </div>
                     <div className="flex justify-between items-center py-1">
                       <span className="text-[#888888]">Nearest Grid Node</span>
-                      <span className="font-bold text-cyan-300">{provenanceInfo.details.nearestGridPoint}</span>
+                      <span className="font-bold text-white">{provenanceInfo.details.nearestGridPoint}</span>
                     </div>
                     <div className="flex justify-between items-center py-1">
                       <span className="text-[#888888]">Snapping Distance</span>
-                      <span className={provenanceInfo.isSparseOrOffset ? "font-bold text-rose-400" : "font-bold text-emerald-400"}>
+                      <span className="font-bold text-white">
                         {provenanceInfo.details.snappingDistance}
                       </span>
                     </div>
@@ -3043,7 +2994,7 @@ export default function DepthSlicePage() {
                   <div className="space-y-1.5 divide-y divide-[#1a1a1f]/60">
                     <div className="flex justify-between items-center py-1">
                       <span className="text-[#888888]">Operating Depth</span>
-                      <span className="font-bold text-cyan-300">{selectedDepth}m (Seafloor: ~{bathymetryInfo.seafloorDepth}m)</span>
+                      <span className="font-bold text-white">{selectedDepth}m (Seafloor: ~{bathymetryInfo.seafloorDepth}m)</span>
                     </div>
                     <div className="flex justify-between items-center py-1">
                       <span className="text-[#888888]">Benthic Classification</span>
