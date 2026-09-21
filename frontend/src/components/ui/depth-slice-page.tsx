@@ -2191,7 +2191,6 @@ export default function DepthSlicePage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <span className="font-bold text-xs sm:text-sm lg:text-base text-white tracking-tight truncate">3D Volumetric Depth Slice</span>
-                <DataProvenanceBadge provenance={provenanceInfo} compact className="hidden sm:inline-flex shrink-0" />
               </div>
               <div className="text-[11px] text-zinc-400 font-mono hidden md:flex items-center gap-1.5 whitespace-nowrap truncate">
                 <span className="text-zinc-300 font-medium">{basePrediction.location.regionName}</span>
