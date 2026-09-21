@@ -201,20 +201,12 @@ export const PointDepthPanel: React.FC = () => {
 
   return (
     <div
-      className="point-depth-panel"
+      className="point-depth-panel fixed sm:absolute inset-x-2 bottom-2 top-16 sm:top-[74px] sm:bottom-auto sm:left-auto sm:right-6 sm:w-[380px] lg:w-[420px] rounded-2xl overflow-y-auto shadow-2xl z-25 flex flex-col"
       style={{
-        position: 'absolute',
-        top: '74px',
-        right: '24px',
-        width: '420px',
-        height: 'calc(100vh - 98px)',
-        maxHeight: 'calc(100vh - 98px)',
-        overflowY: 'auto',
-        zIndex: 25,
+        maxHeight: 'calc(100vh - 84px)',
         background: 'rgba(5, 12, 28, 0.94)',
         backdropFilter: 'blur(28px)',
         border: `1px solid ${themeColor}44`,
-        borderRadius: '18px',
         padding: '0',
         color: '#e2f1ff',
         boxShadow: `0 20px 60px rgba(0, 0, 0, 0.85), 0 0 35px ${themeColor}22`,

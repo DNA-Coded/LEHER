@@ -106,13 +106,15 @@ const Card = ({
   const borderColor = customColors?.border || defaultBorderColors[colorTheme] || defaultBorderColors.blue;
   const widthClass = cardWidthClass || "w-full md:w-[260px]";
 
+  const rotateClass = rotate ? (rotate.startsWith('md:') ? rotate : `md:${rotate}`) : "";
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => setIsHovered((prev) => !prev)}
-      className={`relative ${widthClass} transition-all duration-300 ${rotate || ""} ${className || ""} ${
-        isHovered ? "z-[60] scale-105" : "z-20"
+      className={`relative ${widthClass} transition-all duration-300 ${rotateClass} ${className || ""} ${
+        isHovered ? "z-[60] scale-102 sm:scale-105" : "z-20"
       } cursor-pointer group`}
     >
       <div className="bg-[#0e1117] dark:bg-neutral-900 p-2.5 rounded-[25px] shadow-[0px_12px_28px_rgba(0,0,0,0.65)] border border-white/10 group-hover:border-cyan-400/50 transition-colors">
@@ -140,7 +142,7 @@ const Card = ({
       {/* Interactive Hover Popup positioned below the card in the generous vertical gap */}
       {popup && (
         <div
-          className={`absolute z-[100] w-[270px] sm:w-[290px] p-3.5 rounded-2xl bg-[#080d16]/95 backdrop-blur-2xl border border-cyan-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(6,182,212,0.25)] transition-all duration-300 top-full mt-3 ${
+          className={`absolute z-[100] w-[260px] max-w-[calc(100vw-48px)] sm:w-[290px] p-3.5 rounded-2xl bg-[#080d16]/95 backdrop-blur-2xl border border-cyan-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(6,182,212,0.25)] transition-all duration-300 top-full mt-3 ${
             popupPosition === "top-right" ? "right-0" : "left-0"
           } ${
             isHovered

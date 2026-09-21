@@ -368,8 +368,8 @@ export default function OperationsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Re-open Target Coordinate Popup Button */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Re-open Target Coordinate Popup Button (compact on mobile) */}
           <button
             type="button"
             onClick={() => {
@@ -378,11 +378,12 @@ export default function OperationsPage() {
               setModalDepth(workbenchDepth);
               setShowEntryModal(true);
             }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-[#161616] hover:bg-[#1f1f1f] border border-[#262626] text-xs font-mono text-[#cccccc] hover:text-white transition-all cursor-pointer"
             title="Open Target Coordinates & Depth Modal"
           >
-            <Crosshair className="w-3.5 h-3.5 text-[#888888]" />
-            <span>Target Coordinates</span>
+            <Crosshair className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">Target Coordinates</span>
+            <span className="sm:hidden text-[11px]">Coords</span>
           </button>
 
           {/* Real-time Clock */}
@@ -410,26 +411,26 @@ export default function OperationsPage() {
           type="button"
           onClick={() => setActiveMobileTab('map')}
           className={cn(
-            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            "flex-1 py-2 px-2 rounded-lg text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer min-h-[40px]",
             activeMobileTab === 'map'
-              ? "bg-[#1f1f1f] text-white border border-[#333333] shadow-sm"
+              ? "bg-[#1f1f1f] text-white border border-[#333333] shadow-sm font-bold"
               : "text-[#888888] hover:text-white"
           )}
         >
-          <MapIcon className="w-3.5 h-3.5 text-[#888888]" />
+          <MapIcon className="w-3.5 h-3.5 text-cyan-400" />
           <span>3D Globe View</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveMobileTab('controls')}
           className={cn(
-            "flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer",
+            "flex-1 py-2 px-2 rounded-lg text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer min-h-[40px]",
             activeMobileTab === 'controls'
-              ? "bg-[#1f1f1f] text-white border border-[#333333] shadow-sm"
+              ? "bg-[#1f1f1f] text-white border border-[#333333] shadow-sm font-bold"
               : "text-[#888888] hover:text-white"
           )}
         >
-          <Sliders className="w-3.5 h-3.5 text-[#888888]" />
+          <Sliders className="w-3.5 h-3.5 text-cyan-400" />
           <span>Operations Workbench</span>
         </button>
       </div>
@@ -461,17 +462,17 @@ export default function OperationsPage() {
           />
 
           {/* Center Floating Coordinate HUD */}
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <div className="bg-[#000000]/85 backdrop-blur-lg px-5 py-3 rounded-2xl border border-white/10 shadow-2xl pointer-events-auto flex flex-col items-center gap-1 min-w-[220px]">
-              <div className="flex items-center gap-2 font-mono">
-                <span className="text-white font-bold text-base tracking-tight">
+          <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-10 pointer-events-none max-w-[calc(100vw-32px)]">
+            <div className="bg-[#000000]/85 backdrop-blur-lg px-3.5 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl border border-white/10 shadow-2xl pointer-events-auto flex flex-col items-center gap-0.5 sm:gap-1 min-w-[200px] sm:min-w-[220px]">
+              <div className="flex items-center gap-1.5 sm:gap-2 font-mono">
+                <span className="text-white font-bold text-sm sm:text-base tracking-tight">
                   {inputLat >= 0 ? `${inputLat.toFixed(2)}°N` : `${Math.abs(inputLat).toFixed(2)}°S`}
-                  <span className="text-neutral-500 mx-1.5">·</span>
+                  <span className="text-neutral-500 mx-1 sm:mx-1.5">·</span>
                   {inputLon >= 0 ? `${inputLon.toFixed(2)}°E` : `${Math.abs(inputLon).toFixed(2)}°W`}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
-                <span className="text-neutral-300 font-semibold">{prediction.location.regionName}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono text-neutral-400">
+                <span className="text-neutral-300 font-semibold truncate max-w-[130px] sm:max-w-none">{prediction.location.regionName}</span>
                 <span className="text-neutral-600">·</span>
                 <span>{workbenchDepth}m depth</span>
               </div>

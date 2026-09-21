@@ -240,12 +240,12 @@ export const ModelVsObsComparator: React.FC<ModelVsObsComparatorProps> = ({
 
       {/* ── VARIABLE SWITCHER & LEGEND ── */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-        <div className="flex bg-[#141418] p-1 rounded-lg border border-[#222228]">
+        <div className="flex w-full sm:w-auto bg-[#141418] p-1 rounded-lg border border-[#222228]">
           <button
             type="button"
             onClick={() => setActiveMetric('temp')}
             className={cn(
-              'px-3 py-1 rounded transition-all cursor-pointer font-semibold flex items-center gap-1.5',
+              'flex-1 sm:flex-initial justify-center px-3 py-1 rounded transition-all cursor-pointer font-semibold flex items-center gap-1.5 text-[11px] sm:text-xs',
               isTemp ? 'bg-white text-black shadow' : 'text-neutral-400 hover:text-white'
             )}
           >
@@ -256,7 +256,7 @@ export const ModelVsObsComparator: React.FC<ModelVsObsComparatorProps> = ({
             type="button"
             onClick={() => setActiveMetric('sal')}
             className={cn(
-              'px-3 py-1 rounded transition-all cursor-pointer font-semibold flex items-center gap-1.5',
+              'flex-1 sm:flex-initial justify-center px-3 py-1 rounded transition-all cursor-pointer font-semibold flex items-center gap-1.5 text-[11px] sm:text-xs',
               !isTemp ? 'bg-white text-black shadow' : 'text-neutral-400 hover:text-white'
             )}
           >

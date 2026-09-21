@@ -52,20 +52,15 @@ export const LocationInspector: React.FC = () => {
 
   return (
     <div
+      className="fixed sm:absolute inset-x-3 sm:inset-x-auto top-20 sm:top-[80px] sm:w-[300px] rounded-2xl z-22 transition-all duration-300"
       style={{
-        position: 'absolute',
-        top: '80px',
-        right: selectedRegion ? '420px' : '28px',
-        width: '300px',
+        right: typeof window !== 'undefined' && window.innerWidth >= 640 ? (selectedRegion ? '420px' : '28px') : undefined,
         background: 'rgba(5, 15, 30, 0.92)',
         backdropFilter: 'blur(20px)',
         border: `1px solid ${themeColor}55`,
-        borderRadius: '14px',
         padding: '14px 16px',
         color: '#e2f1ff',
-        zIndex: 22,
         boxShadow: `0 16px 40px rgba(0, 0, 0, 0.7), 0 0 16px ${themeColor}12`,
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         animation: 'fadeInUp 0.3s ease forwards',
       }}
     >

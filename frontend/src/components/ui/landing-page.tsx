@@ -190,6 +190,7 @@ export default function LeherLandingPage() {
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZone>('IST');
   const [realTimeClock, setRealTimeClock] = useState<string>('');
   const [pointReport, setPointReport] = useState<TraceablePointReport | null>(null);
+  const [previewMobileTab, setPreviewMobileTab] = useState<'controls' | 'map' | 'answers'>('map');
 
 
   // Listen for globe paused / unpaused state messages from the 3D globe iframe
@@ -510,16 +511,24 @@ export default function LeherLandingPage() {
 
     // Section-aware globe positioning:
     // Sections 0 & 1 (Hero through Step 1, 2, 3):
-    // Desktop: globe remains strictly static at top: 50%, left: 70%, scale: 1.2
-    // Mobile/Tablet (< 1024px): sits comfortably lower at top: 66%, left: 50%, scale: 0.78 so text is fully readable
-    const isMobile = window.innerWidth < 1024;
+    // Multi-tier viewport-aware globe positioning:
+    const width = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const isSmallMobile = width < 480;
+    const isTablet = width >= 768 && width < 1024;
+    const isDesktop = width >= 1024;
+
+    const baseLeft = isDesktop ? 70 : isTablet ? 64 : 50;
+    const baseTop = isDesktop ? 50 : isTablet ? 52 : (isSmallMobile ? 70 : 66);
+    const baseScale = isDesktop ? 1.2 : isTablet ? 0.9 : (isSmallMobile ? 0.56 : 0.72);
+    const baseOpacity = isSmallMobile ? 0.85 : 0.95;
+
     const secSteps = sectionRefs.current[1];
     const secWorkbench = sectionRefs.current[2];
 
-    let currentLeft = isMobile ? 50 : 70;
-    let currentTop = isMobile ? 66 : 50;
-    let currentScale = isMobile ? 0.78 : 1.2;
-    let currentOpacity = 0.95;
+    let currentLeft = baseLeft;
+    let currentTop = baseTop;
+    let currentScale = baseScale;
+    let currentOpacity = baseOpacity;
 
     if (secSteps && secWorkbench) {
       const topSteps = secSteps.offsetTop;
@@ -527,17 +536,17 @@ export default function LeherLandingPage() {
       const step4Trigger = topSteps + Math.max((topWorkbench - topSteps) * 0.55, 300);
 
       if (scrollTop <= step4Trigger) {
-        currentLeft = isMobile ? 50 : 70;
-        currentTop = isMobile ? 66 : 50;
-        currentScale = isMobile ? 0.78 : 1.2;
-        currentOpacity = 0.95;
+        currentLeft = baseLeft;
+        currentTop = baseTop;
+        currentScale = baseScale;
+        currentOpacity = baseOpacity;
       } else if (scrollTop < topWorkbench) {
         const progress = Math.min(Math.max((scrollTop - step4Trigger) / (topWorkbench - step4Trigger), 0), 1);
         const ease = progress * progress * (3 - 2 * progress);
-        currentLeft = isMobile ? 50 : (70 + (50 - 70) * ease);
-        currentTop = isMobile ? (66 + (50 - 66) * ease) : 50;
-        currentScale = (isMobile ? 0.78 : 1.2) * (1 - 0.72 * ease);
-        currentOpacity = 0.95 * (1 - ease);
+        currentLeft = baseLeft + (50 - baseLeft) * ease;
+        currentTop = baseTop + (50 - baseTop) * ease;
+        currentScale = baseScale * (1 - 0.72 * ease);
+        currentOpacity = baseOpacity * (1 - ease);
       } else {
         currentLeft = 50;
         currentTop = 50;
@@ -598,12 +607,16 @@ export default function LeherLandingPage() {
   }, [updateScrollPosition]);
 
   useEffect(() => {
-    const isMobile = window.innerWidth < 1024;
+    const width = window.innerWidth;
+    const isSmallMobile = width < 480;
+    const isTablet = width >= 768 && width < 1024;
+    const isDesktop = width >= 1024;
+
     const initialPos = calculatedPositions[0];
     if (initialPos && globeContainerRef.current) {
-      const left = isMobile ? 50 : initialPos.left;
-      const top = isMobile ? 66 : initialPos.top;
-      const scale = isMobile ? 0.78 : initialPos.scale;
+      const left = isDesktop ? initialPos.left : (isTablet ? 64 : 50);
+      const top = isDesktop ? initialPos.top : (isTablet ? 52 : (isSmallMobile ? 70 : 66));
+      const scale = isDesktop ? initialPos.scale : (isTablet ? 0.9 : (isSmallMobile ? 0.56 : 0.72));
       globeContainerRef.current.style.transform = `translate3d(${left}vw, ${top}vh, 0) translate3d(-50%, -50%, 0) scale3d(${scale}, ${scale}, 1)`;
     }
   }, [calculatedPositions]);
@@ -1324,9 +1337,46 @@ export default function LeherLandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 min-h-[640px]">
+          {/* Mobile Segmented Tab Switcher (< lg only) */}
+          <div className="flex lg:hidden bg-[#0c0c0f] border-b border-[#222222] p-1.5 gap-1 text-xs font-mono">
+            <button
+              type="button"
+              onClick={() => setPreviewMobileTab('controls')}
+              className={cn(
+                "flex-1 py-2 px-1 sm:px-2 rounded-lg transition-all text-center font-semibold cursor-pointer truncate",
+                previewMobileTab === 'controls' ? "bg-white text-black shadow-sm font-bold" : "text-[#888888] hover:text-white"
+              )}
+            >
+              Controls
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewMobileTab('map')}
+              className={cn(
+                "flex-1 py-2 px-1 sm:px-2 rounded-lg transition-all text-center font-semibold cursor-pointer truncate",
+                previewMobileTab === 'map' ? "bg-white text-black shadow-sm font-bold" : "text-[#888888] hover:text-white"
+              )}
+            >
+              3D Earth Map
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewMobileTab('answers')}
+              className={cn(
+                "flex-1 py-2 px-1 sm:px-2 rounded-lg transition-all text-center font-semibold cursor-pointer truncate",
+                previewMobileTab === 'answers' ? "bg-white text-black shadow-sm font-bold" : "text-[#888888] hover:text-white"
+              )}
+            >
+              Answers
+            </button>
+          </div>
+
+          <div className="grid grid-cols-12 min-h-[580px] lg:min-h-[640px]">
             {/* Column 1: Input Controls (Lat/Lon, Auto-Detect, Depth, Globe Dropdown, Predict Button) */}
-            <div className="col-span-12 lg:col-span-4 bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-5 space-y-4">
+            <div className={cn(
+              "col-span-12 lg:col-span-4 bg-[#0c0c0c] border-b lg:border-b-0 lg:border-r border-[#222222] p-4 sm:p-5 space-y-4",
+              previewMobileTab === 'controls' ? "block" : "hidden lg:block"
+            )}>
               <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
                 <span className="text-white font-bold uppercase tracking-wider text-xs font-mono flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-cyan-400" />
@@ -1338,11 +1388,12 @@ export default function LeherLandingPage() {
             </div>
 
             {/* Column 2: Center 3D Earth Display */}
-            <div className="col-span-12 lg:col-span-4 bg-[#040404] relative flex flex-col justify-between overflow-hidden border-b lg:border-b-0 min-h-[480px]">
-
-
+            <div className={cn(
+              "col-span-12 lg:col-span-4 bg-[#040404] relative flex flex-col justify-between overflow-hidden border-b lg:border-b-0 min-h-[440px] sm:min-h-[480px]",
+              previewMobileTab === 'map' ? "flex" : "hidden lg:flex"
+            )}>
               {/* CENTER 3D EARTH IFRAME */}
-              <div className="w-full h-full min-h-[500px] relative">
+              <div className="w-full h-full min-h-[440px] sm:min-h-[500px] relative">
                 <iframe
                   key={`${activeProjection}-${workbenchVar}`}
                   src={getEarthIframeUrl(workbenchVar)}
@@ -1360,16 +1411,19 @@ export default function LeherLandingPage() {
               </div>
 
               {/* Bottom Map Bar with Coordinate HUD */}
-              <div className="absolute bottom-3 left-4 right-4 z-10 pointer-events-none">
-                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-[10px] font-mono text-[#aaaaaa] flex justify-between items-center pointer-events-auto shadow-md">
+              <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-4 z-10 pointer-events-none">
+                <div className="bg-[#000000]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-[10px] font-mono text-[#aaaaaa] flex flex-wrap justify-between items-center pointer-events-auto shadow-md gap-1">
                   <span>Selected: <strong className="text-white">{inputLat >= 0 ? `${inputLat}°N` : `${Math.abs(inputLat)}°S`}, {inputLon >= 0 ? `${inputLon}°E` : `${Math.abs(inputLon)}°W`}</strong></span>
-                  <span className="text-cyan-400 font-semibold">Click map to inspect any point</span>
+                  <span className="text-cyan-400 font-semibold text-[9px] sm:text-[10px]">Click map to inspect any point</span>
                 </div>
               </div>
             </div>
 
             {/* Column 3: Answer Section (10 Copernicus Variables Table & Telemetry) */}
-            <div className="col-span-12 lg:col-span-4 bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-5 space-y-4 overflow-y-auto max-h-[680px]">
+            <div className={cn(
+              "col-span-12 lg:col-span-4 bg-[#0c0c0c] border-t lg:border-t-0 lg:border-l border-[#222222] p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[680px]",
+              previewMobileTab === 'answers' ? "block" : "hidden lg:block"
+            )}>
               <div className="border-b border-[#222222] pb-2 flex justify-between items-center">
                 <span className="text-white font-bold uppercase tracking-wider text-xs font-mono flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
