@@ -25,6 +25,15 @@ body,
   box-shadow: none !important;
 }
 
+/* Remove ArcGIS focus brackets/corners */
+.esri-view-surface:focus::after,
+.esri-view-surface--inset-outline:focus::after,
+.esri-view-surface:focus-within::after,
+.esri-view-surface--inset-outline:focus-within::after {
+  outline: none !important;
+}
+
+
 body {
   background: transparent !important;
   background-color: transparent !important;

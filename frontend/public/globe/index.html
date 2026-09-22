@@ -30,6 +30,12 @@
       overflow: hidden !important;
       touch-action: none;
     }
+    .esri-view-surface:focus::after,
+    .esri-view .esri-view-surface--inset-outline:focus::after,
+    .esri-view-surface:focus-within::after {
+      outline: none !important;
+      border: none !important;
+    }
     .esri-attribution, .esri-attribution__sources, .esri-attribution__link, a {
       display: none !important;
     }
