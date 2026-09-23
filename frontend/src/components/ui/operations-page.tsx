@@ -704,14 +704,6 @@ export default function OperationsPage() {
             </button>
           </div>
 
-          {/* Data Provenance & Lineage */}
-          {coordValidation.isValid && !bathymetryInfo.isLand && (
-            <div className="flex items-center justify-between py-1 px-2 bg-[#13141b]/60 border border-zinc-800/60 rounded-lg">
-              <span className="text-[10px] font-mono text-zinc-400">DATA LINEAGE</span>
-              <DataProvenanceBadge provenance={provenanceInfo} compact />
-            </div>
-          )}
-
           {/* Sparse Grid Snapping Alert if > 15km */}
           {coordValidation.isValid && !bathymetryInfo.isLand && provenanceInfo.isSparseOrOffset && (
             <div className="p-2 bg-amber-950/30 border border-amber-500/30 rounded-lg text-[10px] text-amber-300 flex items-start gap-1.5">
