@@ -1,9 +1,5 @@
 import React from 'react';
-import { 
-  ArrowRight, Compass, Wind, CloudRain, ShieldCheck, Database, 
-  Activity, Cpu, Layers, GitBranch, ExternalLink, BookOpen, 
-  Waves, Radio, Award, CheckCircle2, FileText, Anchor, Shield, LineChart
-} from 'lucide-react';
+import { ArrowRight, Compass, Wind, CloudRain } from 'lucide-react';
 import AppNavbar from '@/components/ui/app-navbar';
 import { ShinyButton } from '@/components/ui/shiny-button';
 import { SpinningBorderButton } from '@/components/ui/spinning-border-button';
@@ -39,34 +35,19 @@ export function AboutLeherPage() {
       <main className="flex-1 pt-24 pb-20 px-4 sm:px-6 lg:px-12 max-w-5xl mx-auto w-full space-y-20 sm:space-y-24 relative z-10">
         
         {/* ========================================================
-            01 — ABOUT LEHER (HERO WITH SIH & INSTITUTION BADGES)
+            01 — ABOUT LEHER (HERO)
            ======================================================== */}
         <section className="pt-8 sm:pt-14 text-center max-w-3xl mx-auto space-y-6">
-          {/* SIH & MoES Institutional Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-xs font-mono font-semibold tracking-wide">
-              <Award className="w-3.5 h-3.5 text-cyan-400" />
-              <span>SIH Problem Statement 26067</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-800/60 text-emerald-300 text-xs font-mono font-semibold tracking-wide">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>INCOIS • Ministry of Earth Sciences (MoES)</span>
-            </span>
-          </div>
-
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15]">
-            Understand the Ocean. <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              Make Safer Decisions.
-            </span>
+            Understand the Ocean. Make Safer Decisions.
           </h1>
 
-          <div className="space-y-3 max-w-2xl mx-auto">
+          <div className="space-y-2 max-w-2xl mx-auto">
             <p className="text-base sm:text-lg text-neutral-300 leading-relaxed font-normal">
-              <strong>Leher (लहर)</strong> is an institutional 3D ocean intelligence, subsurface stratification, and maritime hazard decision-support platform designed for the Indian Ocean.
+              Leher is an interactive 3D ocean platform for exploring ocean conditions, observations and maritime risk across the Indian Ocean.
             </p>
             <p className="text-sm sm:text-base text-neutral-400 leading-relaxed font-normal">
-              Integrating 4D numerical hydrodynamic models with real-world in-situ observation telemetry (Argo floats, gliders, OMNI buoys) across space, depth, and time.
+              It helps users move from understanding a location to identifying hazards and making informed maritime decisions.
             </p>
           </div>
 
@@ -76,76 +57,64 @@ export function AboutLeherPage() {
               className="py-2.5 px-6 text-xs sm:text-sm font-semibold shadow-lg"
             >
               <Compass className="w-4 h-4 text-cyan-400" />
-              <span>Launch Operations Console</span>
+              <span>Launch Platform</span>
               <ArrowRight className="w-4 h-4 opacity-80" />
             </ShinyButton>
             <SpinningBorderButton
-              onClick={() => navigateTo('/depth-slice')}
+              onClick={() => navigateTo('/')}
               hideArrow
             >
-              <span>Explore 3D Depth Slices</span>
+              <span>Back to Home</span>
             </SpinningBorderButton>
           </div>
         </section>
 
         {/* ========================================================
-            02 — THE OCEANOGRAPHIC PROBLEM & MANDATE
+            01 — THE PROBLEM
            ======================================================== */}
         <section className="space-y-8 pt-4">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              01 / THE OCEANOGRAPHIC CHALLENGE
+              01 / THE PROBLEM
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              Bridging Flat 2D GIS with 4D Subsurface Dynamics
+              Understanding the Ocean Is Not Just About One Variable
             </h2>
             <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
-              India manages over 2.37 million sq km of EEZ. Traditional marine GIS portals render flat surface layers, hiding 90% of oceanic heat dynamics, thermoclines, and sonar acoustic ducts residing below.
+              Ocean conditions change with location, depth and time. Different observations and environmental factors need to be understood together before a user can judge what a location means for maritime activity.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <RayCard innerClassName="p-4 sm:p-5">
               <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-semibold">
-                  <Layers className="w-4 h-4" />
-                  <span>Subsurface Stratification</span>
-                </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Vertical Column Hidden
+                  Conditions Change
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Temperature, salinity, and acoustic velocity vary dramatically from surface to 2,000m+ depth, requiring depth-resolved 3D slicing.
+                  Temperature, salinity and currents vary across location and depth.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
               <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-semibold">
-                  <Radio className="w-4 h-4" />
-                  <span>Telemetry Fragmentation</span>
-                </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Disconnected Data Silos
+                  Information Comes From Different Sources
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Numerical ocean models (Copernicus GLORYS12V1) were historically disconnected from physical in-situ Argo float and glider telemetry.
+                  Ocean models and in-situ observations provide different views of the same environment.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
               <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-semibold">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Operational Actionability</span>
-                </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Actionable Operational Advisories
+                  Context Matters
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Raw NetCDF matrices are transformed into actionable briefings for fishermen, naval acoustic operators, and coastal disaster teams.
+                  A condition becomes more useful when it can be understood for a specific location, time and surrounding risk.
                 </p>
               </div>
             </RayCard>
@@ -153,39 +122,39 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            03 — THE PLATFORM FLOW
+            02 — THE PLATFORM
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              02 / SYSTEM ARCHITECTURE & FLOW
+              02 / THE PLATFORM
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              Unified Hydrodynamic &amp; Observation Intelligence
+              One View of the Ocean and Its Risk
             </h2>
             <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
-              Leher unifies multi-depth numeric models and physical sensors into one high-performance WebGL environment.
+              Leher brings the main information a maritime user needs into one interactive environment.
             </p>
           </div>
 
-          {/* Connected Flow: OCEAN -> OBSERVATIONS -> BIAS ENGINE -> DECISION */}
+          {/* Connected Flow: OCEAN -> OBSERVATIONS -> LOCATION -> DECISION */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
             {/* Block 01 */}
             <RayCard innerClassName="p-4 sm:p-5 justify-between">
               <div className="space-y-2">
                 <div>
-                  <span className="text-[11px] sm:text-xs font-mono text-cyan-400 font-semibold tracking-wider uppercase inline-block">01 — HYDRODYNAMICS</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">01 — OCEAN</span>
                 </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  4D Ocean Model Fields
+                  Ocean Conditions
                 </h3>
                 <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
-                  GLORYS12V1 reanalysis &amp; forecast data across 50 vertical depth levels (0–2000m).
+                  Explore temperature, salinity and currents across location and depth.
                 </p>
               </div>
               <div className="pt-3 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
-                <span>Passes to</span>
-                <span className="text-neutral-300 font-medium">→ In-Situ Telemetry</span>
+                <span>Connects to</span>
+                <span className="text-neutral-300 font-medium">→ Observations</span>
               </div>
             </RayCard>
 
@@ -193,18 +162,18 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-4 sm:p-5 justify-between">
               <div className="space-y-2">
                 <div>
-                  <span className="text-[11px] sm:text-xs font-mono text-emerald-400 font-semibold tracking-wider uppercase inline-block">02 — IN-SITU FLEET</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">02 — OBSERVATIONS</span>
                 </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Sensor Telemetry
+                  Ocean Observations
                 </h3>
                 <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
-                  Real-time profiling Argo floats, gliders, CTDs, and INCOIS OMNI buoy networks.
+                  View observations from instruments such as Argo floats and gliders alongside the ocean environment.
                 </p>
               </div>
               <div className="pt-3 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
-                <span>Co-validates with</span>
-                <span className="text-neutral-300 font-medium">→ Bias Engine</span>
+                <span>Connects to</span>
+                <span className="text-neutral-300 font-medium">→ Location</span>
               </div>
             </RayCard>
 
@@ -212,18 +181,18 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-4 sm:p-5 justify-between">
               <div className="space-y-2">
                 <div>
-                  <span className="text-[11px] sm:text-xs font-mono text-amber-400 font-semibold tracking-wider uppercase inline-block">03 — BIAS ENGINE</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">03 — LOCATION</span>
                 </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Model vs Obs Validation
+                  Location Assessment
                 </h3>
                 <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
-                  Spatial-temporal co-location computing water column RMSE, mean bias, D20 error &amp; Pearson r.
+                  Select a location to understand its conditions, observations and current risk status.
                 </p>
               </div>
               <div className="pt-3 text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
-                <span>Feeds into</span>
-                <span className="text-neutral-300 font-medium">→ Decision Support</span>
+                <span>Connects to</span>
+                <span className="text-neutral-300 font-medium">→ Decision</span>
               </div>
             </RayCard>
 
@@ -231,126 +200,102 @@ export function AboutLeherPage() {
             <RayCard innerClassName="p-4 sm:p-5 justify-between">
               <div className="space-y-2">
                 <div>
-                  <span className="text-[11px] sm:text-xs font-mono text-rose-400 font-semibold tracking-wider uppercase inline-block">04 — DECISION SUPPORT</span>
+                  <span className="text-[11px] sm:text-xs font-mono text-neutral-300 font-semibold tracking-wider whitespace-nowrap inline-block">04 — DECISION</span>
                 </div>
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Operational Advisories
+                  Maritime Decision Support
                 </h3>
                 <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed">
-                  ML cyclone predictions, storm surge inundation, safe fishing corridors &amp; PDF dossiers.
+                  Use the available information to identify hazards, understand risk and support safer maritime decisions.
                 </p>
               </div>
               <div className="pt-3 text-[11px] font-mono text-neutral-400 flex items-center gap-1.5">
                 <span>Outcome</span>
-                <span className="text-white font-medium">→ Maritime Safety</span>
+                <span className="text-white font-medium">→ Safer Decisions</span>
               </div>
             </RayCard>
           </div>
         </section>
 
         {/* ========================================================
-            04 — CAPABILITIES & CORE FEATURES
+            03 — CAPABILITIES
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              03 / CAPABILITIES &amp; INNOVATIONS
+              03 / CAPABILITIES
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              Institutional Features Engine
+              Integrated Intelligence &amp; Analysis Features
             </h2>
             <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
-              Exhaustive technological suite engineered to satisfy every operational parameter of SIH Problem Statement 26067.
+              Recent platform additions expand Leher with volumetric 3D water column sounding, machine learning hazard predictions, marine ecosystem health monitoring, and official mission PDF dossiers.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <RayCard innerClassName="p-4 sm:p-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-semibold">
-                  <Waves className="w-4 h-4" />
-                  <span>3D Volumetric Slicing</span>
-                </div>
+              <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  WebGL Depth Engine
+                  3D Volumetric Depth Sounding
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Three.js 3D Cylinder and Cuboid ocean block slicing across 50 vertical depth levels ($0.49\text{m}$ to $5,728\text{m}$) with Marching Cubes isosurface extraction off-thread via Web Workers.
+                  Interactive multi-layer ocean column slicing from surface (0m) to bathypelagic depths (2000m) with live temperature, salinity, current vectors, and acoustic velocity.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-semibold">
-                  <LineChart className="w-4 h-4" />
-                  <span>Hydrodynamic Validation</span>
-                </div>
+              <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Model vs. Obs Bias Engine
+                  Rakshak Intelligence ML Predictions
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Direct co-location comparing Copernicus GLORYS12V1 vs in-situ Argo observations, computing column RMSE, signed mean bias ($\Delta T, \Delta S$), D20 thermocline error, and Pearson correlation ($r$).
+                  Machine learning model outcomes computing coastal proximity, cyclone probability, predicted storm surge elevation, and fishing zone safety status.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-rose-400 font-mono text-xs font-semibold">
-                  <Cpu className="w-4 h-4" />
-                  <span>Machine Learning Engine</span>
-                </div>
+              <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Jal-Chakra &amp; Rakshak AI Suite
+                  Marine Ecosystem Health Analysis
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Dual XGBoost machine learning engines trained on IMD IBTrACS cyclone track records, predicting tropical storm surge inundation levels and cyclogenesis probability.
+                  Real-time ecological assessment tracking overall ecosystem health score, coral bleaching thermal stress, algal bloom risk, fish stress, and hypoxia risk.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-semibold">
-                  <Activity className="w-4 h-4" />
-                  <span>Ecosystem Monitoring</span>
-                </div>
+              <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Marine Ecosystem Health Grid
+                  Tactical Mission Dossier (PDF)
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Real-time ecological assessment across 4,000 spatial cells tracking NOAA Degree Heating Weeks (DHW) coral bleaching risk, Harmful Algal Bloom (HAB) index, and hypoxia ($O_2$ depletion).
+                  One-click export of official, printable INCOIS and MoES operational briefings containing cross-verified 3D telemetry, UNESCO density, and Plimsoll draft advisories.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-blue-400 font-mono text-xs font-semibold">
-                  <FileText className="w-4 h-4" />
-                  <span>Executive Reporting</span>
-                </div>
+              <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  1-Click Mission Dossier (PDF)
+                  Acoustic &amp; Maritime Advisories
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Instant client-side generation of institutional, printable operational briefings branded with official INCOIS and MoES standards for disaster decision-makers.
+                  Automated computation of SOFAR channel ducting, shadow zone depths, autopilot leeway drift angles, and Search and Rescue (SAR) datum drift rates.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-purple-400 font-mono text-xs font-semibold">
-                  <Anchor className="w-4 h-4" />
-                  <span>Tactical Navigation</span>
-                </div>
+              <div className="space-y-1.5">
                 <h3 className="text-base font-semibold text-white tracking-tight">
-                  Safe Corridors &amp; Sonar Science
+                  In-Situ Sensor Fleet Co-Validation
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  GeoJSON safe fishing zone corridors, port entry paths, wave energy leeway HUD, and Mackenzie sound speed calculation ($1,538.4\text{ m/s}$) for SOFAR acoustic channel ducting.
+                  Direct spatial linking and co-validation with Argo profiling floats, RAMA moored buoys, and ocean gliders across the Indian Ocean basin.
                 </p>
               </div>
             </RayCard>
@@ -358,131 +303,142 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            05 — SCIENTIFIC & OCEANOGRAPHIC FOUNDATIONS
+            04 — RISK & HAZARDS
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              04 / OCEANOGRAPHIC SCIENCE &amp; DATA STANDARDS
+              04 / MARITIME RISK
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              Rigorous Physical Formulations &amp; Open Standards
+              Understand What Makes a Location Risky
             </h2>
             <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
-              Leher enforces scientific rigor across physical equations, open data interoperability, and high-speed binary serialization.
+              Leher presents environmental conditions and detected hazards in a way that helps users understand the safety status of a selected location.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RayCard innerClassName="p-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-semibold">
-                  <BookOpen className="w-4 h-4" />
-                  <span>Physical Formulations</span>
-                </div>
-                <h3 className="text-lg font-bold text-white tracking-tight">
-                  Thermocline &amp; Acoustic Ducting Dynamics
-                </h3>
-                <ul className="space-y-2 text-xs sm:text-sm text-neutral-300 leading-relaxed">
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-400 font-bold">•</span>
-                    <span><strong>$D_{20}$ Thermocline Isotherm</strong>: Solves $20^\circ\text{C}$ depth isotherm to evaluate upper ocean heat potential and cyclone intensification strength.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-400 font-bold">•</span>
-                    <span><strong>Mackenzie Sound Velocity</strong>: Computes acoustic sound speed ($c$) in seawater based on $T, S, z$ to identify SOFAR ducting axes for submarine operations.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-400 font-bold">•</span>
-                    <span><strong>Mixed Layer Depth ($\text{MLD}$)</strong>: Evaluates upper ocean mixing using the $0.2^\circ\text{C}$ temperature threshold criterion.</span>
-                  </li>
-                </ul>
-              </div>
-            </RayCard>
-
-            <RayCard innerClassName="p-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-semibold">
-                  <Database className="w-4 h-4" />
-                  <span>Data Fabric &amp; Open Standards</span>
-                </div>
-                <h3 className="text-lg font-bold text-white tracking-tight">
-                  NetCDF CF-1.8 &amp; Apache Arrow IPC
-                </h3>
-                <ul className="space-y-2 text-xs sm:text-sm text-neutral-300 leading-relaxed">
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">•</span>
-                    <span><strong>CF-1.8 Metadata Conventions</strong>: Full alignment with NetCDF Climate and Forecast standards for global data portal interoperability.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">•</span>
-                    <span><strong>Zero-Copy Apache Arrow IPC</strong>: Streams 3D volumetric slices from DuckDB/Polars backend directly to browser memory without JSON parsing overhead.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">•</span>
-                    <span><strong>OGC GeoJSON Standards</strong>: Standardized geospatial polygons for safe fishing corridors, port channels, and marine ecosystem cells.</span>
-                  </li>
-                </ul>
-              </div>
-            </RayCard>
-          </div>
-        </section>
-
-        {/* ========================================================
-            06 — SIH PROBLEM STATEMENT 26067 COMPLIANCE MATRIX
-           ======================================================== */}
-        <section className="space-y-8">
-          <div className="border-b border-[#1c1c1c] pb-5">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              05 / SIH COMPLIANCE MATRIX
+          {/* RISK STATES */}
+          <div className="space-y-3">
+            <span className="text-xs font-mono uppercase tracking-wider text-neutral-400 block">
+              RISK STATES
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              SIH PS 26067 Requirement Alignment
-            </h2>
-            <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
-              Complete verification matrix against MoES / INCOIS Smart India Hackathon problem requirements.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { id: '1', title: '3D Volumetric Rendering', desc: '0–2000m+ depth slice probes, isosurface extraction, time-step climate animation via Three.js WebGL.' },
-              { id: '2', title: 'Instrument Data Overlay', desc: '16+ active ocean platforms (Argo floats, gliders, OMNI buoys) with profile charts & 30-day drift paths.' },
-              { id: '2b', title: 'Model vs. Obs Hydrodynamic Bias', desc: 'Co-location comparing GLORYS model vs in-situ measurements with RMSE, Mean Bias & Pearson r metrics.' },
-              { id: '3', title: 'Multi-Format Data Ingestion', desc: 'Automated NetCDF/Zarr ingestion via xarray, DuckDB indexing & Apache Arrow IPC binary streams.' },
-              { id: '4', title: 'Colorbar & Variable Controls', desc: '8 scientific palettes (Viridis, Turbo, Plasma, Haline), dynamic min/max auto-scale & vertical exaggeration.' },
-              { id: '5', title: 'Web-Based Scalable Architecture', desc: 'React 19 + Three.js + FastAPI zero-plugin browser architecture built for INCOIS infrastructure.' },
-              { id: '6', title: 'Extensible Sensor Architecture', desc: 'Modular backend plugins ready for future CTDs, moorings, HF-Radar currents, and ADCP profile data.' },
-              { id: '7', title: 'Open Standards & Interoperability', desc: 'NetCDF CF-1.8 metadata compliance, OGC GeoJSON standards, and OpenAPI 3.0 Swagger docs.' },
-              { id: '8', title: 'Disaster Management Mandates', desc: 'Rakshak XGBoost cyclone & surge predictions, fishermen safe zone corridors, and ecosystem health engine.' },
-              { id: '9', title: 'Public Science Communication', desc: 'Educational oceanography outreach page and 1-click executive PDF mission dossier generator.' },
-            ].map((req) => (
-              <RayCard key={req.id} innerClassName="p-4 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-cyan-400 font-bold">REQ-{req.id}</span>
-                    <h3 className="text-sm font-semibold text-white tracking-tight">{req.title}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <RayCard innerClassName="p-3.5 sm:p-4">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 font-mono text-xs font-bold w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span>SAFE</span>
                   </div>
-                  <p className="text-xs text-neutral-400 leading-relaxed">{req.desc}</p>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    Conditions indicate lower operational risk.
+                  </p>
                 </div>
               </RayCard>
-            ))}
+
+              <RayCard innerClassName="p-3.5 sm:p-4">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-950/60 border border-amber-800/60 text-amber-400 font-mono text-xs font-bold w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    <span>CAUTION</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    Conditions require additional attention before proceeding.
+                  </p>
+                </div>
+              </RayCard>
+
+              <RayCard innerClassName="p-3.5 sm:p-4">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-rose-950/60 border border-rose-800/60 text-rose-400 font-mono text-xs font-bold w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                    <span>DANGER</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    Conditions indicate elevated maritime risk.
+                  </p>
+                </div>
+              </RayCard>
+            </div>
+          </div>
+
+          {/* RISK FACTORS & HAZARDS (2-column layout) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+            {/* Risk Factors */}
+            <RayCard className="lg:col-span-7" innerClassName="p-6">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-300 font-semibold block mb-3">
+                WHAT CAN AFFECT RISK?
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">1. Ocean Conditions</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Temperature, currents and other local environmental conditions.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">2. Severe Weather</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Cyclone and storm conditions that can affect maritime activity.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">3. Storm Surge</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Abnormal coastal water-level rise associated with severe weather.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold text-white block">4. Local Conditions</span>
+                  <p className="text-neutral-400 text-xs leading-relaxed">
+                    Conditions at a selected location that may change its overall safety status.
+                  </p>
+                </div>
+              </div>
+            </RayCard>
+
+            {/* Compact Hazards List */}
+            <RayCard className="lg:col-span-5" innerClassName="p-6">
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-300 font-semibold block mb-3">
+                HAZARDS
+              </span>
+              <div className="space-y-3.5">
+                <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                  <div className="flex items-center gap-2 text-rose-400 font-semibold text-xs font-mono">
+                    <Wind className="w-3.5 h-3.5" />
+                    <span>CYCLONE / STORM</span>
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Severe weather that can affect maritime movement and safety.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                  <div className="flex items-center gap-2 text-neutral-300 font-semibold text-xs font-mono">
+                    <CloudRain className="w-3.5 h-3.5" />
+                    <span>STORM SURGE</span>
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Abnormal coastal water-level rise associated with severe weather.
+                  </p>
+                </div>
+              </div>
+            </RayCard>
           </div>
         </section>
 
         {/* ========================================================
-            07 — USER WORKFLOW & MARITIME RISK STATES
+            05 — HOW LEHER WORKS
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              06 / OPERATIONAL USER WORKFLOW
+              05 / USER FLOW
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              From Raw Data to Tactical Action
+              From Ocean Conditions to Action
             </h2>
-            <div className="mt-3 flex items-center gap-2 font-mono text-xs text-cyan-400 font-semibold tracking-wide">
+            <div className="mt-3 flex items-center gap-2 font-mono text-xs text-neutral-300 font-semibold tracking-wide">
               <span>SEE</span>
               <span className="text-neutral-600">→</span>
               <span>CLICK</span>
@@ -496,40 +452,48 @@ export function AboutLeherPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <RayCard innerClassName="p-4 sm:p-4.5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 01</span>
-                <h3 className="text-base font-bold text-white tracking-tight">SEE</h3>
+                <span className="text-xs font-mono text-neutral-400 block">STEP 01</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  SEE
+                </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Explore 3D ocean model fields and locate active in-situ sensor pins on the interactive globe.
+                  Explore the 3D ocean environment and identify an area of interest.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-4.5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 02</span>
-                <h3 className="text-base font-bold text-white tracking-tight">CLICK</h3>
+                <span className="text-xs font-mono text-neutral-400 block">STEP 02</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  CLICK
+                </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Select coordinates, probe subsurface depths ($0-2000\text{m}$), or inspect an Argo float profile.
+                  Select a location or hazard on the map.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-4.5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 03</span>
-                <h3 className="text-base font-bold text-white tracking-tight">UNDERSTAND</h3>
+                <span className="text-xs font-mono text-neutral-400 block">STEP 03</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  UNDERSTAND
+                </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Review model vs obs hydrodynamic bias, ML surge probability, and thermocline stability.
+                  Review ocean conditions, observations and risk for that location.
                 </p>
               </div>
             </RayCard>
 
             <RayCard innerClassName="p-4 sm:p-4.5">
               <div className="space-y-1.5">
-                <span className="text-xs font-mono text-cyan-400 font-bold block">STEP 04</span>
-                <h3 className="text-base font-bold text-white tracking-tight">ACT</h3>
+                <span className="text-xs font-mono text-neutral-400 block">STEP 04</span>
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  ACT
+                </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Issue safe fishing corridor advisories, set naval sonar acoustic channels, or export mission PDF.
+                  Use the information to respond to hazards or support a safer route decision.
                 </p>
               </div>
             </RayCard>
@@ -537,45 +501,39 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            08 — TARGET MARITIME OPERATORS
+            06 — WHO IT IS FOR
            ======================================================== */}
         <section className="space-y-8">
           <div className="border-b border-[#1c1c1c] pb-5">
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              07 / OPERATIONAL STAKEHOLDERS
+              06 / USERS
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              Serving India's Maritime Community
+              Designed Around Maritime Use
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <RayCard innerClassName="p-5">
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-cyan-400 font-semibold block">STAKEHOLDER 01</span>
-                <h3 className="text-lg font-bold text-white tracking-tight">Fishermen &amp; Coastal Communities</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <RayCard innerClassName="p-4.5 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 01</span>
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  FISHERMEN
+                </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Access simplified GeoJSON safe zone corridors, wave height warnings, and storm surge advisories before embarking at sea.
+                  Quickly understand conditions, hazards and local risk before making decisions at sea.
                 </p>
               </div>
             </RayCard>
 
-            <RayCard innerClassName="p-5">
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-emerald-400 font-semibold block">STAKEHOLDER 02</span>
-                <h3 className="text-lg font-bold text-white tracking-tight">INCOIS &amp; Disaster Managers</h3>
+            <RayCard innerClassName="p-4.5 sm:p-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono text-neutral-400 font-semibold block">USER GROUP 02</span>
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  COAST GUARD
+                </h3>
                 <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Rapidly cross-validate numerical forecast bias against physical Argo observations and export printable executive PDF dossiers.
-                </p>
-              </div>
-            </RayCard>
-
-            <RayCard innerClassName="p-5">
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-purple-400 font-semibold block">STAKEHOLDER 03</span>
-                <h3 className="text-lg font-bold text-white tracking-tight">Naval &amp; Maritime Security</h3>
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-                  Analyze acoustic sound velocity profiles, SOFAR ducting channel axes, and Plimsoll draft buoyancy variations.
+                  Inspect ocean conditions, hazards and route risk when assessing maritime situations.
                 </p>
               </div>
             </RayCard>
@@ -583,59 +541,14 @@ export function AboutLeherPage() {
         </section>
 
         {/* ========================================================
-            09 — GITHUB REPOSITORY & TEAM CREDITS
-           ======================================================== */}
-        <section className="space-y-8">
-          <div className="border-b border-[#1c1c1c] pb-5">
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest block">
-              08 / OPEN SOURCE &amp; REPOSITORY
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
-              Master Codebase &amp; Open Development
-            </h2>
-            <p className="text-sm text-neutral-400 mt-2 max-w-2xl leading-relaxed">
-              Leher is fully open-source and ready for integration with national oceanographic computing infrastructures.
-            </p>
-          </div>
-
-          <RayCard innerClassName="p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-3 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <GitBranch className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-xl font-bold text-white tracking-tight">DNA-Coded / LEHER</h3>
-              </div>
-              <p className="text-xs sm:text-sm text-neutral-400 max-w-xl leading-relaxed">
-                Explore our full repository containing React 19 frontend, FastAPI Polars/DuckDB data fabric, xarray NetCDF pipelines, and Rakshak machine learning models.
-              </p>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 font-mono text-xs text-neutral-400">
-                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-cyan-300">React 19</span>
-                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-teal-300">Three.js WebGL</span>
-                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-300">FastAPI</span>
-                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-amber-300">Apache Arrow IPC</span>
-              </div>
-            </div>
-
-            <a
-              href="https://github.com/DNA-Coded/LEHER"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-black font-bold text-sm shadow-lg transition-all transform hover:scale-105 shrink-0"
-            >
-              <span>View GitHub Repository</span>
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </RayCard>
-        </section>
-
-        {/* ========================================================
-            10 — FINAL CTA
+            07 — FINAL CTA
            ======================================================== */}
         <section className="pt-4 text-center max-w-xl mx-auto space-y-5 border-t border-[#1c1c1c]">
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Explore Leher Platform
+            Explore Leher
           </h2>
           <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-            Experience 3D subsurface ocean intelligence and maritime risk assessment for the Indian Ocean.
+            Explore ocean conditions, assess locations and understand maritime risk across the Indian Ocean.
           </p>
 
           <div className="pt-2 flex justify-center">
@@ -644,7 +557,7 @@ export function AboutLeherPage() {
               className="py-3 px-8 text-sm font-semibold shadow-xl"
             >
               <Compass className="w-4 h-4 text-cyan-400" />
-              <span>Launch Operations Console</span>
+              <span>Launch Platform</span>
               <ArrowRight className="w-4 h-4 opacity-80" />
             </ShinyButton>
           </div>
@@ -657,7 +570,7 @@ export function AboutLeherPage() {
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-mono text-neutral-500">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Leher Logo" title="Leher" className="h-4 w-auto object-contain opacity-70" />
-            <span>Leher • SIH PS 26067 • INCOIS / MoES</span>
+            <span>Leher • Indian Ocean Maritime Safety &amp; Risk Intelligence</span>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => navigateTo('/')} className="hover:text-white cursor-pointer transition-colors">
@@ -669,9 +582,6 @@ export function AboutLeherPage() {
             <button onClick={() => navigateTo('/operations')} className="hover:text-white cursor-pointer transition-colors">
               Explore / Platform
             </button>
-            <a href="https://github.com/DNA-Coded/LEHER" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-              GitHub
-            </a>
           </div>
         </div>
       </footer>
