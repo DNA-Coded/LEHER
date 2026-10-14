@@ -624,21 +624,7 @@ To render dense 4D oceanographic arrays in consumer web browsers without UI stut
 
 ---
 
-## 17. PROJECT ROADMAP
-
-- [x] **Phase 1: Architecture & Data Ingestion**: Copernicus GLORYS12V1 3D NetCDF regional acquisition and validation.
-- [x] **Phase 2: FastAPI Subsetting Engine**: REST API endpoints for spatial, temporal, and depth queries.
-- [x] **Phase 3: In-Situ Sensor Networks**: Argo floats, underwater gliders, and INCOIS OMNI moored buoys integration.
-- [x] **Phase 4: Model vs. Observation Anomaly Engine**: Statistical bias calculation (RMSE, MAE, Pearson $r$).
-- [x] **Phase 5: 3D Volumetric Subsurface Slicing**: Three.js WebGL volume visualizer with off-thread Web Workers.
-- [x] **Phase 6: Institutional Maritime Hazard Dossier**: 10-variable Copernicus matrix, hazard alerts, and automated PDF export.
-- [x] **Phase 7: Multi-Device Responsive System**: Comprehensive mobile, tablet, and desktop adaptive layouts.
-- [ ] **Phase 8: Real-Time INCOIS OGC Service Ingestion**: Automated live WMS/WCS harvester for operational INCOIS ROMS model feeds.
-- [ ] **Phase 9: Multi-Year 4D Time Series Animation**: Cloud-native Zarr chunk streaming for decade-scale climate trend playback.
-
----
-
-## 18. ACKNOWLEDGEMENTS & SCIENTIFIC REFERENCES
+## 17. ACKNOWLEDGEMENTS & SCIENTIFIC REFERENCES
 
 ### Sponsoring & Supporting Organizations
 - **Indian National Centre for Ocean Information Services (INCOIS)**, Hyderabad, India.
