@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">Leher (लहर)</h1>
+<h1 align="center">Leher</h1>
 
 <p align="center">
   <strong>3D Ocean Intelligence, Subsurface Stratification &amp; Maritime Hazard Visualization Platform</strong><br>
