@@ -28,8 +28,8 @@ def load_data_and_models():
     cyclone_model = xgb.XGBClassifier()
     surge_model = xgb.XGBRegressor()
     
-    if not CYCLONE_MODEL_PATH.exists() or not SURGE_MODEL_PATH.exists() or not FEATURES_PATH.exists():
-        print("Error: Models or feature data not found in fabric/ml/. Please run the training pipeline first.")
+    if not CYCLONE_MODEL_PATH.exists() or not SURGE_MODEL_PATH.exists():
+        print("Error: Models not found in fabric/ml/. Please ensure anomaly_model.json and surge_model.json exist.")
         return None, None, None
         
     cyclone_model.load_model(CYCLONE_MODEL_PATH)
@@ -37,7 +37,25 @@ def load_data_and_models():
     
     print("Loading ocean data (this takes a few seconds)...")
     import polars as pl
-    features_df = pl.read_parquet(FEATURES_PATH)
+    if not FEATURES_PATH.exists():
+        try:
+            from services.jal_chakra.core.safe_zones import load_surface_snapshot, coarsen_to_grid
+            from services.jal_chakra.core.rakshak import build_inference_features
+            print("  Extracting surface snapshot from active Copernicus Zarr dataset...")
+            surface_df = load_surface_snapshot()
+            grid_df = coarsen_to_grid(surface_df)
+            features_df = build_inference_features(grid_df)
+            features_df = features_df.with_columns([
+                features_df['lat_grid'].alias('latitude'),
+                features_df['lon_grid'].alias('longitude')
+            ])
+            FEATURES_PATH.parent.mkdir(parents=True, exist_ok=True)
+            features_df.write_parquet(FEATURES_PATH)
+        except Exception as e:
+            print(f"Error loading active dataset: {e}")
+            return None, None, None
+    else:
+        features_df = pl.read_parquet(FEATURES_PATH)
     
     return cyclone_model, surge_model, features_df
 

@@ -13,3 +13,4 @@ copernicusmarine
 netCDF4
 numpy
 pyarrow
+pyttsx3

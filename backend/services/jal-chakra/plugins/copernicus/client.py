@@ -45,7 +45,7 @@ def acquire_glorys_data(
 
     phy_output = output_filename.replace(".nc", "_phy.nc")
     copernicusmarine.subset(
-        dataset_id="cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m",
+        dataset_id="cmems_mod_glo_phy_my_0.083deg_P1D-m",
         variables=["thetao", "so", "uo", "vo", "zos", "mlotst", "bottomT", "siconc", "sithick"],
         minimum_longitude=min_lon,
         maximum_longitude=max_lon,
@@ -57,7 +57,7 @@ def acquire_glorys_data(
         end_datetime=end_datetime,
         output_filename=phy_output,
         output_directory=str(output_dir),
-        force_download=True,
+        overwrite=True,
     )
     
     bio_output = output_filename.replace(".nc", "_bio.nc")
@@ -74,7 +74,7 @@ def acquire_glorys_data(
         end_datetime=end_datetime,
         output_filename=bio_output,
         output_directory=str(output_dir),
-        force_download=True,
+        overwrite=True,
     )
     
     phy_path = output_dir / phy_output

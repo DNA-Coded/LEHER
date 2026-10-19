@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: leher_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the data fabric directory so all Zarr datasets and ML artifacts persist on the VPS
+      - ./backend/fabric:/app/fabric
+    environment:
+      - ENV=production
+      - LEHER_ALLOWED_ORIGINS=*
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
