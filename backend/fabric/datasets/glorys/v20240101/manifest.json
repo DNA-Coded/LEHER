@@ -3,76 +3,173 @@
   "source_id": "GLOBAL_MULTIYEAR_PHY_001_030",
   "revision_label": "v20240101",
   "is_active": true,
-  "published_at": "2024-01-01T00:00:00Z",
-  "time_min": "2024-01-01T00:00:00Z",
-  "time_max": "2024-01-03T00:00:00Z",
-  "depth_min_m": 0.49,
-  "depth_max_m": 2000.0,
+  "published_at": "2026-10-19T16:58:09.493763+00:00",
+  "time_min": "2024-01-01T00:00:00.000000000",
+  "time_max": "2024-01-01T00:00:00.000000000",
+  "depth_min_m": 0.49402499198913574,
+  "depth_max_m": 5274.7841796875,
   "native_depths": [
-    0.49,
-    5.0,
-    15.0,
-    30.0,
-    50.0,
-    75.0,
-    100.0,
-    150.0,
-    200.0,
-    300.0,
-    500.0,
-    750.0,
-    1000.0,
-    1500.0,
-    2000.0
+    0.49402499198913574,
+    1.5413750410079956,
+    2.6456689834594727,
+    3.8194949626922607,
+    5.078224182128906,
+    6.440614223480225,
+    7.92956018447876,
+    9.572997093200684,
+    11.404999732971191,
+    13.467140197753906,
+    15.810070037841797,
+    18.495559692382812,
+    21.598819732666016,
+    25.211410522460938,
+    29.444730758666992,
+    34.43415069580078,
+    40.344051361083984,
+    47.37369155883789,
+    55.76428985595703,
+    65.80726623535156,
+    77.85385131835938,
+    92.3260726928711,
+    109.72930145263672,
+    130.66600036621094,
+    155.85069274902344,
+    186.12559509277344,
+    222.47520446777344,
+    266.0403137207031,
+    318.1274108886719,
+    380.2130126953125,
+    453.9377136230469,
+    541.0889282226562,
+    643.5667724609375,
+    763.3331298828125,
+    902.3392944335938,
+    1062.43994140625,
+    1245.291015625,
+    1452.2509765625,
+    1684.2840576171875,
+    1941.8929443359375,
+    2225.077880859375,
+    2533.3359375,
+    2865.702880859375,
+    3220.820068359375,
+    3597.031982421875,
+    3992.48388671875,
+    4405.22412109375,
+    4833.291015625,
+    5274.7841796875
   ],
+  "bbox": {
+    "lon_min": 50.0,
+    "lon_max": 100.0,
+    "lat_min": -20.0,
+    "lat_max": 25.0
+  },
   "variables": [
     {
       "canonical_name": "temperature",
-      "standard_name": "sea_water_potential_temperature",
+      "source_name": "thetao",
       "units": "degrees_C",
-      "zarr_path": "temperature.zarr"
+      "standard_name": "sea_water_potential_temperature",
+      "data_min": -1.0150761604309082,
+      "data_max": 32.6304817199707,
+      "zarr_path": "datasets/glorys/v20240101/temperature.zarr"
     },
     {
       "canonical_name": "salinity",
-      "standard_name": "sea_water_salinity",
+      "source_name": "so",
       "units": "1e-3",
-      "zarr_path": "salinity.zarr"
-    },
-    {
-      "canonical_name": "uo",
-      "standard_name": "eastward_sea_water_velocity",
-      "units": "m s-1",
-      "zarr_path": "uo.zarr"
-    },
-    {
-      "canonical_name": "vo",
-      "standard_name": "northward_sea_water_velocity",
-      "units": "m s-1",
-      "zarr_path": "vo.zarr"
+      "standard_name": "sea_water_salinity",
+      "data_min": 3.932309865951538,
+      "data_max": 40.35615158081055,
+      "zarr_path": "datasets/glorys/v20240101/salinity.zarr"
     },
     {
       "canonical_name": "u_velocity",
-      "standard_name": "eastward_sea_water_velocity",
+      "source_name": "uo",
       "units": "m s-1",
-      "zarr_path": "u_velocity.zarr"
+      "standard_name": "eastward_sea_water_velocity",
+      "data_min": -1.3794366121292114,
+      "data_max": 1.6058839559555054,
+      "zarr_path": "datasets/glorys/v20240101/u_velocity.zarr"
     },
     {
       "canonical_name": "v_velocity",
-      "standard_name": "northward_sea_water_velocity",
+      "source_name": "vo",
       "units": "m s-1",
-      "zarr_path": "v_velocity.zarr"
+      "standard_name": "northward_sea_water_velocity",
+      "data_min": -1.2860499620437622,
+      "data_max": 1.0327463150024414,
+      "zarr_path": "datasets/glorys/v20240101/v_velocity.zarr"
     },
     {
-      "canonical_name": "current_speed",
-      "standard_name": "sea_water_speed",
-      "units": "m s-1",
-      "zarr_path": "current_speed.zarr"
+      "canonical_name": "sea_surface_height",
+      "source_name": "zos",
+      "units": "m",
+      "standard_name": "sea_surface_height_above_geoid",
+      "data_min": -0.07232886552810669,
+      "data_max": 1.0983611345291138,
+      "zarr_path": "datasets/glorys/v20240101/sea_surface_height.zarr"
+    },
+    {
+      "canonical_name": "mixed_layer_depth",
+      "source_name": "mlotst",
+      "units": "m",
+      "standard_name": "ocean_mixed_layer_thickness_defined_by_sigma_theta",
+      "data_min": 5.798517227172852,
+      "data_max": 103.30516052246094,
+      "zarr_path": "datasets/glorys/v20240101/mixed_layer_depth.zarr"
+    },
+    {
+      "canonical_name": "bottom_temperature",
+      "source_name": "bottomT",
+      "units": "degrees_C",
+      "standard_name": "sea_water_potential_temperature_at_sea_floor",
+      "data_min": 9.157508611679077e-05,
+      "data_max": 32.32725143432617,
+      "zarr_path": "datasets/glorys/v20240101/bottom_temperature.zarr"
+    },
+    {
+      "canonical_name": "sea_ice_fraction",
+      "source_name": "siconc",
+      "units": "1",
+      "standard_name": "sea_ice_area_fraction",
+      "data_min": null,
+      "data_max": null,
+      "zarr_path": "datasets/glorys/v20240101/sea_ice_fraction.zarr"
+    },
+    {
+      "canonical_name": "sea_ice_thickness",
+      "source_name": "sithick",
+      "units": "m",
+      "standard_name": "sea_ice_thickness",
+      "data_min": null,
+      "data_max": null,
+      "zarr_path": "datasets/glorys/v20240101/sea_ice_thickness.zarr"
     },
     {
       "canonical_name": "chlorophyll",
-      "standard_name": "mass_concentration_of_chlorophyll_a_in_sea_water",
+      "source_name": "chl",
       "units": "mg m-3",
-      "zarr_path": "chlorophyll.zarr"
+      "standard_name": "mass_concentration_of_chlorophyll_a_in_sea_water",
+      "data_min": 0.0028144451789557934,
+      "data_max": 9.494749069213867,
+      "zarr_path": "datasets/glorys/v20240101/chlorophyll.zarr"
+    },
+    {
+      "canonical_name": "current_speed",
+      "source_name": "derived(uo, vo)",
+      "units": "m s-1",
+      "standard_name": "sea_water_speed",
+      "data_min": 0.0,
+      "data_max": 1.6239991188049316,
+      "zarr_path": "datasets/glorys/v20240101/current_speed.zarr"
     }
-  ]
+  ],
+  "provenance": {
+    "source_url": "https://data.marine.copernicus.eu/",
+    "download_timestamp": "2026-10-19T16:58:09.494294+00:00",
+    "sha256": "2537e105b48a17ea57dd3fc685e804b3a227d3dd7b72360c49113c24739539f4",
+    "cf_validation": "PASS"
+  }
 }

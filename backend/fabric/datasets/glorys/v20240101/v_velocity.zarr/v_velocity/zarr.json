@@ -1,19 +1,19 @@
 {
   "shape": [
-    3,
-    15,
-    36,
-    51
+    1,
+    49,
+    541,
+    601
   ],
   "data_type": "float32",
   "chunk_grid": {
     "name": "regular",
     "configuration": {
       "chunk_shape": [
-        2,
-        15,
-        36,
-        51
+        1,
+        1,
+        541,
+        601
       ]
     }
   },
@@ -40,6 +40,13 @@
     }
   ],
   "attributes": {
+    "cell_methods": "area: mean",
+    "long_name": "Northward velocity",
+    "standard_name": "northward_sea_water_velocity",
+    "unit_long": "Meters per second",
+    "units": "m s-1",
+    "valid_max": 3639,
+    "valid_min": -3680,
     "_FillValue": "AAAAAAAA+H8="
   },
   "dimension_names": [

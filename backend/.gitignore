@@ -29,9 +29,14 @@ ENV/
 # Data and large files (GitHub max file size is 100MB)
 *.nc
 *.parquet
+*.zarr/
+*.zarr
+*.tar.gz
 data/
 # Keep the ML output folder structure but ignore the huge data files
 fabric/ml/*.parquet
+fabric/datasets/glorys/**/*.zarr/
+fabric/datasets/glorys/**/*.zarr
 
 # IDEs
 .idea/

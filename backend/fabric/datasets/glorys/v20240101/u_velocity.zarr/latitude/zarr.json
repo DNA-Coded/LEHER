@@ -1,13 +1,13 @@
 {
   "shape": [
-    36
+    541
   ],
-  "data_type": "float64",
+  "data_type": "float32",
   "chunk_grid": {
     "name": "regular",
     "configuration": {
       "chunk_shape": [
-        36
+        541
       ]
     }
   },
@@ -34,6 +34,11 @@
     }
   ],
   "attributes": {
+    "long_name": "Latitude",
+    "unit_long": "Degrees North",
+    "standard_name": "latitude",
+    "axis": "Y",
+    "units": "degrees_north",
     "_FillValue": "AAAAAAAA+H8="
   },
   "dimension_names": [

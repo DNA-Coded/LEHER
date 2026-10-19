@@ -1,23 +1,23 @@
 {
-  "run_at": "2026-09-21T16:55:50.796976+00:00",
-  "n_cyclone_events": 41,
-  "n_surge_events": 0,
-  "n_tide_events": 0,
-  "n_zones": 1836,
-  "n_safe": 1662,
-  "n_caution": 83,
-  "n_danger": 91,
+  "run_at": "2026-10-19T17:55:13.487759+00:00",
+  "n_cyclone_events": 8540,
+  "n_surge_events": 1276,
+  "n_tide_events": 4812,
+  "n_zones": 31159,
+  "n_safe": 5838,
+  "n_caution": 12184,
+  "n_danger": 13137,
   "ecosystem": {
-    "n_healthy": 1836,
-    "n_moderate": 0,
-    "n_stressed": 0,
+    "n_healthy": 28050,
+    "n_moderate": 3064,
+    "n_stressed": 45,
     "n_critical": 0,
-    "avg_stress_score": 15.6
+    "avg_stress_score": 15.3
   },
   "outputs": {
-    "hazards": "fabric\\ml\\hazards.parquet",
-    "safe_zones_geojson": "fabric\\ml\\safe_zones.geojson",
-    "safe_zones_parquet": "fabric\\ml\\safe_zones.parquet",
-    "ecosystem": "fabric\\ml\\ecosystem.json"
+    "hazards": "fabric/ml/hazards.parquet",
+    "safe_zones_geojson": "fabric/ml/safe_zones.geojson",
+    "safe_zones_parquet": "fabric/ml/safe_zones.parquet",
+    "ecosystem": "fabric/ml/ecosystem.json"
   }
 }

@@ -1,19 +1,19 @@
 {
   "shape": [
-    3,
-    15,
-    36,
-    51
+    1,
+    49,
+    541,
+    601
   ],
   "data_type": "float32",
   "chunk_grid": {
     "name": "regular",
     "configuration": {
       "chunk_shape": [
-        2,
-        15,
-        36,
-        51
+        1,
+        1,
+        541,
+        601
       ]
     }
   },
@@ -40,6 +40,12 @@
     }
   ],
   "attributes": {
+    "long_name": "Total Chlorophyll",
+    "standard_name": "mass_concentration_of_chlorophyll_a_in_sea_water",
+    "unit_long": "milligram of Chlorophyll per cubic meter",
+    "units": "mg m-3",
+    "valid_max": 100.0,
+    "valid_min": 0.0,
     "_FillValue": "AAAAAAAA+H8="
   },
   "dimension_names": [

@@ -1,19 +1,19 @@
 {
   "shape": [
-    3,
-    15,
-    36,
-    51
+    1,
+    49,
+    541,
+    601
   ],
   "data_type": "float32",
   "chunk_grid": {
     "name": "regular",
     "configuration": {
       "chunk_shape": [
-        2,
-        15,
-        36,
-        51
+        1,
+        1,
+        541,
+        601
       ]
     }
   },
@@ -40,6 +40,13 @@
     }
   ],
   "attributes": {
+    "cell_methods": "area: mean",
+    "long_name": "Temperature",
+    "standard_name": "sea_water_potential_temperature",
+    "unit_long": "Degrees Celsius",
+    "units": "degrees_C",
+    "valid_max": 21306,
+    "valid_min": -32766,
     "_FillValue": "AAAAAAAA+H8="
   },
   "dimension_names": [

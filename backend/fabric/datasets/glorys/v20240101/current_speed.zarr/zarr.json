@@ -7,20 +7,20 @@
     "metadata": {
       "current_speed": {
         "shape": [
-          3,
-          15,
-          36,
-          51
+          1,
+          49,
+          541,
+          601
         ],
         "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              2,
-              15,
-              36,
-              51
+              1,
+              13,
+              136,
+              151
             ]
           }
         },
@@ -47,6 +47,8 @@
           }
         ],
         "attributes": {
+          "units": "m s-1",
+          "standard_name": "sea_water_speed",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -61,14 +63,14 @@
       },
       "depth": {
         "shape": [
-          15
+          49
         ],
-        "data_type": "float64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              15
+              49
             ]
           }
         },
@@ -95,6 +97,12 @@
           }
         ],
         "attributes": {
+          "long_name": "Depth",
+          "unit_long": "Meters",
+          "standard_name": "depth",
+          "axis": "Z",
+          "units": "m",
+          "positive": "down",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -106,14 +114,14 @@
       },
       "latitude": {
         "shape": [
-          36
+          541
         ],
-        "data_type": "float64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              36
+              541
             ]
           }
         },
@@ -140,6 +148,11 @@
           }
         ],
         "attributes": {
+          "long_name": "Latitude",
+          "unit_long": "Degrees North",
+          "standard_name": "latitude",
+          "axis": "Y",
+          "units": "degrees_north",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -151,14 +164,14 @@
       },
       "longitude": {
         "shape": [
-          51
+          601
         ],
-        "data_type": "float64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              51
+              601
             ]
           }
         },
@@ -185,6 +198,11 @@
           }
         ],
         "attributes": {
+          "long_name": "Longitude",
+          "unit_long": "Degrees East",
+          "standard_name": "longitude",
+          "axis": "X",
+          "units": "degrees_east",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -196,14 +214,14 @@
       },
       "time": {
         "shape": [
-          3
+          1
         ],
-        "data_type": "int64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              3
+              1
             ]
           }
         },
@@ -213,7 +231,7 @@
             "separator": "/"
           }
         },
-        "fill_value": 0,
+        "fill_value": "NaN",
         "codecs": [
           {
             "name": "bytes",
@@ -230,8 +248,13 @@
           }
         ],
         "attributes": {
-          "units": "days since 2024-01-01 00:00:00",
-          "calendar": "proleptic_gregorian"
+          "standard_name": "time",
+          "axis": "T",
+          "long_name": "Time",
+          "unit_long": "Hours Since 1950-01-01",
+          "units": "hours since 1950-01-01",
+          "calendar": "gregorian",
+          "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
           "time"

@@ -1,13 +1,13 @@
 {
   "shape": [
-    51
+    601
   ],
-  "data_type": "float64",
+  "data_type": "float32",
   "chunk_grid": {
     "name": "regular",
     "configuration": {
       "chunk_shape": [
-        51
+        601
       ]
     }
   },
@@ -34,6 +34,11 @@
     }
   ],
   "attributes": {
+    "long_name": "Longitude",
+    "unit_long": "Degrees East",
+    "standard_name": "longitude",
+    "axis": "X",
+    "units": "degrees_east",
     "_FillValue": "AAAAAAAA+H8="
   },
   "dimension_names": [

@@ -1,19 +1,19 @@
 {
   "shape": [
-    3,
-    15,
-    36,
-    51
+    1,
+    49,
+    541,
+    601
   ],
   "data_type": "float32",
   "chunk_grid": {
     "name": "regular",
     "configuration": {
       "chunk_shape": [
-        2,
-        15,
-        36,
-        51
+        1,
+        13,
+        136,
+        151
       ]
     }
   },
@@ -40,6 +40,8 @@
     }
   ],
   "attributes": {
+    "units": "m s-1",
+    "standard_name": "sea_water_speed",
     "_FillValue": "AAAAAAAA+H8="
   },
   "dimension_names": [

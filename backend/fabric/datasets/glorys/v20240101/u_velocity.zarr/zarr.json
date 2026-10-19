@@ -7,14 +7,14 @@
     "metadata": {
       "depth": {
         "shape": [
-          15
+          49
         ],
-        "data_type": "float64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              15
+              49
             ]
           }
         },
@@ -41,6 +41,12 @@
           }
         ],
         "attributes": {
+          "long_name": "Depth",
+          "unit_long": "Meters",
+          "standard_name": "depth",
+          "axis": "Z",
+          "units": "m",
+          "positive": "down",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -52,14 +58,14 @@
       },
       "latitude": {
         "shape": [
-          36
+          541
         ],
-        "data_type": "float64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              36
+              541
             ]
           }
         },
@@ -86,6 +92,11 @@
           }
         ],
         "attributes": {
+          "long_name": "Latitude",
+          "unit_long": "Degrees North",
+          "standard_name": "latitude",
+          "axis": "Y",
+          "units": "degrees_north",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -97,14 +108,14 @@
       },
       "longitude": {
         "shape": [
-          51
+          601
         ],
-        "data_type": "float64",
+        "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              51
+              601
             ]
           }
         },
@@ -131,6 +142,11 @@
           }
         ],
         "attributes": {
+          "long_name": "Longitude",
+          "unit_long": "Degrees East",
+          "standard_name": "longitude",
+          "axis": "X",
+          "units": "degrees_east",
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
@@ -142,66 +158,14 @@
       },
       "time": {
         "shape": [
-          3
-        ],
-        "data_type": "int64",
-        "chunk_grid": {
-          "name": "regular",
-          "configuration": {
-            "chunk_shape": [
-              3
-            ]
-          }
-        },
-        "chunk_key_encoding": {
-          "name": "default",
-          "configuration": {
-            "separator": "/"
-          }
-        },
-        "fill_value": 0,
-        "codecs": [
-          {
-            "name": "bytes",
-            "configuration": {
-              "endian": "little"
-            }
-          },
-          {
-            "name": "zstd",
-            "configuration": {
-              "level": 0,
-              "checksum": false
-            }
-          }
-        ],
-        "attributes": {
-          "units": "days since 2024-01-01 00:00:00",
-          "calendar": "proleptic_gregorian"
-        },
-        "dimension_names": [
-          "time"
-        ],
-        "zarr_format": 3,
-        "node_type": "array",
-        "storage_transformers": []
-      },
-      "u_velocity": {
-        "shape": [
-          3,
-          15,
-          36,
-          51
+          1
         ],
         "data_type": "float32",
         "chunk_grid": {
           "name": "regular",
           "configuration": {
             "chunk_shape": [
-              2,
-              15,
-              36,
-              51
+              1
             ]
           }
         },
@@ -228,6 +192,70 @@
           }
         ],
         "attributes": {
+          "standard_name": "time",
+          "axis": "T",
+          "long_name": "Time",
+          "unit_long": "Hours Since 1950-01-01",
+          "units": "hours since 1950-01-01",
+          "calendar": "gregorian",
+          "_FillValue": "AAAAAAAA+H8="
+        },
+        "dimension_names": [
+          "time"
+        ],
+        "zarr_format": 3,
+        "node_type": "array",
+        "storage_transformers": []
+      },
+      "u_velocity": {
+        "shape": [
+          1,
+          49,
+          541,
+          601
+        ],
+        "data_type": "float32",
+        "chunk_grid": {
+          "name": "regular",
+          "configuration": {
+            "chunk_shape": [
+              1,
+              1,
+              541,
+              601
+            ]
+          }
+        },
+        "chunk_key_encoding": {
+          "name": "default",
+          "configuration": {
+            "separator": "/"
+          }
+        },
+        "fill_value": "NaN",
+        "codecs": [
+          {
+            "name": "bytes",
+            "configuration": {
+              "endian": "little"
+            }
+          },
+          {
+            "name": "zstd",
+            "configuration": {
+              "level": 0,
+              "checksum": false
+            }
+          }
+        ],
+        "attributes": {
+          "cell_methods": "area: mean",
+          "long_name": "Eastward velocity",
+          "standard_name": "eastward_sea_water_velocity",
+          "unit_long": "Meters per second",
+          "units": "m s-1",
+          "valid_max": 4314,
+          "valid_min": -3123,
           "_FillValue": "AAAAAAAA+H8="
         },
         "dimension_names": [
